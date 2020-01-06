@@ -5,7 +5,7 @@ from PIL import Image
 import tkinter.ttk as ttk
 import os
 import random
-
+import uuid
 functionList = ['Click', 'Exist', 'NotExist']
 selectedFunc = []
 
@@ -96,20 +96,26 @@ class ScreenShotWindow():
             self.x1, self.y1 = event.x, event.y
 
 def addFunction():
-    selectedFunc.append({'name':functionList[Lb1.curselection()[0]], 'img':''})
+    selectedFunc.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':uuid.uuid1()})
     Lb2.delete(0, 'end')
 
     for x in range(0, len(selectedFunc)):
         Lb2.insert(x, selectedFunc[x].get('name'))
-
     Lb2.place(x=0, y=0)
 
 def removeFunctions():
-    value = Lb2.get(Lb2.curselection())
-    print(selectedFunc.index(value))
-    Lb2.delete(ANCHOR)
+    print(Lb2.curselection()[0])
+    value = Lb2.curselection()[0]
+    selectedFunc.pop(value)
 
-    selectedFunc.pop(selectedFunc.index(value))
+    Lb2.delete(0, 'end')
+
+    for x in range(0, len(selectedFunc)):
+        Lb2.insert(x, selectedFunc[x].get('name'))
+    Lb2.place(x=0, y=0)
+
+    print(Lb2)
+    print(selectedFunc)
 def window2():
     window2 = ScreenShotWindow()
 
@@ -128,21 +134,25 @@ def SUBS(path, parent, tree, fileImg):
             parent_element = tree.insert(parent, 'end', text=p, open=False, image=fileImg, tag="T")
 
 
+
+
 def FocusOnSelectedFunc(event):
+
+
     takeScreenShot.config(state='normal')
     photoViewLabel = Label(mainScreen, text='Shot View')
     photoViewLabel.place(x=1620, y=560)
-    print('innnnn')
     widget = event.widget
     selection = widget.curselection()
     nameOfFun = Lb2.get(selection)
 
     photoName = ''
-
+    functionName = ''
     for x in selectedFunc:
         if (x.get('name') == nameOfFun):
             try:
                 photoName = x.get('img').img
+                functionName = x.get('name')
             except:
                 pass
 
@@ -153,9 +163,13 @@ def FocusOnSelectedFunc(event):
     print(photoName)
     one = PhotoImage(file=photoName)
     photoViewFrame.one = one  # to prevent the image garbage collected.
-    canvas.create_image((200, 0), image=one)
+    canvas.create_image((200, 0), image=one )
 
+    functionNameLabel =  Label(photoViewFrame, text='Function Name : ' +functionName )
+    fileNameLabel = Label(photoViewFrame, text='File Name : ' + photoName)
 
+    functionNameLabel.place(x=50,y=200)
+    fileNameLabel.place(x=50,y=230)
 
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
@@ -176,6 +190,9 @@ def createTree(frame):
     tree.pack(fill=X)
 
 
+def runHendle(event):
+    print('run pressed')
+
 
 
 if __name__ =='__main__':
@@ -195,7 +212,7 @@ if __name__ =='__main__':
     openButton = Button(toolbarFrame, text="Save")
     openButton.place(x=80, y=0)
 
-    runButton = Button(toolbarFrame, text="Run")
+    runButton = Button(toolbarFrame, text="Run", command=runHendle)
     runButton.place(x=160, y=0)
 
     stopButton = Button(toolbarFrame, text="Stop")

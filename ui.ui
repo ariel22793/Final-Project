@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1611</width>
-    <height>1028</height>
+    <width>1607</width>
+    <height>1017</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -55,9 +55,9 @@
   <widget class="QPushButton" name="stop_3">
    <property name="geometry">
     <rect>
-     <x>770</x>
+     <x>660</x>
      <y>80</y>
-     <width>161</width>
+     <width>170</width>
      <height>41</height>
     </rect>
    </property>
@@ -144,6 +144,19 @@
      <string>Explorer</string>
     </property>
    </column>
+  </widget>
+  <widget class="QPushButton" name="stop_5">
+   <property name="geometry">
+    <rect>
+     <x>860</x>
+     <y>80</y>
+     <width>170</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Add ScreenShot</string>
+   </property>
   </widget>
  </widget>
  <resources/>
