@@ -1,4 +1,3 @@
-
 from tkinter import *
 import pyautogui
 from PIL import Image
@@ -6,7 +5,7 @@ import tkinter.ttk as ttk
 import os
 import random
 import uuid
-functionList = ['Click', 'Exist', 'NotExist']
+functionList = ['Right-Click','Left-Click', 'Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 selectedFunc = []
 
 
@@ -61,6 +60,9 @@ class ScreenShotWindow():
                 print(selectedFunc)
                 mainScreen.state('zoomed')
                 self.window.destroy()
+                Lb2.select_clear(0,END)
+
+
         if (str(event.keysym) == 'Escape'):
             print("Quit window")
             mainScreen.state('zoomed')
@@ -85,7 +87,6 @@ class ScreenShotWindow():
 
 
     def getMaousePosition(self, event):
-        print(event.type)
         if (str(event.type) == 'ButtonPress'):
             self.click=1
             self.x0, self.y0 = event.x, event.y
@@ -96,26 +97,28 @@ class ScreenShotWindow():
             self.x1, self.y1 = event.x, event.y
 
 def addFunction():
-    selectedFunc.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':uuid.uuid1()})
+    selectedFunc.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':Lb2.size()})
     Lb2.delete(0, 'end')
 
     for x in range(0, len(selectedFunc)):
         Lb2.insert(x, selectedFunc[x].get('name'))
-    Lb2.place(x=0, y=0)
+        Lb2.place(x=0, y=40)
+
 
 def removeFunctions():
-    print(Lb2.curselection()[0])
-    value = Lb2.curselection()[0]
-    selectedFunc.pop(value)
+    index = Lb2.curselection()[0]
+    selectedFunc.pop(index)
+    for i in range(index, len(selectedFunc)):         ## changing the id to be as the index
+        selectedFunc[i]['id']=i
 
-    Lb2.delete(0, 'end')
 
+    Lb2.delete(0,'end')
     for x in range(0, len(selectedFunc)):
         Lb2.insert(x, selectedFunc[x].get('name'))
-    Lb2.place(x=0, y=0)
+    Lb2.place(x=0, y=40)
 
-    print(Lb2)
-    print(selectedFunc)
+
+
 def window2():
     window2 = ScreenShotWindow()
 
@@ -156,20 +159,43 @@ def FocusOnSelectedFunc(event):
             except:
                 pass
 
-    littlePhoto = Frame(photoViewFrame, bd=2, relief=SUNKEN, width=150, height=150, bg='white')
-    littlePhoto.place(x=150,y=0)
-    canvas = Canvas(littlePhoto, width=150, height=150)
+    littlePhoto = Frame(photoViewFrame, bd=2, relief=SUNKEN, width=437, height=150, bg='white')
+    littlePhoto.place(x=0,y=0)
+    canvas = Canvas(littlePhoto, width=437, height=150)
     canvas.pack()
     print(photoName)
     one = PhotoImage(file=photoName)
+
+
     photoViewFrame.one = one  # to prevent the image garbage collected.
-    canvas.create_image((200, 0), image=one )
+    canvas.create_image((0, 0), image=one, anchor = "nw" )
 
-    functionNameLabel =  Label(photoViewFrame, text='Function Name : ' +functionName )
-    fileNameLabel = Label(photoViewFrame, text='File Name : ' + photoName)
 
-    functionNameLabel.place(x=50,y=200)
-    fileNameLabel.place(x=50,y=230)
+
+    functionNameLabel =  Label(photoViewFrame, text='Function Name : ')
+    fileNameLabel = Label(photoViewFrame, text='File Name : ')
+    functionNameLabel.place(x=50, y=200)
+    fileNameLabel.place(x=50, y=250)
+
+
+    functionNameFrame = Frame(photoViewFrame, width=200, height=30, bg='white')
+    functionNameFrame.place(x=200, y=200)
+    labelInfunctionNameFrame = Label(functionNameFrame, text=functionName)
+    labelInfunctionNameFrame.place(x=0,y=0)
+
+    fileNameFrame = Frame(photoViewFrame, width=200, height=30, bg='white')
+    fileNameFrame.place(x=200, y=250)
+    labelInfunctionNameFrame = Label(fileNameFrame, text=photoName)
+    labelInfunctionNameFrame.place(x=0, y=0)
+
+    if(photoName!=''):
+        reTake = Button(photoViewFrame, text='Take New ScreenShot' , command=window2)
+        reTake.place(x=150, y = 330)
+
+
+
+
+
 
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
@@ -182,7 +208,7 @@ def createTree(frame):
 
     # tree.heading("#0", text="Explorer")
     root = tree.insert('', 'end', text=os.path.dirname(os.path.abspath(__file__)), open=True, tag='T')
-    fileImg = PhotoImage(file='img\\file.png').subsample(3, 3)
+    fileImg = PhotoImage(file='').subsample(3, 3)
     tree.image = fileImg
     SUBS(os.path.dirname(os.path.abspath(__file__)), root, tree, fileImg)
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
@@ -194,14 +220,44 @@ def runHendle(event):
     print('run pressed')
 
 
+def moveUp():
+    index = Lb2.curselection()[0]
+    selectedFunc[index]['id']=index-1
+    selectedFunc[index-1]['id'] = index
+    a, b = index, index-1
+    selectedFunc[b], selectedFunc[a] = selectedFunc[a], selectedFunc[b]
+    listReload(Lb2)
+    Lb2.selection_set(index-1)
+
+
+def moveDown():
+    index = Lb2.curselection()[0]
+    selectedFunc[index]['id']=index+1
+    selectedFunc[index+1]['id'] = index
+    a, b = index+1, index
+    selectedFunc[b], selectedFunc[a] = selectedFunc[a], selectedFunc[b]
+    listReload(Lb2)
+    print(selectedFunc)
+    Lb2.selection_set(index+1)
+
+
+
+
+
+def listReload(list):
+    list.delete(0, 'end')
+    for x in range(0, len(selectedFunc)):
+        Lb2.insert(x, selectedFunc[x].get('name'))
+        Lb2.place(x=0, y=40)
+
+
 
 if __name__ =='__main__':
 
     mainScreen = Tk()
     mainScreen.attributes('-fullscreen', True)
     mainScreen.title("MyApp")
-    takeScreenShot = Button(mainScreen, text="Take Screen Shot", command=window2, state=DISABLED)
-    takeScreenShot.place(x=1000,y=100)
+
 
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
     toolbarFrame.place(x=0, y=50)
@@ -226,8 +282,8 @@ if __name__ =='__main__':
 
     addFunc = Button(mainScreen, text="Add Functions", command=addFunction)
     addFunc.place(x=1600, y=100)
-    removeFunc = Button(mainScreen, text="Remove Function", command=removeFunctions)
-    removeFunc.place(x=800,y=100)
+
+
 
     explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=500, height=900, bg='white')
     explorerFrame.place(x=10, y=150)
@@ -235,24 +291,41 @@ if __name__ =='__main__':
     mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=900, bg='white')
     mainFrame.place(x=535, y=150)
 
-    funFrame = Frame(mainScreen, bd=2, relief=SUNKEN, width=450, height=400, bg='white')
+
+
+    moveDownButton  = Button(mainFrame, text="Move down", command=moveDown)
+    moveDownButton.place(x=170,y=0)
+
+    moveUpButton = Button(mainFrame, text="Move up", command=moveUp)
+    moveUpButton.place(x=300, y=0)
+
+    removeFunc = Button(mainFrame, text="Remove Function", command=removeFunctions)
+    removeFunc.place(x=420, y=0)
+
+    takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
+    takeScreenShot.place(x=600, y=0)
+
+
+    funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
     funFrame.place(x=1455, y=150)
 
-    photoViewFrame = Frame(mainScreen, bd=2, relief=SUNKEN, width=450, height=400, bg='white')
+    photoViewFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
     photoViewFrame.place(x=1455, y=600)
 
-    Lb1 = Listbox(funFrame, width=450, height=400 )
+    Lb1 = Listbox(funFrame, width=450, height=2400 )
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
 
 
     Lb1.place(x=0,y=0)
 
-    Lb2 = Listbox(mainFrame, width=450, height=400)
+
+    Lb2 = Listbox(mainFrame, width=99, height=300)
     for x in range(0, len(selectedFunc)):
         Lb2.insert(x, selectedFunc[x])
 
-    Lb2.place(x=0, y=0)
+        Lb2.place(x=0, y=40)
+
     Lb2.bind("<FocusIn>", func=FocusOnSelectedFunc)
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
