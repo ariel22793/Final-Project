@@ -1,17 +1,20 @@
 from tkinter import *
+import tkinter.filedialog
+import tkinter.messagebox
 import pyautogui
 from PIL import Image
 import tkinter.ttk as ttk
 import os
+import json
 import random
-import uuid
-functionList = ['Right-Click','Left-Click', 'Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
+
+
+functionList = ['Right-Click', 'Left-Click', 'Insert Input', 'Key-Press', 'Exist', 'NotExist', 'Sleep']
 selectedFunc = []
 
 
-
 class Photo():
-    def __init__(self,x0,y0,x1,y1,imgPath):
+    def __init__(self, x0, y0, x1, y1, imgPath):
         self.x0Cord = x0
         self.x1Cord = x1
         self.y0Cord = y0
@@ -27,6 +30,7 @@ class ScreenShotWindow():
         window2.attributes('-fullscreen', True)
         window2.attributes('-alpha', 0.3)
 
+        tkinter.messagebox.showinfo("Notic!", "Press ENTER To Take ScreenShot\nPress ESC To Quit")
         self.width = window2.winfo_screenwidth()
         self.heigth = window2.winfo_screenheight()
 
@@ -52,7 +56,6 @@ class ScreenShotWindow():
                 img = img.save("Screen"+str(ran)+".png")
 
                 img = Photo(self.x0,self.y0,self.x1,self.y1,"Screen"+str(ran)+".png")
-
                 for x in selectedFunc:
                     if(x.get('name')==Lb2.get(Lb2.curselection())):
                         x['img'] = img
@@ -60,8 +63,7 @@ class ScreenShotWindow():
                 print(selectedFunc)
                 mainScreen.state('zoomed')
                 self.window.destroy()
-                Lb2.select_clear(0,END)
-
+                focusOnSelectedFunc(event=None)
 
         if (str(event.keysym) == 'Escape'):
             print("Quit window")
@@ -98,11 +100,7 @@ class ScreenShotWindow():
 
 def addFunction():
     selectedFunc.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':Lb2.size()})
-    Lb2.delete(0, 'end')
-
-    for x in range(0, len(selectedFunc)):
-        Lb2.insert(x, selectedFunc[x].get('name'))
-        Lb2.place(x=0, y=40)
+    listReload(Lb2, 0, 40)
 
 
 def removeFunctions():
@@ -112,10 +110,7 @@ def removeFunctions():
         selectedFunc[i]['id']=i
 
 
-    Lb2.delete(0,'end')
-    for x in range(0, len(selectedFunc)):
-        Lb2.insert(x, selectedFunc[x].get('name'))
-    Lb2.place(x=0, y=40)
+    listReload(Lb2, 0, 40)
 
 
 
@@ -139,15 +134,10 @@ def SUBS(path, parent, tree, fileImg):
 
 
 
-def FocusOnSelectedFunc(event):
-
-
+def focusOnSelectedFunc(event):
     takeScreenShot.config(state='normal')
-    photoViewLabel = Label(mainScreen, text='Shot View')
-    photoViewLabel.place(x=1620, y=560)
-    widget = event.widget
-    selection = widget.curselection()
-    nameOfFun = Lb2.get(selection)
+    index = Lb2.curselection()[0]
+    nameOfFun = Lb2.get(index)
 
     photoName = ''
     functionName = ''
@@ -163,7 +153,6 @@ def FocusOnSelectedFunc(event):
     littlePhoto.place(x=0,y=0)
     canvas = Canvas(littlePhoto, width=437, height=150)
     canvas.pack()
-    print(photoName)
     one = PhotoImage(file=photoName)
 
 
@@ -193,10 +182,6 @@ def FocusOnSelectedFunc(event):
         reTake.place(x=150, y = 330)
 
 
-
-
-
-
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
 
@@ -206,7 +191,7 @@ def createTree(frame):
     s = ttk.Style()
     s.configure('Treeview', rowheight=40)
 
-    # tree.heading("#0", text="Explorer")
+    tree.heading("#0", text="Explorer")
     root = tree.insert('', 'end', text=os.path.dirname(os.path.abspath(__file__)), open=True, tag='T')
     fileImg = PhotoImage(file='').subsample(3, 3)
     tree.image = fileImg
@@ -214,7 +199,7 @@ def createTree(frame):
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
 
     tree.pack(fill=X)
-
+    return tree
 
 def runHendle(event):
     print('run pressed')
@@ -226,7 +211,7 @@ def moveUp():
     selectedFunc[index-1]['id'] = index
     a, b = index, index-1
     selectedFunc[b], selectedFunc[a] = selectedFunc[a], selectedFunc[b]
-    listReload(Lb2)
+    listReload(Lb2, 0, 40)
     Lb2.selection_set(index-1)
 
 
@@ -236,19 +221,60 @@ def moveDown():
     selectedFunc[index+1]['id'] = index
     a, b = index+1, index
     selectedFunc[b], selectedFunc[a] = selectedFunc[a], selectedFunc[b]
-    listReload(Lb2)
-    print(selectedFunc)
+    listReload(Lb2, 0, 40)
     Lb2.selection_set(index+1)
 
 
 
 
-
-def listReload(list):
-    list.delete(0, 'end')
+def listReload(listToRefresh, x, y):
+    listToRefresh.delete(0, 'end')
     for x in range(0, len(selectedFunc)):
-        Lb2.insert(x, selectedFunc[x].get('name'))
-        Lb2.place(x=0, y=40)
+        listToRefresh.insert(x, selectedFunc[x].get('name'))
+    listToRefresh.place(x=x, y=y)
+
+
+
+def openButton():
+    filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file", filetypes=(("json files", "*.json"), ("all files", "*.*")))
+    with open(filePath) as json_file:
+        data = json.load(json_file)
+
+    selectedFunc.clear()
+    for x in range(len(data)):
+        selectedFunc.append(data[x])
+
+    listReload(Lb2, 0, 40)
+
+
+def openInexplorer(event):
+    item = explorerTree.focus()
+    item = explorerTree.item(item)
+    item_iid = explorerTree.selection()[0]
+    parent_iid = explorerTree.parent(item_iid)
+    path = explorerTree.item(parent_iid)['text'] +'/'+ item.get('text')
+    if('.json' in item.get('text')):
+        with open(path) as json_file:
+            data = json.load(json_file)
+
+        selectedFunc.clear()
+        for x in range(len(data)):
+            selectedFunc.append(data[x])
+
+        listReload(Lb2, 0, 40)
+    else:
+        tkinter.messagebox.showwarning('Error', "Cannot open this kind of file. Please choose Json file.")
+
+
+
+
+def saveFileButton():
+    pathToSave = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file", filetypes=(("json files", "*.json"), ("all files", "*.*")))
+    pathToSave += '.json'
+    jsonSelectedFunc = json.dumps(selectedFunc)
+    f = open(pathToSave, "w")
+    f.write(jsonSelectedFunc)
+    f.close()
 
 
 
@@ -262,10 +288,10 @@ if __name__ =='__main__':
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
     toolbarFrame.place(x=0, y=50)
 
-    openButton = Button(toolbarFrame, text="Open")
+    openButton = Button(toolbarFrame, text="Open", command=openButton)
     openButton.place(x=0,y=0)
 
-    openButton = Button(toolbarFrame, text="Save")
+    openButton = Button(toolbarFrame, text="Save", command=saveFileButton)
     openButton.place(x=80, y=0)
 
     runButton = Button(toolbarFrame, text="Run", command=runHendle)
@@ -288,22 +314,23 @@ if __name__ =='__main__':
     explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=500, height=900, bg='white')
     explorerFrame.place(x=10, y=150)
 
+
     mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=900, bg='white')
     mainFrame.place(x=535, y=150)
 
 
 
     moveDownButton  = Button(mainFrame, text="Move down", command=moveDown)
-    moveDownButton.place(x=170,y=0)
+    moveDownButton.place(x=250,y=0)
 
     moveUpButton = Button(mainFrame, text="Move up", command=moveUp)
-    moveUpButton.place(x=300, y=0)
+    moveUpButton.place(x=150, y=0)
 
     removeFunc = Button(mainFrame, text="Remove Function", command=removeFunctions)
-    removeFunc.place(x=420, y=0)
+    removeFunc.place(x=440, y=0)
 
     takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
-    takeScreenShot.place(x=600, y=0)
+    takeScreenShot.place(x=650, y=0)
 
 
     funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
@@ -324,14 +351,15 @@ if __name__ =='__main__':
     for x in range(0, len(selectedFunc)):
         Lb2.insert(x, selectedFunc[x])
 
-        Lb2.place(x=0, y=40)
-
-    Lb2.bind("<FocusIn>", func=FocusOnSelectedFunc)
-    Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
+    Lb2.place(x=0, y=40)
+    Lb2.bind("<FocusIn>", func=focusOnSelectedFunc)
+    Lb2.bind("<<ListboxSelect>>", func=focusOnSelectedFunc)
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
+    photoViewLabel = Label(mainScreen, text='Shot View')
+    photoViewLabel.place(x=1620, y=570)
 
-    createTree(explorerFrame)
-
+    explorerTree = createTree(explorerFrame)
+    explorerTree.bind("<Double-1>", func=openInexplorer)
 
 
 mainScreen.mainloop()
