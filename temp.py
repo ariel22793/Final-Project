@@ -5,6 +5,9 @@ import tkinter.ttk as ttk
 import os
 import random
 import uuid
+import functions_handler
+
+
 functionList = ['Right-Click','Left-Click', 'Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 selectedFunc = []
 
@@ -154,7 +157,7 @@ def FocusOnSelectedFunc(event):
     for x in selectedFunc:
         if (x.get('name') == nameOfFun):
             try:
-                photoName = x.get('img').img
+                photoName = x.get('img')
                 functionName = x.get('name')
             except:
                 pass
@@ -216,9 +219,6 @@ def createTree(frame):
     tree.pack(fill=X)
 
 
-def runHendle(event):
-    print('run pressed')
-
 
 def moveUp():
     index = Lb2.curselection()[0]
@@ -249,6 +249,38 @@ def listReload(list):
     for x in range(0, len(selectedFunc)):
         Lb2.insert(x, selectedFunc[x].get('name'))
         Lb2.place(x=0, y=40)
+
+def popupmsg(msg):
+    popup = Tk()
+    popup.wm_title("!")
+    label = ttk.Label(popup, text=msg, font=("Verdana", 10))
+    label.pack(side="top", fill="x", pady=10)
+    B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
+    B1.pack()
+    popup.mainloop()
+
+def checkImageInFunc():
+    funcWithoutImage = ""
+    index = 1
+    for func in selectedFunc:
+        if(func['img'] == ''):
+            funcWithoutImage += ("The {} in line {} doesn't have screenshot\n".format(func['name'],index))
+        index += 1
+    return funcWithoutImage
+
+def runHendle():
+    funcWithoutImage = checkImageInFunc()
+    if(funcWithoutImage != ''):
+        popupmsg(funcWithoutImage)
+    else:
+        mainScreen.iconify()
+        for func in selectedFunc:
+            if(func['name'] == 'Click'):
+                functions_handler.click_handle(func['img'])
+            elif(func['name'] == 'Exist'):
+                functions_handler.exist_handle(func['img'])
+            elif (func['name'] == 'NotExist'):
+                functions_handler.not_exist_handle(func['img'])
 
 
 
