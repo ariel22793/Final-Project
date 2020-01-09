@@ -1,8 +1,11 @@
 from tkinter import *
+import tkinter.filedialog
+import tkinter.messagebox
 import pyautogui
 from PIL import Image
 import tkinter.ttk as ttk
 import os
+import json
 import random
 import uuid
 import functions_handler
@@ -30,6 +33,7 @@ class ScreenShotWindow():
         window2.attributes('-fullscreen', True)
         window2.attributes('-alpha', 0.3)
 
+        tkinter.messagebox.showinfo("Notic!", "Press ENTER To Take ScreenShot\nPress ESC To Quit")
         self.width = window2.winfo_screenwidth()
         self.heigth = window2.winfo_screenheight()
 
@@ -157,7 +161,7 @@ def FocusOnSelectedFunc(event):
     for x in selectedFunc:
         if (x.get('name') == nameOfFun):
             try:
-                photoName = x.get('img')
+                photoName = x.get('img').img
                 functionName = x.get('name')
             except:
                 pass
@@ -218,6 +222,9 @@ def createTree(frame):
 
     tree.pack(fill=X)
 
+
+def runHendle(event):
+    print('run pressed')
 
 
 def moveUp():
@@ -319,6 +326,7 @@ if __name__ =='__main__':
 
     explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=500, height=900, bg='white')
     explorerFrame.place(x=10, y=150)
+
 
     mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=900, bg='white')
     mainFrame.place(x=535, y=150)
