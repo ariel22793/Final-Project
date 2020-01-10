@@ -1,6 +1,6 @@
 import pyautogui
 
-def click_handle(img):
+def left_click_handle(img):
     exist = 1
     x = (img.x1Cord + img.x0Cord) / 2
     y = (img.y1Cord + img.y0Cord) / 2

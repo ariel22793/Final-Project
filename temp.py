@@ -9,10 +9,10 @@ import json
 import random
 import uuid
 import functions_handler
-
+import script
 
 functionList = ['Right-Click','Left-Click', 'Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
-selectedFunc = []
+currentScript = script.Script("kakaGadol",[],0)
 
 
 
@@ -60,11 +60,11 @@ class ScreenShotWindow():
 
                 img = Photo(self.x0,self.y0,self.x1,self.y1,"Screen"+str(ran)+".png")
 
-                for x in selectedFunc:
+                for x in currentScript.functions:
                     if(x.get('name')==Lb2.get(Lb2.curselection())):
                         x['img'] = img
 
-                print(selectedFunc)
+                print(currentScript.functions)
                 mainScreen.state('zoomed')
                 self.window.destroy()
                 Lb2.select_clear(0,END)
@@ -104,24 +104,24 @@ class ScreenShotWindow():
             self.x1, self.y1 = event.x, event.y
 
 def addFunction():
-    selectedFunc.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':Lb2.size()})
+    currentScript.functions.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':Lb2.size()})
     Lb2.delete(0, 'end')
 
-    for x in range(0, len(selectedFunc)):
-        Lb2.insert(x, selectedFunc[x].get('name'))
+    for x in range(0, len(currentScript.functions)):
+        Lb2.insert(x, currentScript.functions[x].get('name'))
         Lb2.place(x=0, y=40)
 
 
 def removeFunctions():
     index = Lb2.curselection()[0]
-    selectedFunc.pop(index)
-    for i in range(index, len(selectedFunc)):         ## changing the id to be as the index
-        selectedFunc[i]['id']=i
+    currentScript.functions.pop(index)
+    for i in range(index, len(currentScript.functions)):         ## changing the id to be as the index
+        currentScript.functions[i]['id']=i
 
 
     Lb2.delete(0,'end')
-    for x in range(0, len(selectedFunc)):
-        Lb2.insert(x, selectedFunc[x].get('name'))
+    for x in range(0, len(currentScript.functions)):
+        Lb2.insert(x, currentScript.functions[x].get('name'))
     Lb2.place(x=0, y=40)
 
 
@@ -148,7 +148,7 @@ def SUBS(path, parent, tree, fileImg):
 
 def FocusOnSelectedFunc(event):
 
-
+    print(event.widget.widgetName)
     takeScreenShot.config(state='normal')
     photoViewLabel = Label(mainScreen, text='Shot View')
     photoViewLabel.place(x=1620, y=560)
@@ -158,7 +158,7 @@ def FocusOnSelectedFunc(event):
 
     photoName = ''
     functionName = ''
-    for x in selectedFunc:
+    for x in currentScript.functions:
         if (x.get('name') == nameOfFun):
             try:
                 photoName = x.get('img').img
@@ -171,13 +171,10 @@ def FocusOnSelectedFunc(event):
     canvas = Canvas(littlePhoto, width=437, height=150)
     canvas.pack()
     print(photoName)
-    one = PhotoImage(file=photoName)
-
-
-    photoViewFrame.one = one  # to prevent the image garbage collected.
-    canvas.create_image((0, 0), image=one, anchor = "nw" )
-
-
+    if(photoName != ''):
+        one = PhotoImage(file=photoName)
+        photoViewFrame.one = one  # to prevent the image garbage collected.
+        canvas.create_image((0, 0), image=one, anchor="nw")
 
     functionNameLabel =  Label(photoViewFrame, text='Function Name : ')
     fileNameLabel = Label(photoViewFrame, text='File Name : ')
@@ -198,11 +195,6 @@ def FocusOnSelectedFunc(event):
     if(photoName!=''):
         reTake = Button(photoViewFrame, text='Take New ScreenShot' , command=window2)
         reTake.place(x=150, y = 330)
-
-
-
-
-
 
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
@@ -229,22 +221,22 @@ def runHendle(event):
 
 def moveUp():
     index = Lb2.curselection()[0]
-    selectedFunc[index]['id']=index-1
-    selectedFunc[index-1]['id'] = index
+    currentScript.functions[index]['id']=index-1
+    currentScript.functions[index-1]['id'] = index
     a, b = index, index-1
-    selectedFunc[b], selectedFunc[a] = selectedFunc[a], selectedFunc[b]
+    currentScript.functions[b], currentScript.functions[a] = currentScript.functions[a], currentScript.functions[b]
     listReload(Lb2)
     Lb2.selection_set(index-1)
 
 
 def moveDown():
     index = Lb2.curselection()[0]
-    selectedFunc[index]['id']=index+1
-    selectedFunc[index+1]['id'] = index
+    currentScript.functions[index]['id']=index+1
+    currentScript.functions[index+1]['id'] = index
     a, b = index+1, index
-    selectedFunc[b], selectedFunc[a] = selectedFunc[a], selectedFunc[b]
+    currentScript.functions[b], currentScript.functions[a] = currentScript.functions[a], currentScript.functions[b]
     listReload(Lb2)
-    print(selectedFunc)
+    print(currentScript.functions)
     Lb2.selection_set(index+1)
 
 
@@ -253,8 +245,8 @@ def moveDown():
 
 def listReload(list):
     list.delete(0, 'end')
-    for x in range(0, len(selectedFunc)):
-        Lb2.insert(x, selectedFunc[x].get('name'))
+    for x in range(0, len(currentScript.functions)):
+        Lb2.insert(x, currentScript.functions[x].get('name'))
         Lb2.place(x=0, y=40)
 
 def popupmsg(msg):
@@ -269,7 +261,7 @@ def popupmsg(msg):
 def checkImageInFunc():
     funcWithoutImage = ""
     index = 1
-    for func in selectedFunc:
+    for func in currentScript.functions:
         if(func['img'] == ''):
             funcWithoutImage += ("The {} in line {} doesn't have screenshot\n".format(func['name'],index))
         index += 1
@@ -281,14 +273,32 @@ def runHendle():
         popupmsg(funcWithoutImage)
     else:
         mainScreen.iconify()
-        for func in selectedFunc:
-            if(func['name'] == 'Click'):
-                functions_handler.click_handle(func['img'])
+        for func in currentScript.functions:
+            if(func['name'] == 'Left-Click'):
+                functions_handler.left_click_handle(func['img'])
             elif(func['name'] == 'Exist'):
                 functions_handler.exist_handle(func['img'])
             elif (func['name'] == 'NotExist'):
                 functions_handler.not_exist_handle(func['img'])
 
+
+def savehundle():
+    functionPath = currentScript.path + "functions.txt"
+    if(os.path.isfile(functionPath)):
+        print ("kaka")
+    file = open(functionPath,"w+")
+    functionFile = ""
+    for func in currentScript.functions:
+        functionFile += '{'
+        for i in func:
+            if(i=='id'): #last atribute of func
+                functionFile += i + " : " + str(func[i]) + "}\n"
+            elif(i == 'img'):
+                functionFile += i + " : " + json.dumps(func[i].__dict__) + ","
+            else:
+                functionFile += i + " : " + func[i] + ","
+    file.write(functionFile)
+    file.close()
 
 
 if __name__ =='__main__':
@@ -296,7 +306,7 @@ if __name__ =='__main__':
     mainScreen = Tk()
     mainScreen.attributes('-fullscreen', True)
     mainScreen.title("MyApp")
-
+    kaka = script.Script.getFunctions(currentScript.path)
 
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
     toolbarFrame.place(x=0, y=50)
@@ -304,7 +314,7 @@ if __name__ =='__main__':
     openButton = Button(toolbarFrame, text="Open")
     openButton.place(x=0,y=0)
 
-    openButton = Button(toolbarFrame, text="Save")
+    openButton = Button(toolbarFrame, text="Save",command = savehundle)
     openButton.place(x=80, y=0)
 
     runButton = Button(toolbarFrame, text="Run", command=runHendle)
@@ -361,14 +371,14 @@ if __name__ =='__main__':
 
 
     Lb2 = Listbox(mainFrame, width=99, height=300)
-    for x in range(0, len(selectedFunc)):
-        Lb2.insert(x, selectedFunc[x])
+    for x in range(0, len(currentScript.functions)):
+        Lb2.insert(x, currentScript.functions[x])
 
         Lb2.place(x=0, y=40)
 
-    Lb2.bind("<FocusIn>", func=FocusOnSelectedFunc)
+    # Lb2.bind("<FocusIn>", func=FocusOnSelectedFunc)
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
-    Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
+    # Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
     createTree(explorerFrame)
 
