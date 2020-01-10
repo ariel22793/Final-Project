@@ -215,10 +215,6 @@ def createTree(frame):
     tree.pack(fill=X)
 
 
-def runHendle(event):
-    print('run pressed')
-
-
 def moveUp():
     index = Lb2.curselection()[0]
     currentScript.functions[index]['id']=index-1
