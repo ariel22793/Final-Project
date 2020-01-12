@@ -10,7 +10,6 @@ import functions_handler
 import script
 import ast
 import copy
-from win32api import GetSystemMetrics
 
 functionList = ['Right-Click','Left-Click', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("kakaGadol",[],0)
@@ -389,36 +388,7 @@ def TreeviewD_Click(event):
     listReload(Lb2)
 
 
-# def getDialogAnswer(button ,window, answer):
-#     window.destroy()
-#     answer = button
-#     return
-# def dialogSave():
-#     dialog = Tk()
-#     dialog.title('Attention!')
-#     w,h =GetSystemMetrics(0),GetSystemMetrics(1)
-#     windowWidth = 600
-#     windowHeight = 170
-#
-#     deltax = w/2 - windowWidth/2
-#     deltay = h/2 - windowHeight/2
-#     dialog.geometry('%dx%d+%d+%d' % (windowWidth, windowHeight, deltax, deltay))
-#     answer = ''
-#     msgText = Label(dialog, text = 'Do you want to save changes you made?')
-#     msgText.place(x=20, y=20)
-#     saveButton = Button(dialog,text = 'Save', width=13, height=1, command = lambda : getDialogAnswer('save', dialog, answer))
-#
-#     saveButton.place(x=60,y=100)
-#
-#     dontSaveButton = Button(dialog,text = 'Don`t Save', width=13, height=1 , command = lambda : getDialogAnswer('dont_save', dialog, answer) )
-#
-#
-#     dontSaveButton.place(x=230,y=100)
-#
-#     cancelButton = Button(dialog,text = 'Cancel', width=13, height=1 )
-#     cancelButton.place(x=400,y=100)
-#
-    # dialog.mainloop()
+
 
 if __name__ =='__main__':
 
