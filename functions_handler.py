@@ -1,10 +1,19 @@
 import pyautogui
+import ImgRecog
 
-def left_click_handle(img):
-    exist = 1
-    x = (img.x1Cord + img.x0Cord) / 2
-    y = (img.y1Cord + img.y0Cord) / 2
-    if(exist == 1):
+
+
+
+
+
+def left_click_handle(template,path):
+    screenShot = ImgRecog.tempScreenShot(template)
+
+    exist = ImgRecog.photoRec(path,screenShot,template)
+    x = (template.x1Cord + template.x0Cord) / 2
+    y = (template.y1Cord + template.y0Cord) / 2
+    print(exist)
+    if(exist == True):
         pyautogui.click(x,y,duration=0.5)
 
 def exist_handle(img):

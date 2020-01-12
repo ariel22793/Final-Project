@@ -21,4 +21,4 @@ class Script():
         path = scriptPath + "functions.txt"
         functionsFile = open(scriptPath + "functions.txt","r")
         functions = functionsFile.read()
-        print(functions)
+

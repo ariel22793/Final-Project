@@ -1,2 +1,0 @@
-{name : Right-Click,img : {"x0Cord": 605, "x1Cord": 856, "y0Cord": 195, "y1Cord": 433, "img": "Screen331.png"},id : 0}
-{name : Left-Click,img : {"x0Cord": 1076, "x1Cord": 1257, "y0Cord": 161, "y1Cord": 357, "img": "Screen747.png"},id : 1}
