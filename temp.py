@@ -10,6 +10,7 @@ import functions_handler
 import script
 import ast
 import copy
+from win32api import GetSystemMetrics
 
 functionList = ['Right-Click','Left-Click', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("kakaGadol",[],0)
@@ -75,6 +76,7 @@ class ScreenShotWindow():
                 mainScreen.state('zoomed')
                 self.window.destroy()
                 Lb2.select_clear(0,END)
+                createTree(explorerFrame)
 
         if (str(event.keysym) == 'Escape'):
             print("Quit window")
@@ -148,8 +150,6 @@ def SUBS(path, parent, tree, fileImg):
             parent_element = tree.insert(parent, 'end', text=p, open=True, image=fileImg, tag="T")
 
 
-
-
 def FocusOnSelectedFunc(event):
     takeScreenShot.config(state='normal')
     try:
@@ -195,18 +195,16 @@ def FocusOnSelectedFunc(event):
 
     if(photoName!=''):
         reTake = Button(photoViewFrame, text='Take New ScreenShot' , command=window2)
-        reTake.place(x=150, y = 330)
+        reTake.place(x=150, y = 295)
 
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
 
 def createTree(frame):
     tree = ttk.Treeview(frame)
-
     s = ttk.Style()
     s.configure('Treeview', rowheight=40)
 
-    # tree.heading("#0", text="Explorer")
     path = os.path.dirname(os.path.abspath(__file__))
 
     root = tree.insert('', 'end', text=path+'\Scripts', open=True, tag='T')
@@ -215,8 +213,8 @@ def createTree(frame):
     SUBS(path+'\\Scripts', root, tree, fileImg)
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
 
-    tree.pack(fill=X)
-
+    tree.place(x=0,y=0)
+    return tree
 
 def moveUp():
     index = Lb2.curselection()[0]
@@ -304,7 +302,7 @@ def savehundle():
     temp = ast.literal_eval(functionFile)
     with open(functionPath, 'w') as outfile:
         json.dump(temp, outfile)
-    
+
 
 
 def saveAsHundle():
@@ -353,13 +351,79 @@ def openButton():
 
 
 
+def TreeviewD_Click(event):
+
+    item_id = tree.selection()[0]
+    parent_id = tree.parent(item_id)
+    fullPath = ''
+    while( item_id!= ''):
+        temp = tree.item(item_id)['text']
+        if ( fullPath==''):
+            fullPath = temp
+        else:
+            fullPath = temp + '\\' + fullPath
+        item_id = parent_id
+        parent_id = tree.parent(item_id)
+
+    if (currentScript.functions != []):
+        msgbox = tkinter.messagebox.askyesnocancel('Notic!', 'Do you want to save changes you made?')
+        if(msgbox==True):
+            savehundle()
+        elif(msgbox==None):
+            return
+    currentScript.functions.clear()
+
+    with open(fullPath) as json_file:
+        data = json.load(json_file)
+
+    for x in data:
+        for key, value in x.items():
+            if (key == 'id'):
+                x['id'] = int(value)
+            if (key == 'img' and value != ''):
+                img = Photo(value.get('x0Cord'), value.get('y0Cord'), value.get('x1Cord'), value.get('y1Cord'),
+                            value.get('img'))
+                x['img'] = img
+
+    currentScript.functions = copy.deepcopy(data)
+    listReload(Lb2)
 
 
+# def getDialogAnswer(button ,window, answer):
+#     window.destroy()
+#     answer = button
+#     return
+# def dialogSave():
+#     dialog = Tk()
+#     dialog.title('Attention!')
+#     w,h =GetSystemMetrics(0),GetSystemMetrics(1)
+#     windowWidth = 600
+#     windowHeight = 170
+#
+#     deltax = w/2 - windowWidth/2
+#     deltay = h/2 - windowHeight/2
+#     dialog.geometry('%dx%d+%d+%d' % (windowWidth, windowHeight, deltax, deltay))
+#     answer = ''
+#     msgText = Label(dialog, text = 'Do you want to save changes you made?')
+#     msgText.place(x=20, y=20)
+#     saveButton = Button(dialog,text = 'Save', width=13, height=1, command = lambda : getDialogAnswer('save', dialog, answer))
+#
+#     saveButton.place(x=60,y=100)
+#
+#     dontSaveButton = Button(dialog,text = 'Don`t Save', width=13, height=1 , command = lambda : getDialogAnswer('dont_save', dialog, answer) )
+#
+#
+#     dontSaveButton.place(x=230,y=100)
+#
+#     cancelButton = Button(dialog,text = 'Cancel', width=13, height=1 )
+#     cancelButton.place(x=400,y=100)
+#
+    # dialog.mainloop()
 
 if __name__ =='__main__':
 
     mainScreen = Tk()
-    mainScreen.attributes('-fullscreen', True)
+    mainScreen.state("zoomed")
     mainScreen.title("MyApp")
     # kaka = script.Script.getFunctions(currentScript.path)
 
@@ -392,11 +456,11 @@ if __name__ =='__main__':
 
 
 
-    explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=500, height=900, bg='white')
+    explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=500, height=430, bg='white')
     explorerFrame.place(x=10, y=150)
 
 
-    mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=900, bg='white')
+    mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=800, bg='white')
     mainFrame.place(x=535, y=150)
 
 
@@ -417,7 +481,7 @@ if __name__ =='__main__':
     funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
     funFrame.place(x=1455, y=150)
 
-    photoViewFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
+    photoViewFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=350, bg='white')
     photoViewFrame.place(x=1455, y=600)
 
     Lb1 = Listbox(funFrame, width=450, height=2400 )
@@ -434,13 +498,11 @@ if __name__ =='__main__':
 
         Lb2.place(x=0, y=40)
 
-    # Lb2.bind("<FocusIn>", func=FocusOnSelectedFunc)
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
-    createTree(explorerFrame)
-
-
+    tree = createTree(explorerFrame)
+    tree.bind("<Double-1>", TreeviewD_Click)
 
 
 

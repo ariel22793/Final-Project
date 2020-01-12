@@ -42,7 +42,7 @@ def photoRec(templatePath,photo, template):
     template = cv2.imread(templatePath + "ScreenShots\\" + template.img,0)
     w, h = template.shape[::-1]
     result = cv2.matchTemplate(gray_img, template, cv2.TM_CCOEFF_NORMED)
-    loc = np.where(result >= 0.8)
+    loc = np.where(result >= 0.7)
     flag=0
     for pt in zip(*loc[::-1]):
         cv2.rectangle(photo, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 3)
