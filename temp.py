@@ -11,7 +11,7 @@ import script
 import ast
 import copy
 
-functionList = ['Right-Click','Left-Click', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
+functionList = ['Right-Click','Left-Click','Repeat','If/Else','Try/Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("kakaGadol",[],0)
 
 
@@ -389,7 +389,6 @@ def TreeviewD_Click(event):
 
 
 
-
 if __name__ =='__main__':
 
     mainScreen = Tk()
@@ -466,15 +465,14 @@ if __name__ =='__main__':
     for x in range(0, len(currentScript.functions)):
         Lb2.insert(x, currentScript.functions[x])
 
-        Lb2.place(x=0, y=40)
+    Lb2.place(x=0, y=40)
 
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
+
     tree = createTree(explorerFrame)
     tree.bind("<Double-1>", TreeviewD_Click)
-
-
 
 
 mainScreen.mainloop()
