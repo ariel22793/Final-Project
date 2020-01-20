@@ -397,13 +397,38 @@ def TreeviewD_Click(event):
 
 
 def insertA():
-  print('insert A')
-
-
+    try:
+        place = Lb2.curselection()[0]
+    except:
+        place =0
+    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': 1})
+    for x in range(len(currentScript.functions)):
+        if x>place:
+            newId =  currentScript.functions[x]['id']+1
+            currentScript.functions[x]['id'] = newId
+    Lb2.delete(0, 'end')
+    for x in range(0, len(currentScript.functions)):
+        name = currentScript.functions[x].get('name')
+        Lb2.insert(x, name)
+        Lb2.place(x=0, y=40)
+    Lb2.select_set(place)
 
 def insertB():
-  print('insert B')
-
+    try:
+        place = Lb2.curselection()[0]+1
+    except:
+        place =0
+    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': 1})
+    for x in range(len(currentScript.functions)):
+        if x>place:
+            newId =  currentScript.functions[x]['id']+1
+            currentScript.functions[x]['id'] = newId
+    Lb2.delete(0, 'end')
+    for x in range(0, len(currentScript.functions)):
+        name = currentScript.functions[x].get('name')
+        Lb2.insert(x, name)
+        Lb2.place(x=0, y=40)
+    Lb2.select_set(place)
 if __name__ =='__main__':
 
     mainScreen = Tk()
