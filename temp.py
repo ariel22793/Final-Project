@@ -12,7 +12,7 @@ import ast
 import copy
 
 functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
-currentScript = script.Script("kakaGadol",[],0)
+currentScript = script.Script("Folder1",[],0)
 
 
 
@@ -396,6 +396,14 @@ def TreeviewD_Click(event):
 
 
 
+def insertA():
+  print('insert A')
+
+
+
+def insertB():
+  print('insert B')
+
 if __name__ =='__main__':
 
     mainScreen = Tk()
@@ -442,16 +450,22 @@ if __name__ =='__main__':
 
 
     moveDownButton  = Button(mainFrame, text="Move down", command=moveDown)
-    moveDownButton.place(x=170,y=0)
+    moveDownButton.place(x=20,y=0)
 
     moveUpButton = Button(mainFrame, text="Move up", command=moveUp)
-    moveUpButton.place(x=300, y=0)
+    moveUpButton.place(x=140, y=0)
 
     removeFunc = Button(mainFrame, text="Remove Function", command=removeFunctions)
-    removeFunc.place(x=420, y=0)
+    removeFunc.place(x=240, y=0)
+
+    insertB = Button(mainFrame, text="Insert Below", command=insertB)
+    insertB.place(x=410, y=0)
+
+    insertA = Button(mainFrame, text="Insert Above", command=insertA)
+    insertA.place(x=550, y=0)
 
     takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
-    takeScreenShot.place(x=600, y=0)
+    takeScreenShot.place(x=690, y=0)
 
 
     funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
