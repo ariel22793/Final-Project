@@ -110,19 +110,15 @@ class ScreenShotWindow():
             self.x1, self.y1 = event.x, event.y
 
 def addFunction():
-    tmp = functionList[Lb1.curselection()[0]]
-    if  (tmp =='Repeat'or tmp == 'If' or tmp =='Else' or tmp =='Try' or tmp =='Except'):
-        currentScript.functions.append({'name': functionList[Lb1.curselection()[0]], 'img': '', 'id': Lb2.size()})
-        currentScript.functions.append({'name':'{', 'img': '', 'id': Lb2.size()})
-        currentScript.functions.append({'name':'}', 'img':'', 'id':Lb2.size()})
-    else:
-        currentScript.functions.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':Lb2.size()})
+    place = Lb2.curselection()[0]
+    currentScript.functions[place] = {'name': functionList[Lb1.curselection()[0]], 'img': '', 'id':place}
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         name = currentScript.functions[x].get('name')
         Lb2.insert(x, name)
         Lb2.place(x=0, y=40)
-
+    Lb2.selection_clear(0, END)
+    Lb1.selection_clear(0, END)
 
 def removeFunctions():
     index = Lb2.curselection()[0]
@@ -158,6 +154,8 @@ def SUBS(path, parent, tree, fileImg):
 
 def FocusOnSelectedFunc(event):
     takeScreenShot.config(state='normal')
+    Lb1.config(state = 'normal')
+    addFunc.config(state='normal')
     try:
         index = Lb2.curselection()[0]
     except:
@@ -401,7 +399,7 @@ def insertA():
         place = Lb2.curselection()[0]
     except:
         place =0
-    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': 1})
+    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': place})
     for x in range(len(currentScript.functions)):
         if x>place:
             newId =  currentScript.functions[x]['id']+1
@@ -418,7 +416,7 @@ def insertB():
         place = Lb2.curselection()[0]+1
     except:
         place =0
-    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': 1})
+    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': place})
     for x in range(len(currentScript.functions)):
         if x>place:
             newId =  currentScript.functions[x]['id']+1
@@ -460,7 +458,7 @@ if __name__ =='__main__':
     minimize = Button(mainScreen, text="Minimize", command=mainScreen.iconify)
     minimize.place(x=60, y=0)
 
-    addFunc = Button(mainScreen, text="Add Functions", command=addFunction)
+    addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state= DISABLED)
     addFunc.place(x=1600, y=100)
 
 
@@ -499,15 +497,15 @@ if __name__ =='__main__':
     photoViewFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=350, bg='white')
     photoViewFrame.place(x=1455, y=600)
 
-    Lb1 = Listbox(funFrame, width=450, height=2400 )
+    Lb1 = Listbox(funFrame, width=450, height=2400 ,exportselection=0 )
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
 
 
     Lb1.place(x=0,y=0)
+    Lb1.config(state = DISABLED)
 
-
-    Lb2 = Listbox(mainFrame, width=99, height=300)
+    Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0)
     for x in range(0, len(currentScript.functions)):
         Lb2.insert(x, currentScript.functions[x])
 
