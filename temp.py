@@ -11,7 +11,7 @@ import script
 import ast
 import copy
 
-functionList = ['Right-Click','Left-Click','Repeat','If/Else','Try/Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
+functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("kakaGadol",[],0)
 
 
@@ -110,10 +110,17 @@ class ScreenShotWindow():
             self.x1, self.y1 = event.x, event.y
 
 def addFunction():
-    currentScript.functions.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':Lb2.size()})
+    tmp = functionList[Lb1.curselection()[0]]
+    if  (tmp =='Repeat'or tmp == 'If' or tmp =='Else' or tmp =='Try' or tmp =='Except'):
+        currentScript.functions.append({'name': functionList[Lb1.curselection()[0]], 'img': '', 'id': Lb2.size()})
+        currentScript.functions.append({'name':'{', 'img': '', 'id': Lb2.size()})
+        currentScript.functions.append({'name':'}', 'img':'', 'id':Lb2.size()})
+    else:
+        currentScript.functions.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':Lb2.size()})
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
-        Lb2.insert(x, currentScript.functions[x].get('name'))
+        name = currentScript.functions[x].get('name')
+        Lb2.insert(x, name)
         Lb2.place(x=0, y=40)
 
 
