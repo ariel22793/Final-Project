@@ -18,6 +18,11 @@ class Sleep():
     def __init__(self, time):
         self.time = time
 
+class Repeat():
+    def __init__(self,time, functions):
+        self.time = time
+        self.functions = functions
+
 class Photo():
     def __init__(self,x0,y0,x1,y1,imgPath):
         self.x0Cord = x0
@@ -26,6 +31,14 @@ class Photo():
         self.y1Cord = y1
         self.img = imgPath
 
+class Function():
+    def __init__(self, name, img, id, frame, father,extra):
+        self.name = name
+        self.img = img
+        self.id = id
+        self.frame = frame
+        self.father = father
+        self.extra = extra
 
 
 class ScreenShotWindow():
@@ -60,8 +73,8 @@ class ScreenShotWindow():
 
                 id=''
                 for x in currentScript.functions:
-                    if (x.get('id') == Lb2.curselection()[0]):
-                        id = (x.get('id'))
+                    if (x.id == Lb2.curselection()[0]):
+                        id = (x.id)
                 imgName = "Screen"+str(id)+".png"
                 if not os.path.exists(currentScript.path+'ScreenShots\\'):
                     os.mkdir(currentScript.path+'ScreenShots\\')
@@ -76,9 +89,9 @@ class ScreenShotWindow():
 
 
                 for x in currentScript.functions:
-                    if(x.get('id')==Lb2.curselection()[0]):
-                        x['img'] = img
-                        for i,value in x['frame'].children.items():
+                    if(x.id==Lb2.curselection()[0]):
+                        x.img = img
+                        for i,value in x.frame.children.items():
                             if(i == 'canvasFrame'):
                                 canvas = value.children.get('canvas')
                                 one = PhotoImage(file=currentScript.path + "ScreenShots\\" + imgName)
@@ -122,12 +135,11 @@ class ScreenShotWindow():
 
 def changeSleepTime(sv):
     index = Lb2.curselection()[0]
-    currentScript.functions[index]['extra'].time = sv.get()
-    currentScript.functions[index]['name'] = "Sleep({})".format(sv.get())
+    currentScript.functions[index].extra.time = sv.get()
+    currentScript.functions[index].name= "Sleep({})".format(sv.get())
     Lb2.delete(index)
-    Lb2.insert(index, currentScript.functions[index]['name'])
-    Lb2.activate(index)
-    print(sv.get())
+    Lb2.insert(index, currentScript.functions[index].name)
+    Lb2.selection_set(index)
     return True
 
 def addFunction():
@@ -137,15 +149,15 @@ def addFunction():
     if(functionName =='Sleep'):
         count = 0
         sleep = Sleep('?')
-        currentScript.functions[place] = {'name': functionList[Lb1.curselection()[0]] + '(' + sleep.time + ')','img': '', 'id': place,'frame':'', 'extra': sleep}
+        currentScript.functions[place] = Function(functionList[Lb1.curselection()[0]] + '(' + sleep.time + ')','',place,'',sleep)
         frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
         functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
         functionNameLabel.place(x=50, y=50)
         frameLabel = Frame(frame1, width=200, height=30, bg='white')
         frameInput = Frame(frame1, width=200, height=30, bg='white')
 
-        for attr in dir(currentScript.functions[place].get('extra')):
-            if not callable(getattr(currentScript.functions[place].get('extra'), attr)) and not attr.startswith("__"):
+        for attr in dir(currentScript.functions[place].extra):
+            if not callable(getattr(currentScript.functions[place].extra, attr)) and not attr.startswith("__"):
                     count += 1
 
                     y = 50 + count*50
@@ -160,7 +172,34 @@ def addFunction():
                     entry.pack()
                     #entry.insert(END,getattr(currentScript.functions[place].get('extra'), attr))
                     entry.place(x=0,y=0)
-        currentScript.functions[place]['frame'] = frame1
+        currentScript.functions[place].frame = frame1
+    elif (functionName == 'Repeat'):
+        count = 0
+        repeat = Repeat('?',[])
+        currentScript.functions[place] = Function( functionList[Lb1.curselection()[0]] + '(' + repeat.time + ')','',place,'',functionName,repeat)
+        frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
+        functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
+        functionNameLabel.place(x=50, y=50)
+        frameLabel = Frame(frame1, width=200, height=30, bg='white')
+        frameInput = Frame(frame1, width=200, height=30, bg='white')
+
+        for attr in dir(currentScript.functions[place].extra):
+            if not callable(getattr(currentScript.functions[place].extra, attr)) and not attr.startswith("__"):
+                count += 1
+
+                y = 50 + count * 50
+                frameLabel.place(x=50, y=y)
+                label = Label(frameLabel, text=attr)
+                label.place(x=0, y=0)
+
+                frameInput.place(x=150, y=y)
+                sv = StringVar()
+                entry = Entry(frameInput, textvariable=sv)
+                entry.bind('<Return>', (lambda _: changeSleepTime(entry)))
+                entry.pack()
+                # entry.insert(END,getattr(currentScript.functions[place].get('extra'), attr))
+                entry.place(x=0, y=0)
+        currentScript.functions[place].frame= frame1
         print(currentScript.functions[place])
     else:
         frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
@@ -173,11 +212,11 @@ def addFunction():
         fileNameLabel = Label(frame1, text='File Name : ')
         functionNameLabel.place(x=50, y=200)
         fileNameLabel.place(x=50, y=250)
-        currentScript.functions[place] = {'name': functionName, 'img': '', 'id':place, 'frame':frame1}
+        currentScript.functions[place] = Function(functionName,'',place,frame1,'{}:{}'.format(place,functionName),'')
 
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
-        name = currentScript.functions[x].get('name')
+        name = currentScript.functions[x].name
         Lb2.insert(x, name)
         Lb2.place(x=0, y=40)
     Lb2.selection_clear(0, END)
@@ -187,12 +226,12 @@ def removeFunctions():
     index = Lb2.curselection()[0]
     currentScript.functions.pop(index)
     for i in range(index, len(currentScript.functions)):         ## changing the id to be as the index
-        currentScript.functions[i]['id']=i
+        currentScript.functions[i].id=i
 
 
     Lb2.delete(0,'end')
     for x in range(0, len(currentScript.functions)):
-        Lb2.insert(x, currentScript.functions[x].get('name'))
+        Lb2.insert(x, currentScript.functions[x].name)
     Lb2.place(x=0, y=40)
 
 
@@ -228,17 +267,15 @@ def FocusOnSelectedFunc(event):
     photoName = ''
     functionName = ''
     for x in currentScript.functions:
-        if (x.get('id') == id):
+        if (x.id == id):
             try:
-                photoName = x.get('img').img
-                functionName = x.get('name')
+                photoName = x.img.img
+                functionName = x.name
             except:
                 pass
-    if(photoName != ''):
-        print('kaka')
-    photoViewFrame = currentScript.functions[index].get('frame')
+    photoViewFrame = currentScript.functions[index].frame
     print(photoViewFrame)
-    if(photoViewFrame != None):
+    if(photoViewFrame != ''):
         for i in mainScreen.children:
             if(i == 'photoViewFrame'):
                 photoViewFrame.place(x=1455, y=600)
@@ -318,8 +355,8 @@ def createTree(frame):
 
 def moveUp():
     index = Lb2.curselection()[0]
-    currentScript.functions[index]['id']=index-1
-    currentScript.functions[index-1]['id'] = index
+    currentScript.functions[index].id=index-1
+    currentScript.functions[index-1].id = index
     a, b = index, index-1
     currentScript.functions[b], currentScript.functions[a] = currentScript.functions[a], currentScript.functions[b]
     listReload(Lb2)
@@ -328,8 +365,8 @@ def moveUp():
 
 def moveDown():
     index = Lb2.curselection()[0]
-    currentScript.functions[index]['id']=index+1
-    currentScript.functions[index+1]['id'] = index
+    currentScript.functions[index].id=index+1
+    currentScript.functions[index+1].id = index
     a, b = index+1, index
     currentScript.functions[b], currentScript.functions[a] = currentScript.functions[a], currentScript.functions[b]
     listReload(Lb2)
@@ -342,7 +379,7 @@ def moveDown():
 def listReload(list):
     list.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
-        Lb2.insert(x, currentScript.functions[x].get('name'))
+        Lb2.insert(x, currentScript.functions[x].name)
         Lb2.place(x=0, y=40)
 
 def popupmsg(msg):
@@ -358,8 +395,8 @@ def checkImageInFunc():
     funcWithoutImage = ""
     index = 1
     for func in currentScript.functions:
-        if(func['img'] == ''):
-            funcWithoutImage += ("The {} in line {} doesn't have screenshot\n".format(func['name'],index))
+        if(func.img == ''):
+            funcWithoutImage += ("The {} in line {} doesn't have screenshot\n".format(func.name,index))
         index += 1
     return funcWithoutImage
 
@@ -370,18 +407,16 @@ def runHendle():
     else:
         mainScreen.iconify()
         for func in currentScript.functions:
-            if(func['name'] == 'Left-Click'):
-                functions_handler.left_click_handle(func['img'],currentScript.path)
-            elif(func['name'] == 'Exist'):
-                functions_handler.exist_handle(func['img'])
-            elif (func['name'] == 'NotExist'):
-                functions_handler.not_exist_handle(func['img'])
+            if(func.name == 'Left-Click'):
+                functions_handler.left_click_handle(func.img,currentScript.path)
+            elif(func.name == 'Exist'):
+                functions_handler.exist_handle(func.img)
+            elif (func.name == 'NotExist'):
+                functions_handler.not_exist_handle(func.img)
 
 
 def savehundle():
     functionPath = currentScript.path + "functions.json"
-    if(os.path.isfile(functionPath)):
-        print ("kaka")
     # file = open(functionPath,"w+")
     functionFile = ""
     for func in currentScript.functions:
@@ -408,8 +443,6 @@ def savehundle():
 def saveAsHundle():
     filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file", filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
     functionPath = filePath + ".txt"
-    if (os.path.isfile(functionPath)):
-        print("kaka")
     file = open(functionPath, "w+")
     functionFile = ""
     for func in currentScript.functions:
@@ -495,14 +528,14 @@ def insertA():
         place = Lb2.curselection()[0]
     except:
         place =0
-    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': place})
+    currentScript.functions.insert(place,Function('','',place,'','',''))
     for x in range(len(currentScript.functions)):
         if x>place:
-            newId =  currentScript.functions[x]['id']+1
-            currentScript.functions[x]['id'] = newId
+            newId =  currentScript.functions[x].id+1
+            currentScript.functions[x].id = newId
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
-        name = currentScript.functions[x].get('name')
+        name = currentScript.functions[x].name
         Lb2.insert(x, name)
         Lb2.place(x=0, y=40)
     Lb2.select_set(place)
@@ -512,19 +545,19 @@ def insertB():
         place = Lb2.curselection()[0]+1
     except:
         place =0
-    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': place})
+    currentScript.functions.insert(place,Function('','',place,'','',''))
     for x in range(len(currentScript.functions)):
         if x>place:
-            newId =  currentScript.functions[x]['id']+1
-            currentScript.functions[x]['id'] = newId
+            newId =  currentScript.functions.id+1
+            currentScript.functions[x].id = newId
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
-        name = currentScript.functions[x].get('name')
+        name = currentScript.functions[x].name
         Lb2.insert(x, name)
         Lb2.place(x=0, y=40)
     Lb2.select_set(place)
 if __name__ =='__main__':
-
+    functionFather = []
     mainScreen = Tk()
     mainScreen.state("zoomed")
     mainScreen.title("MyApp")
