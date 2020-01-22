@@ -12,9 +12,11 @@ import ast
 import copy
 
 functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
-currentScript = script.Script("kakaGadol",[],0)
+currentScript = script.Script("Folder1",[],0)
 
-
+class Sleep():
+    def __init__(self, time):
+        self.time = time
 
 class Photo():
     def __init__(self,x0,y0,x1,y1,imgPath):
@@ -68,14 +70,23 @@ class ScreenShotWindow():
 
                 img = Photo(self.x0,self.y0,self.x1,self.y1,imgName)
 
+                mainScreen.state('zoomed')
+                self.window.destroy()
+
+
+
                 for x in currentScript.functions:
                     if(x.get('id')==Lb2.curselection()[0]):
                         x['img'] = img
-
-                mainScreen.state('zoomed')
-                self.window.destroy()
-                Lb2.select_clear(0,END)
+                        for i,value in x['frame'].children.items():
+                            if(i == 'canvasFrame'):
+                                canvas = value.children.get('canvas')
+                                one = PhotoImage(file=currentScript.path + "ScreenShots\\" + imgName)
+                                photoViewFrame.one = one  # to prevent the image garbage collected.
+                                canvas.create_image((0, 0), image=one, anchor="nw")
+                Lb2.select_clear(0, END)
                 createTree(explorerFrame)
+
 
         if (str(event.keysym) == 'Escape'):
             print("Quit window")
@@ -109,20 +120,68 @@ class ScreenShotWindow():
             self.click=2
             self.x1, self.y1 = event.x, event.y
 
+def changeSleepTime(sv):
+    index = Lb2.curselection()[0]
+    currentScript.functions[index]['extra'].time = sv.get()
+    currentScript.functions[index]['name'] = "Sleep({})".format(sv.get())
+    Lb2.delete(index)
+    Lb2.insert(index, currentScript.functions[index]['name'])
+    Lb2.activate(index)
+    print(sv.get())
+    return True
+
 def addFunction():
-    tmp = functionList[Lb1.curselection()[0]]
-    if  (tmp =='Repeat'or tmp == 'If' or tmp =='Else' or tmp =='Try' or tmp =='Except'):
-        currentScript.functions.append({'name': functionList[Lb1.curselection()[0]], 'img': '', 'id': Lb2.size()})
-        currentScript.functions.append({'name':'{', 'img': '', 'id': Lb2.size()})
-        currentScript.functions.append({'name':'}', 'img':'', 'id':Lb2.size()})
+    place = Lb2.curselection()[0]
+    functionName = functionList[Lb1.curselection()[0]]
+
+    if(functionName =='Sleep'):
+        count = 0
+        sleep = Sleep('?')
+        currentScript.functions[place] = {'name': functionList[Lb1.curselection()[0]] + '(' + sleep.time + ')','img': '', 'id': place,'frame':'', 'extra': sleep}
+        frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
+        functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
+        functionNameLabel.place(x=50, y=50)
+        frameLabel = Frame(frame1, width=200, height=30, bg='white')
+        frameInput = Frame(frame1, width=200, height=30, bg='white')
+
+        for attr in dir(currentScript.functions[place].get('extra')):
+            if not callable(getattr(currentScript.functions[place].get('extra'), attr)) and not attr.startswith("__"):
+                    count += 1
+
+                    y = 50 + count*50
+                    frameLabel.place(x=50, y=y)
+                    label = Label(frameLabel, text=attr)
+                    label.place(x=0, y=0)
+
+                    frameInput.place(x=150, y=y)
+                    sv = StringVar()
+                    entry = Entry(frameInput, textvariable=sv)
+                    entry.bind('<Return>', (lambda _: changeSleepTime(entry)))
+                    entry.pack()
+                    #entry.insert(END,getattr(currentScript.functions[place].get('extra'), attr))
+                    entry.place(x=0,y=0)
+        currentScript.functions[place]['frame'] = frame1
+        print(currentScript.functions[place])
     else:
-        currentScript.functions.append({'name':functionList[Lb1.curselection()[0]], 'img':'', 'id':Lb2.size()})
+        frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
+        littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, width=437, height=150, bg='white',name = 'canvasFrame')
+        littlePhoto.place(x=0, y=0)
+        canvas = Canvas(littlePhoto, width=437, height=150,name = 'canvas')
+        canvas.pack()
+
+        functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
+        fileNameLabel = Label(frame1, text='File Name : ')
+        functionNameLabel.place(x=50, y=200)
+        fileNameLabel.place(x=50, y=250)
+        currentScript.functions[place] = {'name': functionName, 'img': '', 'id':place, 'frame':frame1}
+
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         name = currentScript.functions[x].get('name')
         Lb2.insert(x, name)
         Lb2.place(x=0, y=40)
-
+    Lb2.selection_clear(0, END)
+    Lb1.selection_clear(0, END)
 
 def removeFunctions():
     index = Lb2.curselection()[0]
@@ -158,6 +217,8 @@ def SUBS(path, parent, tree, fileImg):
 
 def FocusOnSelectedFunc(event):
     takeScreenShot.config(state='normal')
+    Lb1.config(state = 'normal')
+    addFunc.config(state='normal')
     try:
         index = Lb2.curselection()[0]
     except:
@@ -173,36 +234,69 @@ def FocusOnSelectedFunc(event):
                 functionName = x.get('name')
             except:
                 pass
-
-    littlePhoto = Frame(photoViewFrame, bd=2, relief=SUNKEN, width=437, height=150, bg='white')
-    littlePhoto.place(x=0,y=0)
-    canvas = Canvas(littlePhoto, width=437, height=150)
-    canvas.pack()
     if(photoName != ''):
-        one = PhotoImage(file=currentScript.path + "ScreenShots\\" + photoName)
-        photoViewFrame.one = one  # to prevent the image garbage collected.
-        canvas.create_image((0, 0), image=one, anchor="nw")
+        print('kaka')
+    photoViewFrame = currentScript.functions[index].get('frame')
+    print(photoViewFrame)
+    if(photoViewFrame != None):
+        for i in mainScreen.children:
+            if(i == 'photoViewFrame'):
+                photoViewFrame.place(x=1455, y=600)
+                photoViewFrame.tkraise()
+                mainScreen.children[i]=photoViewFrame
 
-    functionNameLabel =  Label(photoViewFrame, text='Function Name : ')
-    fileNameLabel = Label(photoViewFrame, text='File Name : ')
-    functionNameLabel.place(x=50, y=200)
-    fileNameLabel.place(x=50, y=250)
 
 
-    functionNameFrame = Frame(photoViewFrame, width=200, height=30, bg='white')
-    functionNameFrame.place(x=200, y=200)
-    labelInfunctionNameFrame = Label(functionNameFrame, text=functionName)
-    labelInfunctionNameFrame.place(x=0,y=0)
-
-    fileNameFrame = Frame(photoViewFrame, width=200, height=30, bg='white')
-    fileNameFrame.place(x=200, y=250)
-    labelInfunctionNameFrame = Label(fileNameFrame, text=photoName)
-    labelInfunctionNameFrame.place(x=0, y=0)
-
-    if(photoName!=''):
-        reTake = Button(photoViewFrame, text='Take New ScreenShot' , command=window2)
-        reTake.place(x=150, y = 295)
-
+    # littlePhoto = Frame(photoViewFrame, bd=2, relief=SUNKEN, width=437, height=150, bg='white')
+    # littlePhoto.place(x=0,y=0)
+    # canvas = Canvas(littlePhoto, width=437, height=150)
+    # canvas.pack()
+    # if(photoName != ''):
+    #     one = PhotoImage(file=currentScript.path + "ScreenShots\\" + photoName)
+    #     photoViewFrame.one = one  # to prevent the image garbage collected.
+    #     canvas.create_image((0, 0), image=one, anchor="nw")
+    #
+    # functionNameLabel =  Label(photoViewFrame, text='Function Name : ')
+    # fileNameLabel = Label(photoViewFrame, text='File Name : ')
+    # functionNameLabel.place(x=50, y=200)
+    # fileNameLabel.place(x=50, y=250)
+    #
+    #
+    # functionNameFrame = Frame(photoViewFrame, width=200, height=30, bg='white')
+    # functionNameFrame.place(x=200, y=200)
+    # labelInfunctionNameFrame = Label(functionNameFrame, text=functionName)
+    # labelInfunctionNameFrame.place(x=0,y=0)
+    #
+    # fileNameFrame = Frame(photoViewFrame, width=200, height=30, bg='white')
+    # fileNameFrame.place(x=200, y=250)
+    # labelInfunctionNameFrame = Label(fileNameFrame, text=photoName)
+    # labelInfunctionNameFrame.place(x=0, y=0)
+    #
+    # index = Lb2.curselection()[0]
+    # selected = currentScript.functions[index]
+    # count =0
+    # frame1 = Frame(photoViewFrame, width=200, height=30, bg='white')
+    # frame2 = Frame(photoViewFrame, width=200, height=30, bg='white')
+    # if(selected.get('extra')!=''):
+    #     for attr in dir(selected.get('extra')) :
+    #         if not callable(getattr(selected.get('extra'), attr)) and not attr.startswith("__"):
+    #             count += 1
+    #
+    #             y = 250 + count*50
+    #             frame1.place(x=50, y=y)
+    #             label = Label(frame1, text=attr)
+    #             label.place(x=0, y=0)
+    #
+    #             frame2.place(x=200, y=y)
+    #             entry = Entry(frame2)
+    #             entry.insert(END,getattr(selected.get('extra'), attr))
+    #             entry.place(x=0,y=0)
+    # else:
+    #     littlePhoto = Frame(photoViewFrame, bd=2, relief=SUNKEN, width=437, height=150, bg='white')
+    #     littlePhoto.place(x=0, y=0)
+    # if(photoName!=''):
+    #     reTake = Button(photoViewFrame, text='Take New ScreenShot' , command=window2)
+    #     reTake.place(x=150, y = 295)
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
 
@@ -396,12 +490,44 @@ def TreeviewD_Click(event):
 
 
 
+def insertA():
+    try:
+        place = Lb2.curselection()[0]
+    except:
+        place =0
+    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': place})
+    for x in range(len(currentScript.functions)):
+        if x>place:
+            newId =  currentScript.functions[x]['id']+1
+            currentScript.functions[x]['id'] = newId
+    Lb2.delete(0, 'end')
+    for x in range(0, len(currentScript.functions)):
+        name = currentScript.functions[x].get('name')
+        Lb2.insert(x, name)
+        Lb2.place(x=0, y=40)
+    Lb2.select_set(place)
+
+def insertB():
+    try:
+        place = Lb2.curselection()[0]+1
+    except:
+        place =0
+    currentScript.functions.insert(place,{'name': '', 'img': '', 'id': place})
+    for x in range(len(currentScript.functions)):
+        if x>place:
+            newId =  currentScript.functions[x]['id']+1
+            currentScript.functions[x]['id'] = newId
+    Lb2.delete(0, 'end')
+    for x in range(0, len(currentScript.functions)):
+        name = currentScript.functions[x].get('name')
+        Lb2.insert(x, name)
+        Lb2.place(x=0, y=40)
+    Lb2.select_set(place)
 if __name__ =='__main__':
 
     mainScreen = Tk()
     mainScreen.state("zoomed")
     mainScreen.title("MyApp")
-    # kaka = script.Script.getFunctions(currentScript.path)
 
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
     toolbarFrame.place(x=0, y=50)
@@ -427,7 +553,7 @@ if __name__ =='__main__':
     minimize = Button(mainScreen, text="Minimize", command=mainScreen.iconify)
     minimize.place(x=60, y=0)
 
-    addFunc = Button(mainScreen, text="Add Functions", command=addFunction)
+    addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state= DISABLED)
     addFunc.place(x=1600, y=100)
 
 
@@ -442,33 +568,39 @@ if __name__ =='__main__':
 
 
     moveDownButton  = Button(mainFrame, text="Move down", command=moveDown)
-    moveDownButton.place(x=170,y=0)
+    moveDownButton.place(x=20,y=0)
 
     moveUpButton = Button(mainFrame, text="Move up", command=moveUp)
-    moveUpButton.place(x=300, y=0)
+    moveUpButton.place(x=140, y=0)
 
     removeFunc = Button(mainFrame, text="Remove Function", command=removeFunctions)
-    removeFunc.place(x=420, y=0)
+    removeFunc.place(x=240, y=0)
+
+    insertB = Button(mainFrame, text="Insert Below", command=insertB)
+    insertB.place(x=410, y=0)
+
+    insertA = Button(mainFrame, text="Insert Above", command=insertA)
+    insertA.place(x=550, y=0)
 
     takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
-    takeScreenShot.place(x=600, y=0)
+    takeScreenShot.place(x=690, y=0)
 
 
     funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
     funFrame.place(x=1455, y=150)
 
-    photoViewFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=350, bg='white')
+    photoViewFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=350, bg='white',name = 'photoViewFrame')
     photoViewFrame.place(x=1455, y=600)
 
-    Lb1 = Listbox(funFrame, width=450, height=2400 )
+    Lb1 = Listbox(funFrame, width=450, height=2400 ,exportselection=0 )
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
 
 
     Lb1.place(x=0,y=0)
+    Lb1.config(state = DISABLED)
 
-
-    Lb2 = Listbox(mainFrame, width=99, height=300)
+    Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0)
     for x in range(0, len(currentScript.functions)):
         Lb2.insert(x, currentScript.functions[x])
 
