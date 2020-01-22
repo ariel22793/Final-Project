@@ -120,14 +120,48 @@ class ScreenShotWindow():
             self.click=2
             self.x1, self.y1 = event.x, event.y
 
+def changeSleepTime(sv):
+    index = Lb2.curselection()[0]
+    currentScript.functions[index]['extra'].time = sv.get()
+    currentScript.functions[index]['name'] = "Sleep({})".format(sv.get())
+    Lb2.delete(index)
+    Lb2.insert(index, currentScript.functions[index]['name'])
+    Lb2.activate(index)
+    print(sv.get())
+    return True
+
 def addFunction():
     place = Lb2.curselection()[0]
     functionName = functionList[Lb1.curselection()[0]]
 
     if(functionName =='Sleep'):
+        count = 0
         sleep = Sleep('?')
-        currentScript.functions[place] = {'name': functionList[Lb1.curselection()[0]] + '(' + sleep.time+')', 'img': '', 'id':place, 'extra':sleep}
+        currentScript.functions[place] = {'name': functionList[Lb1.curselection()[0]] + '(' + sleep.time + ')','img': '', 'id': place,'frame':'', 'extra': sleep}
+        frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
+        functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
+        functionNameLabel.place(x=50, y=50)
+        frameLabel = Frame(frame1, width=200, height=30, bg='white')
+        frameInput = Frame(frame1, width=200, height=30, bg='white')
 
+        for attr in dir(currentScript.functions[place].get('extra')):
+            if not callable(getattr(currentScript.functions[place].get('extra'), attr)) and not attr.startswith("__"):
+                    count += 1
+
+                    y = 50 + count*50
+                    frameLabel.place(x=50, y=y)
+                    label = Label(frameLabel, text=attr)
+                    label.place(x=0, y=0)
+
+                    frameInput.place(x=150, y=y)
+                    sv = StringVar()
+                    entry = Entry(frameInput, textvariable=sv)
+                    entry.bind('<Return>', (lambda _: changeSleepTime(entry)))
+                    entry.pack()
+                    #entry.insert(END,getattr(currentScript.functions[place].get('extra'), attr))
+                    entry.place(x=0,y=0)
+        currentScript.functions[place]['frame'] = frame1
+        print(currentScript.functions[place])
     else:
         frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
         littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, width=437, height=150, bg='white',name = 'canvasFrame')
@@ -208,6 +242,7 @@ def FocusOnSelectedFunc(event):
         for i in mainScreen.children:
             if(i == 'photoViewFrame'):
                 photoViewFrame.place(x=1455, y=600)
+                photoViewFrame.tkraise()
                 mainScreen.children[i]=photoViewFrame
 
 
