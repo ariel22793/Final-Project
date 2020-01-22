@@ -40,6 +40,12 @@ class Function():
         self.father = father
         self.extra = extra
 
+class LineFather():
+    def __init__(self, fromIndex, toIndex, fatherName):
+        self.fromIndex = fromIndex
+        self.toIndex = toIndex
+        self.fatherName = fatherName
+
 
 class ScreenShotWindow():
     def __init__(self):
@@ -97,6 +103,7 @@ class ScreenShotWindow():
                                 one = PhotoImage(file=currentScript.path + "ScreenShots\\" + imgName)
                                 photoViewFrame.one = one  # to prevent the image garbage collected.
                                 canvas.create_image((0, 0), image=one, anchor="nw")
+                                break
                 Lb2.select_clear(0, END)
                 createTree(explorerFrame)
 
@@ -142,6 +149,35 @@ def changeSleepTime(sv):
     Lb2.selection_set(index)
     return True
 
+def changeRepeatTime(sv):
+    index = Lb2.curselection()[0]
+    currentScript.functions[index].extra.time = sv.get()
+    currentScript.functions[index].name = "Repeat({})".format(sv.get())
+    Lb2.delete(index)
+    Lb2.insert(index, currentScript.functions[index].name)
+    Lb2.selection_set(index)
+    return True
+
+def updateCurrentScript():
+    fromIndex = 0
+    toIndex = 0
+    for i in range(len(currentScript.functions)):
+        if('(' in currentScript.functions[i].name and currentScript.functions[i].name[:currentScript.functions[i].name.index('(')] == 'Repeat'):
+            fromIndex = i
+            toIndex = i + len(currentScript.functions[i].extra.functions) + 2
+        if(currentScript.functions[i].father[1] == 'Repeat'):
+            currentScript.functions[i].id = i
+            currentScript.linesFather[i].fromIndex = fromIndex
+            currentScript.linesFather[i].toIndex = toIndex
+        else:
+            currentScript.functions[i].id = i
+            currentScript.linesFather[i].fromIndex = i
+            currentScript.linesFather[i].toIndex = i
+
+
+
+
+
 def addFunction():
     place = Lb2.curselection()[0]
     functionName = functionList[Lb1.curselection()[0]]
@@ -149,15 +185,16 @@ def addFunction():
     if(functionName =='Sleep'):
         count = 0
         sleep = Sleep('?')
-        currentScript.functions[place] = Function(functionList[Lb1.curselection()[0]] + '(' + sleep.time + ')','',place,'',sleep)
+        currentScript.functions[place] = Function(functionList[Lb1.curselection()[0]] + '(' + sleep.time + ')','',place,'',functionName,sleep)
         frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
         functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
         functionNameLabel.place(x=50, y=50)
         frameLabel = Frame(frame1, width=200, height=30, bg='white')
         frameInput = Frame(frame1, width=200, height=30, bg='white')
+        currentScript.linesFather.insert(place,LineFather(place,place,functionName))
 
         for attr in dir(currentScript.functions[place].extra):
-            if not callable(getattr(currentScript.functions[place].extra, attr)) and not attr.startswith("__"):
+            if not callable(getattr(currentScript.functions[place].extra, attr)) and not attr.startswith("__") and attr!='functions':
                     count += 1
 
                     y = 50 + count*50
@@ -170,21 +207,27 @@ def addFunction():
                     entry = Entry(frameInput, textvariable=sv)
                     entry.bind('<Return>', (lambda _: changeSleepTime(entry)))
                     entry.pack()
-                    #entry.insert(END,getattr(currentScript.functions[place].get('extra'), attr))
                     entry.place(x=0,y=0)
         currentScript.functions[place].frame = frame1
     elif (functionName == 'Repeat'):
         count = 0
-        repeat = Repeat('?',[])
-        currentScript.functions[place] = Function( functionList[Lb1.curselection()[0]] + '(' + repeat.time + ')','',place,'',functionName,repeat)
+        repeat = Repeat('?',[Function('','','','','','')])
+        currentScript.functions[place] = Function( functionList[Lb1.curselection()[0]] + '(' + repeat.time + ')','',place,'',(place,functionName),repeat)
+        currentScript.functions.insert(place + 1, Function('{', '', place + 1, '', (place,functionName), ''))
+        currentScript.functions.insert(place + 2, Function('', '', place + 1, '', (place,functionName), ''))
+        currentScript.functions.insert(place + 3, Function('}', '', place + 1, '', (place,functionName), ''))
         frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
         functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
         functionNameLabel.place(x=50, y=50)
         frameLabel = Frame(frame1, width=200, height=30, bg='white')
         frameInput = Frame(frame1, width=200, height=30, bg='white')
-
+        for i in range(place,place+4,1):
+            if(i==place):
+                currentScript.linesFather[i] = LineFather(place, place+3, functionName)
+            else:
+                currentScript.linesFather.insert(i,LineFather(place, place+3, functionName))
         for attr in dir(currentScript.functions[place].extra):
-            if not callable(getattr(currentScript.functions[place].extra, attr)) and not attr.startswith("__"):
+            if not callable(getattr(currentScript.functions[place].extra, attr)) and not attr.startswith("__") and attr!='functions':
                 count += 1
 
                 y = 50 + count * 50
@@ -195,7 +238,7 @@ def addFunction():
                 frameInput.place(x=150, y=y)
                 sv = StringVar()
                 entry = Entry(frameInput, textvariable=sv)
-                entry.bind('<Return>', (lambda _: changeSleepTime(entry)))
+                entry.bind('<Return>', (lambda _: changeRepeatTime(entry)))
                 entry.pack()
                 # entry.insert(END,getattr(currentScript.functions[place].get('extra'), attr))
                 entry.place(x=0, y=0)
@@ -212,8 +255,20 @@ def addFunction():
         fileNameLabel = Label(frame1, text='File Name : ')
         functionNameLabel.place(x=50, y=200)
         fileNameLabel.place(x=50, y=250)
-        currentScript.functions[place] = Function(functionName,'',place,frame1,'{}:{}'.format(place,functionName),'')
+        if(currentScript.linesFather[place].fatherName == 'Repeat'):
+            currentScript.functions[place] = Function(functionName,'',place,frame1,(currentScript.linesFather[place].fromIndex,currentScript.linesFather[place].fatherName),'')
+            currentScript.linesFather[place] = LineFather(currentScript.linesFather[place].fromIndex, currentScript.linesFather[place].toIndex, currentScript.linesFather[place].fatherName)
+            repeatFatherFunction = currentScript.functions[currentScript.linesFather[place].fromIndex]
+            if(repeatFatherFunction.extra.functions[0].name == ''):
+                currentScript.functions[currentScript.linesFather[place].fromIndex].extra.functions[0] = Function(functionName,'',place,frame1,(currentScript.linesFather[place].fromIndex,currentScript.linesFather[place].fatherName),'')
+            else:
+                currentScript.functions[currentScript.linesFather[place].fromIndex].extra.functions.insert(currentScript.linesFather[place].fromIndex+place-2,Function(functionName,'',place,frame1,(currentScript.linesFather[place].fromIndex,currentScript.linesFather[place].fatherName),''))
 
+        else:
+            currentScript.functions[place] = Function(functionName,'',place,frame1,(currentScript.linesFather[place].fromIndex,functionName),'')
+            currentScript.linesFather[place] = LineFather(place, place, functionName)
+
+    updateCurrentScript()
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         name = currentScript.functions[x].name
@@ -273,14 +328,18 @@ def FocusOnSelectedFunc(event):
                 functionName = x.name
             except:
                 pass
-    photoViewFrame = currentScript.functions[index].frame
-    print(photoViewFrame)
-    if(photoViewFrame != ''):
+
+    # currentScript.functions[index].frame.place(x=1455, y=600)
+    # print(currentScript.functions[index].frame)
+    # currentScript.functions[index].frame.tkraise()
+    # photoViewFrame = currentScript.functions[index].frame
+    # print(photoViewFrame)
+    frame = currentScript.functions[index].frame
+    if(frame != ''):
         for i in mainScreen.children:
             if(i == 'photoViewFrame'):
-                photoViewFrame.place(x=1455, y=600)
-                photoViewFrame.tkraise()
-                mainScreen.children[i]=photoViewFrame
+                frame.place(x=1455, y=600)
+                frame.tkraise()
 
 
 
@@ -529,6 +588,13 @@ def insertA():
     except:
         place =0
     currentScript.functions.insert(place,Function('','',place,'','',''))
+    if(len(currentScript.functions) > 1):
+        nextFunction = currentScript.functions[place+1]
+    if(len(currentScript.functions) > 1 and nextFunction.father[1] == 'Repeat' and not('(' in nextFunction.name and nextFunction.name[:nextFunction.name.index('(')] == 'Repeat')):
+        currentScript.linesFather.insert(place,currentScript.linesFather[place+1])
+        currentScript.linesFather[currentScript.linesFather[place+1].fromIndex].toIndex += 1
+    else:
+        currentScript.linesFather.insert(place, LineFather(place,place,''))
     for x in range(len(currentScript.functions)):
         if x>place:
             newId =  currentScript.functions[x].id+1
@@ -546,9 +612,15 @@ def insertB():
     except:
         place =0
     currentScript.functions.insert(place,Function('','',place,'','',''))
+    if (len(currentScript.functions) > 1):
+        previousFunction = currentScript.functions[place-1]
+    if (len(currentScript.functions) > 1 and previousFunction.father[1] == 'Repeat' and previousFunction.name != '}'):
+        currentScript.linesFather.insert(place, currentScript.linesFather[place])
+    else:
+        currentScript.linesFather.insert(place, LineFather(place, place, ''))
     for x in range(len(currentScript.functions)):
         if x>place:
-            newId =  currentScript.functions.id+1
+            newId =  currentScript.functions[x].id+1
             currentScript.functions[x].id = newId
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
