@@ -126,8 +126,7 @@ def changeSleepTime(sv):
     currentScript.functions[index]['name'] = "Sleep({})".format(sv.get())
     Lb2.delete(index)
     Lb2.insert(index, currentScript.functions[index]['name'])
-    Lb2.activate(index)
-    print(sv.get())
+    Lb2.selection_set(index)
     return True
 
 def addFunction():
