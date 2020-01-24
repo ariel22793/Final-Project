@@ -11,8 +11,28 @@ def down(counter):
     counter[0] -= 1
     update()
 
+
+def clear(counter):
+    counter[0]=0
+    update()
+
+
+def doubleClick(couter):
+    counter[0]+=3
+    update()
+
+
 def update():
     counterShow.config(text="Counter: " +str(counter[0]))
+
+
+def colorChange():
+    print(daniDinButton.cget('bg'))
+    if daniDinButton.cget('bg') == 'black':
+        daniDinButton.config(bg='white', fg='black')
+    elif daniDinButton.cget('bg') == 'white':
+        daniDinButton.config(bg='black', fg='white')
+
 
 if __name__ == '__main__':
     mainScreen = Tk()
@@ -30,12 +50,21 @@ if __name__ == '__main__':
     counterUp.place(x=600, y=500)
     counterUp.bind('<Button-1>', lambda event : add(counter))
 
+    counterDoubleClick = Button(mainScreen, text='+3 (DoubleClick)', width=15, height=3, bg='Green', fg='white', font=("Helvetica", 10))
+    counterDoubleClick.place(x=950, y=500)
+    counterDoubleClick.bind('<Double-Button-1>', lambda event: doubleClick(counter))
+
     counterDown = Button(mainScreen, text= '-1',  width=20, height=5, bg='red', fg='white', font=("Helvetica", 15))
     counterDown.place(x=1200, y=500)
     counterDown.bind('<Button-1>', lambda event: down(counter))
-    counterDown = Button(mainScreen, text= 'Clear',  width=20, height=5,  font=("Helvetica", 15))
-    counterDown.place(x=900, y=700)
 
+    counterClear = Button(mainScreen, text= 'Clear',  width=20, height=5,  font=("Helvetica", 15))
+    counterClear.place(x=900, y=700)
+    counterClear.bind('<Button-1>', lambda event: clear(counter))
+
+    daniDinButton = Button(mainScreen, text='Click To Change Color!', width=50, height=3,bg='black', fg='white', font=("Helvetica", 10))
+    daniDinButton.place(x=800, y=900)
+    daniDinButton.bind('<Button-1>', lambda event: colorChange())
 
     mainScreen.mainloop()
 
