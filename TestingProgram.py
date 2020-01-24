@@ -27,7 +27,6 @@ def update():
 
 
 def colorChange():
-    print(daniDinButton.cget('bg'))
     if daniDinButton.cget('bg') == 'black':
         daniDinButton.config(bg='white', fg='black')
     elif daniDinButton.cget('bg') == 'white':
