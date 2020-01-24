@@ -200,6 +200,7 @@ def addFunction():
         functionNameLabel.place(x=50, y=50)
         frameLabel = Frame(frame1, width=200, height=30, bg='white')
         frameInput = Frame(frame1, width=200, height=30, bg='white')
+
         if (currentScript.linesFather[place].fatherName == 'Repeat'):
             currentScript.functions[place] = Function(functionName + '(' + sleep.time + ')', '', place, frame1, (
             currentScript.linesFather[place].fromIndex, currentScript.linesFather[place].fatherName), sleep)
@@ -240,10 +241,6 @@ def addFunction():
     elif (functionName == 'Repeat'):
         count = 0
         repeat = Repeat('?',[Function('','','','','','')])
-        # currentScript.functions[place] = Function( functionList[Lb1.curselection()[0]] + '(' + repeat.time + ')','',place,'',(place,functionName),repeat)
-        # currentScript.functions.insert(place + 1, Function('{', '', place + 1, '', (place,functionName), ''))
-        # currentScript.functions.insert(place + 2, Function('', '', place + 1, '', (place,functionName), ''))
-        # currentScript.functions.insert(place + 3, Function('}', '', place + 1, '', (place,functionName), ''))
         frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
         functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
         functionNameLabel.place(x=50, y=50)
@@ -329,10 +326,9 @@ def addFunction():
 def removeFunctions():
     index = Lb2.curselection()[0]
     currentScript.functions.pop(index)
-    for i in range(index, len(currentScript.functions)):         ## changing the id to be as the index
-        currentScript.functions[i].id=i
 
 
+    updateCurrentScript()
     Lb2.delete(0,'end')
     for x in range(0, len(currentScript.functions)):
         Lb2.insert(x, currentScript.functions[x].name)
