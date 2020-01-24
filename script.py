@@ -23,3 +23,5 @@ class Script():
         functionsFile = open(scriptPath + "functions.txt","r")
         functions = functionsFile.read()
 
+
+

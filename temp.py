@@ -40,6 +40,9 @@ class Function():
         self.father = father
         self.extra = extra
 
+    def printFunction(self):
+        print(self)
+
 class LineFather():
     def __init__(self, fromIndex, toIndex, fatherName):
         self.fromIndex = fromIndex
@@ -160,7 +163,7 @@ def updateCurrentScript():
         if('(' in currentScript.functions[i].name and currentScript.functions[i].name[:currentScript.functions[i].name.index('(')] == 'Repeat'):
             fromIndex = i
             toIndex = i + len(currentScript.functions[i].extra.functions) + 2
-        if(currentScript.functions[i].father[1] == 'Repeat'):
+        if(currentScript.functions[i].father != '' and currentScript.functions[i].father[1] == 'Repeat'):
             currentScript.functions[i].id = i
             currentScript.linesFather[i].fromIndex = fromIndex
             currentScript.linesFather[i].toIndex = toIndex
@@ -168,6 +171,18 @@ def updateCurrentScript():
             currentScript.functions[i].id = i
             currentScript.linesFather[i].fromIndex = i
             currentScript.linesFather[i].toIndex = i
+
+    for i in currentScript.functions:
+
+        if(i.name != ''):
+            if (i.id == 0):
+                print('####################')
+            print('{}:{}'.format(i.id,i.name))
+            if (i.id == len(currentScript.functions) - 1):
+                print('####################')
+
+
+
 
 
 
@@ -351,7 +366,7 @@ def FocusOnSelectedFunc(event):
         index = Lb2.curselection()[0]
     except:
         return
-
+    frame = ''
     id = index
     photoName = ''
     functionName = ''
@@ -364,7 +379,6 @@ def FocusOnSelectedFunc(event):
                 pass
             frame = currentScript.functions[index].frame
     if(frame != ''):
-
         frame.place(x=1455, y=600)
         if(photoName != ''):
             for childName, childValue in frame.children.items():
@@ -601,8 +615,10 @@ def insertA():
         currentScript.linesFather.insert(place, LineFather(place,place,''))
     for x in range(len(currentScript.functions)):
         if x>place:
-            newId =  currentScript.functions[x].id+1
-            currentScript.functions[x].id = newId
+            newId =  currentScript.functions[x].id
+
+    if(len(currentScript.functions)>0):
+        currentScript.functions[x].id = updateCurrentScript()
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         name = currentScript.functions[x].name
@@ -626,6 +642,9 @@ def insertB():
         if x>place:
             newId =  currentScript.functions[x].id+1
             currentScript.functions[x].id = newId
+
+    if (len(currentScript.functions) > 1):
+        currentScript.functions[x].id = updateCurrentScript()
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         name = currentScript.functions[x].name
