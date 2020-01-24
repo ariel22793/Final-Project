@@ -1,5 +1,5 @@
 from tkinter import *
-
+from PIL import Image, ImageTk
 counter = [0]
 
 
@@ -34,6 +34,7 @@ def colorChange():
 
 
 if __name__ == '__main__':
+
     mainScreen = Tk()
     mainScreen.state("zoomed")
     mainScreen.title("Testing App")
@@ -57,9 +58,9 @@ if __name__ == '__main__':
     counterDown.place(x=1200, y=500)
     counterDown.bind('<Button-1>', lambda event: down(counter))
 
-    counterClear = Button(mainScreen, text= 'Clear',  width=20, height=5,  font=("Helvetica", 15))
+    counterClear = Button(mainScreen, text= 'Clear (LeftClick)',  width=20, height=5,  font=("Helvetica", 15))
     counterClear.place(x=900, y=700)
-    counterClear.bind('<Button-1>', lambda event: clear(counter))
+    counterClear.bind('<Button-3>', lambda event: clear(counter))
 
     daniDinButton = Button(mainScreen, text='Click To Change Color!', width=50, height=3,bg='black', fg='white', font=("Helvetica", 10))
     daniDinButton.place(x=800, y=900)
