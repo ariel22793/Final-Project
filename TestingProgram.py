@@ -41,29 +41,29 @@ if __name__ == '__main__':
 
 
     title = Label(mainScreen, text='Testing App', font=("Helvetica", 40))
-    title.place(x=850,y=100)
+    title.place(x=500,y=50)
 
     counterShow = Label(mainScreen, text='Counter: ' +str(counter[0]), font=("Helvetica", 30))
-    counterShow.place(x=910,y=300)
+    counterShow.place(x=550,y=150)
 
     counterUp = Button(mainScreen, text= '+1', width=20, height=5, bg='blue', fg='white', font=("Helvetica", 15))
-    counterUp.place(x=600, y=500)
+    counterUp.place(x=300, y=200)
     counterUp.bind('<Button-1>', lambda event : add(counter))
 
     counterDoubleClick = Button(mainScreen, text='+3 (DoubleClick)', width=15, height=3, bg='Green', fg='white', font=("Helvetica", 10))
-    counterDoubleClick.place(x=950, y=500)
+    counterDoubleClick.place(x=580, y=200)
     counterDoubleClick.bind('<Double-Button-1>', lambda event: doubleClick(counter))
 
     counterDown = Button(mainScreen, text= '-1',  width=20, height=5, bg='red', fg='white', font=("Helvetica", 15))
-    counterDown.place(x=1200, y=500)
+    counterDown.place(x=800, y=200)
     counterDown.bind('<Button-1>', lambda event: down(counter))
 
-    counterClear = Button(mainScreen, text= 'Clear (LeftClick)',  width=20, height=5,  font=("Helvetica", 15))
-    counterClear.place(x=900, y=700)
+    counterClear = Button(mainScreen, text= 'Clear (RightClick)',  width=20, height=5,  font=("Helvetica", 15))
+    counterClear.place(x=550, y=360)
     counterClear.bind('<Button-3>', lambda event: clear(counter))
 
     daniDinButton = Button(mainScreen, text='Click To Change Color!', width=50, height=3,bg='black', fg='white', font=("Helvetica", 10))
-    daniDinButton.place(x=800, y=900)
+    daniDinButton.place(x=460, y=520)
     daniDinButton.bind('<Button-1>', lambda event: colorChange())
 
     mainScreen.mainloop()
