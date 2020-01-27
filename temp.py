@@ -556,7 +556,6 @@ def savehundle():
                 if(x.hasFather()) :
                     fathersId = x.father[0]
                     block.get(str(fathersId))['Childrens'].update( {str(x.id):{ 'name':x.name, 'img':imgdict, 'Childrens':''}})
-                    print(block.get(str(fathersId)).get('Childrens'))
                 else:
                     block.update({str(x.id):{ 'name':x.name, 'img':imgdict, 'Childrens':{}}})
                 with open(functionPath, 'w+') as outfile:
