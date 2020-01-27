@@ -356,6 +356,13 @@ def removeFunctions():
             listOfIndexToPop.append(x)
 
     for x in listOfIndexToPop[::-1]:      # this will reverse the list of index to pop to avoid  IndexError exeption.
+        try:
+            img = currentScript.functions[x].img.img
+            if(img!=''):
+                path = currentScript.path+'ScreenShots\\'+img
+                os.remove(path)
+        except:
+            pass
         currentScript.functions.pop(x)
 
 
