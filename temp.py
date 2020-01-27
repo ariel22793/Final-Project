@@ -41,7 +41,8 @@ class Function():
         self.extra = extra
 
     def printFunction(self):
-        print(self)
+        temp = 'name:' + str(self.name) + ', id:' + str(self.id) + ', img:' + str(self.img) + ', father:' + str(self.father)
+        print(temp)
 
 class LineFather():
     def __init__(self, fromIndex, toIndex, fatherName):
@@ -176,10 +177,12 @@ def updateCurrentScript():
 
         if(i.name != ''):
             if (i.id == 0):
-                print('####################')
-            print('{}:{}'.format(i.id,i.name))
+                pass
+                # print('####################')
+            # print('{}:{}'.format(i.id,i.name))
             if (i.id == len(currentScript.functions) - 1):
-                print('####################')
+                # print('####################')
+                pass
 
 
 
@@ -325,9 +328,25 @@ def addFunction():
 
 def removeFunctions():
     index = Lb2.curselection()[0]
-    currentScript.functions.pop(index)
+    # popedFunc = currentScript.functions.pop(index)
+    popedFunc = currentScript.functions[index]
+    popedFuncName =''
+    try:
+        popedFuncName = popedFunc.name.split('(',2)[0]   # to avoid () in functions like sleep repeat etc.
+    except:
+        popedFuncName = popedFunc.name
+
+    listOfIndexToPop = []
+    for x in range(len(currentScript.functions)):
+        if currentScript.functions[x].father == (index, popedFuncName):
+            listOfIndexToPop.append(x)
+
+    for x in listOfIndexToPop[::-1]:      # this will reverse the list of index to pop to avoid  IndexError exeption.
+        currentScript.functions.pop(x)
 
 
+    # for x in currentScript.functions:
+    #     print(x.printFunction())
     updateCurrentScript()
     Lb2.delete(0,'end')
     for x in range(0, len(currentScript.functions)):
