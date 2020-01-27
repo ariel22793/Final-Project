@@ -11,33 +11,28 @@ import script
 import ast
 import copy
 
-functionList = ['Right-Click', 'Left-Click', 'Repeat', 'If', 'Else', 'Try', 'Except', 'Double-Click', 'Insert Input',
-                'Key-Press', 'Exist', 'NotExist', 'Sleep']
-currentScript = script.Script("Folder1", [], 0)
+functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
+currentScript = script.Script("Folder1",[],0)
 
-
-class Sleep:
+class Sleep():
     def __init__(self, time):
         self.time = time
 
-
-class Repeat:
-    def __init__(self, time, functions):
+class Repeat():
+    def __init__(self,time, functions):
         self.time = time
         self.functions = functions
 
-
-class Photo:
-    def __init__(self, x0, y0, x1, y1, imgPath):
+class Photo():
+    def __init__(self,x0,y0,x1,y1,imgPath):
         self.x0Cord = x0
         self.x1Cord = x1
         self.y0Cord = y0
         self.y1Cord = y1
         self.img = imgPath
 
-
-class Function:
-    def __init__(self, name, img, id, frame, father, extra):
+class Function():
+    def __init__(self, name, img, id, frame, father,extra):
         self.name = name
         self.img = img
         self.id = id
@@ -46,17 +41,17 @@ class Function:
         self.extra = extra
 
     def printFunction(self):
-        print(self)
+        temp = 'name:' + str(self.name) + ', id:' + str(self.id) + ', img:' + str(self.img) + ', father:' + str(self.father)
+        print(temp)
 
-
-class LineFather:
+class LineFather():
     def __init__(self, fromIndex, toIndex, fatherName):
         self.fromIndex = fromIndex
         self.toIndex = toIndex
         self.fatherName = fatherName
 
 
-class ScreenShotWindow:
+class ScreenShotWindow():
     def __init__(self):
         mainScreen.iconify()
         window2 = Tk()
@@ -345,8 +340,27 @@ def addFunction():
 
 def removeFunctions():
     index = Lb2.curselection()[0]
-    currentScript.functions.pop(index)
+    if(currentScript.functions[index].name =='{' or currentScript.functions[index].name =='}' ):
+        msgbox = tkinter.messagebox.showerror('Notic!', 'You cant remove this, this is not a function.')
 
+    popedFunc = currentScript.functions[index]
+    popedFuncName =''
+    try:
+        popedFuncName = popedFunc.name.split('(',2)[0]   # to avoid () in functions like sleep repeat etc.
+    except:
+        popedFuncName = popedFunc.name
+
+    listOfIndexToPop = []
+    for x in range(len(currentScript.functions)):
+        if currentScript.functions[x].father == (index, popedFuncName):
+            listOfIndexToPop.append(x)
+
+    for x in listOfIndexToPop[::-1]:      # this will reverse the list of index to pop to avoid  IndexError exeption.
+        currentScript.functions.pop(x)
+
+
+    # for x in currentScript.functions:
+    #     print(x.printFunction())
     updateCurrentScript()
     updateLb2()
 

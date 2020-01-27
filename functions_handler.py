@@ -21,13 +21,13 @@ def repeat_handle(repeatTime,functions,path):
                 not_exist_handle(func.img)
                 functionNum += 1
             elif (func.name == 'Double-Click'):
-                double_click_handle(func.img)
+                double_click_handle(func.img,path)
                 functionNum += 1
             elif (func.name == 'Right-Click'):
-                right_click_handle(func.img)
+                right_click_handle(func.img, path)
                 functionNum += 1
             elif (func.name == 'Sleep'):
-                right_click_handle(func.extra.time)
+                right_click_handle(func.extra.time,path)
                 functionNum += 1
     return functionNum/repeatTime
 
