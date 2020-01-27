@@ -149,9 +149,9 @@ def changeSleepTime(sv):
 def changeRepeatTime(sv):
     index = Lb2.curselection()[0]
     currentScript.functions[index].extra.time = int(sv.get())
-    currentScript.functions[index].name = "Repeat({})".format(sv.get())
+    currentScript.functions[index].name = "Repeat".format(sv.get())
     Lb2.delete(index)
-    Lb2.insert(index, currentScript.functions[index].name)
+    Lb2.insert(index, currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
     Lb2.selection_set(index)
     return True
 
@@ -160,8 +160,7 @@ def updateCurrentScript():
     fromIndex = 0
     toIndex = 0
     for i in range(len(currentScript.functions)):
-        if ('(' in currentScript.functions[i].name and currentScript.functions[i].name[
-                                                       :currentScript.functions[i].name.index('(')] == 'Repeat'):
+        if (currentScript.functions[i].name == 'Repeat'):
             fromIndex = i
             toIndex = i + len(currentScript.functions[i].extra.functions) + 2
         if currentScript.functions[i].father != '' and currentScript.functions[i].father[1] == 'Repeat':
