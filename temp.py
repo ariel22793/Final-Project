@@ -328,7 +328,9 @@ def addFunction():
 
 def removeFunctions():
     index = Lb2.curselection()[0]
-    # popedFunc = currentScript.functions.pop(index)
+    if(currentScript.functions[index].name =='{' or currentScript.functions[index].name =='}' ):
+        msgbox = tkinter.messagebox.showerror('Notic!', 'You cant remove this, this is not a function.')
+
     popedFunc = currentScript.functions[index]
     popedFuncName =''
     try:
