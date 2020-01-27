@@ -17,12 +17,16 @@ currentScript = script.Script("Folder1",[],0)
 class Sleep():
     def __init__(self, time):
         self.time = time
+    def getDict(self):
+        return {'time':str(self.time)}
 
 class Repeat():
     def __init__(self,time, functions):
         self.time = time
         self.functions = functions
 
+    def getDict(self):
+        return {'time':str(self.time)}
 class Photo():
     def __init__(self,x0,y0,x1,y1,imgPath):
         self.x0Cord = x0
@@ -553,12 +557,16 @@ def savehundle():
                 imgdict = x.img.getDict()
             else:
                 imgdict=' '
-                if(x.hasFather()) :
+            if(x.hasFather()) :
                     fathersId = x.father[0]
-                    block.get(str(fathersId))['Childrens'].update( {str(x.id):{ 'name':x.name, 'img':imgdict, 'Childrens':''}})
-                else:
-                    block.update({str(x.id):{ 'name':x.name, 'img':imgdict, 'Childrens':{}}})
-                with open(functionPath, 'w+') as outfile:
+                    try:
+                          specialExtra = x.extra.getDict()                                  # in case that we have special function inside a special function
+                    except:
+                        specialExtra =''
+                    block.get(str(fathersId))['Childrens'].update( {str(x.id):{'name':x.name, 'img':imgdict, 'extra': specialExtra, 'Childrens':''}})
+            else:
+                    block.update({str(x.id):{ 'name':x.name, 'img':imgdict, 'extra':x.extra.getDict(), 'Childrens':{} }})
+            with open(functionPath, 'w+') as outfile:
                     json.dump(block, outfile, indent=4)
 
     # functionPath = currentScript.path + "functions.json"
