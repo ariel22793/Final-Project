@@ -17,6 +17,7 @@ currentScript = script.Script("Folder1",[],0)
 class Sleep():
     def __init__(self, time):
         self.time = time
+
     def getDict(self):
         return {'time':str(self.time)}
 
