@@ -17,12 +17,16 @@ currentScript = script.Script("Folder1",[],0)
 class Sleep():
     def __init__(self, time):
         self.time = time
+    def getDict(self):
+        return {'time':str(self.time)}
 
 class Repeat():
     def __init__(self,time, functions):
         self.time = time
         self.functions = functions
 
+    def getDict(self):
+        return {'time':str(self.time)}
 class Photo():
     def __init__(self,x0,y0,x1,y1,imgPath):
         self.x0Cord = x0
@@ -30,6 +34,8 @@ class Photo():
         self.y0Cord = y0
         self.y1Cord = y1
         self.img = imgPath
+    def getDict(self):
+         return({'x0Cord':str(self.x0Cord), 'x1Cord':str(self.x1Cord), 'y0Cord':str(self.y0Cord), 'y1Cord':str(self.y1Cord), 'img':self.img})
 
 class Function():
     def __init__(self, name, img, id, frame, father,extra):
@@ -42,8 +48,13 @@ class Function():
 
     def printFunction(self):
         temp = 'name:' + str(self.name) + ', id:' + str(self.id) + ', img:' + str(self.img) + ', father:' + str(self.father)
-        print(temp)
+        return(temp)
 
+    def hasFather(self):           ## check if the function has father
+        if self.father != (self.id, self.name):
+            return True
+        else:
+            return False
 class LineFather():
     def __init__(self, fromIndex, toIndex, fatherName):
         self.fromIndex = fromIndex
@@ -176,10 +187,12 @@ def updateCurrentScript():
     for i in currentScript.functions:
         if i.name != '':
             if i.id == 0:
-                print('####################')
-            print('{}:{}'.format(i.id, i.name))
+                # print('####################')
+            # print('{}:{}'.format(i.id, i.name))
+                pass
             if i.id == len(currentScript.functions) - 1:
-                print('####################')
+                pass
+                # print('####################')
 
 
 def getInputBox(function, frameLabel, frameInput, eventFunction):
@@ -556,25 +569,50 @@ def runHendle():
 
 def savehundle():
     functionPath = currentScript.path + "functions.json"
-    # file = open(functionPath,"w+")
-    functionFile = ""
-    for func in currentScript.functions:
-        functionFile += '{'
-        for i in func:
-            if i == 'id':  # last atribute of func
-                functionFile += '"' + i + '" : ' + '"' + str(func[i]) + '"},'
-            elif i == 'img':
-                if func[i] != '':
-                    functionFile += '"' + i + '" : ' + json.dumps(func[i].__dict__) + ', '
-                else:
-                    functionFile += '"' + i + '" : "", '
+    try:
+        os.remove(functionPath)
+    except:
+        pass
+    block = {}
 
+    for x in currentScript.functions:
+        if(x.name!='{' and x.name!='}' and x.name!=''):
+            if(x.img != ''):
+                imgdict = x.img.getDict()
             else:
-                functionFile += '"' + i + '" : "' + func[i] + '", '
+                imgdict=' '
+            if(x.hasFather()) :
+                    fathersId = x.father[0]
+                    try:
+                          specialExtra = x.extra.getDict()                                  # in case that we have special function inside a special function
+                    except:
+                        specialExtra =''
+                    block.get(str(fathersId))['Childrens'].update( {str(x.id):{'name':x.name, 'img':imgdict, 'extra': specialExtra, 'Childrens':''}})
+            else:
+                    block.update({str(x.id):{ 'name':x.name, 'img':imgdict, 'extra':x.extra.getDict(), 'Childrens':{} }})
+            with open(functionPath, 'w+') as outfile:
+                    json.dump(block, outfile, indent=4)
 
-    temp = ast.literal_eval(functionFile)
-    with open(functionPath, 'w') as outfile:
-        json.dump(temp, outfile)
+    # functionPath = currentScript.path + "functions.json"
+    # # file = open(functionPath,"w+")
+    # functionFile = ""
+    # for func in currentScript.functions:
+    #     functionFile += '{'
+    #     for i in func:
+    #         if i == 'id':  # last atribute of func
+    #             functionFile += '"' + i + '" : ' + '"' + str(func[i]) + '"},'
+    #         elif i == 'img':
+    #             if func[i] != '':
+    #                 functionFile += '"' + i + '" : ' + json.dumps(func[i].__dict__) + ', '
+    #             else:
+    #                 functionFile += '"' + i + '" : "", '
+    #
+    #         else:
+    #             functionFile += '"' + i + '" : "' + func[i] + '", '
+    #
+    # temp = ast.literal_eval(functionFile)
+    # with open(functionPath, 'w') as outfile:
+    #     json.dump(temp, outfile)
 
 
 def saveAsHundle():
@@ -600,25 +638,26 @@ def saveAsHundle():
 
 
 def openButton():
-    filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
-                                                  filetypes=(("json files", "*.json"), ("all files", "*.*")))
-    currentScript.functions.clear()
-
-    with open(filePath) as json_file:
-        data = json.load(json_file)
-
-    for x in data:
-        for key, value in x.items():
-            if key == 'id':
-                x['id'] = int(value)
-            if key == 'img' and value != '':
-                img = Photo(value.get('x0Cord'), value.get('y0Cord'), value.get('x1Cord'), value.get('y1Cord'),
-                            value.get('img'))
-                x['img'] = img
-
-    currentScript.functions = copy.deepcopy(data)
-
-    listReload(Lb2)
+    pass
+    # filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
+    #                                               filetypes=(("json files", "*.json"), ("all files", "*.*")))
+    # currentScript.functions.clear()
+    #
+    # with open(filePath) as json_file:
+    #     data = json.load(json_file)
+    #
+    # for x in data:
+    #     for key, value in x.items():
+    #         if key == 'id':
+    #             x['id'] = int(value)
+    #         if key == 'img' and value != '':
+    #             img = Photo(value.get('x0Cord'), value.get('y0Cord'), value.get('x1Cord'), value.get('y1Cord'),
+    #                         value.get('img'))
+    #             x['img'] = img
+    #
+    # currentScript.functions = copy.deepcopy(data)
+    #
+    # listReload(Lb2)
 
 
 def TreeviewD_Click(event):
