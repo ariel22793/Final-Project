@@ -129,9 +129,7 @@ class ScreenShotWindow():
         if (str(event.type) == 'ButtonPress'):
             self.click = 1
             self.x0, self.y0 = event.x, event.y
-
         else:
-
             self.click = 2
             self.x1, self.y1 = event.x, event.y
 
@@ -160,7 +158,10 @@ def updateCurrentScript():
     fromIndex = 0
     toIndex = 0
     for i in range(len(currentScript.functions)):
-        if (currentScript.functions[i].name == 'Repeat'):
+        if(currentScript.functions[i].name == '}'):
+            fromIndex = currentScript.linesFather[i].fromIndex
+            toIndex = i
+        elif (currentScript.functions[i].name == 'Repeat'):
             fromIndex = i
             toIndex = i + len(currentScript.functions[i].extra.functions) + 2
         if currentScript.functions[i].father != '' and currentScript.functions[i].father[1] == 'Repeat':
@@ -173,7 +174,6 @@ def updateCurrentScript():
             currentScript.linesFather[i].toIndex = i
 
     for i in currentScript.functions:
-
         if i.name != '':
             if i.id == 0:
                 print('####################')
@@ -265,10 +265,12 @@ def addFunction():
         currentFunction.frame = frame1
     elif functionName == 'Repeat':
         count = 0
-        repeat = Repeat('?', [Function('', '', '', '', '', '')])
+        repeat = Repeat('?', [Function('', '', place +2 , '', '', '')])
         frame1 = getFrame(functionName)
+        tempFunction = ['{', '', '}']
 
         if currentLineFather.fatherName == 'Repeat' and currentLineFather.fromIndex != place:
+
             for i in range(place, place + 4, 1):
                 if i == place:
                     currentScript.linesFather[i] = LineFather(currentScript.linesFather[i].fromIndex,
@@ -278,9 +280,10 @@ def addFunction():
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
             currentFunction = Function(functionName, '', place, frame1,
                                        (currentLineFather.fromIndex, currentLineFather.fatherName), repeat)
-            currentScript.functions.insert(place + 1, Function('{', '', place + 1, '', (place, functionName), ''))
-            currentScript.functions.insert(place + 2, Function('', '', place + 1, '', (place, functionName), ''))
-            currentScript.functions.insert(place + 3, Function('}', '', place + 1, '', (place, functionName), ''))
+
+            for i in range(place+1,place+4):
+                currentScript.functions.insert(i, Function(tempFunction[i-(place+1)], '', place + 1, '', (place, functionName), ''))
+
             repeatFatherFunction = currentScript.functions[currentLineFather.fromIndex]
             if repeatFatherFunction.extra.functions[0].name == '':
                 currentScript.functions[currentLineFather.fromIndex].extra.functions[0] = Function(
@@ -291,6 +294,9 @@ def addFunction():
                     currentLineFather.fromIndex + place - 2,
                     Function(functionName, '', place, frame1,
                              (currentLineFather.fromIndex, currentLineFather.fatherName), repeat))
+            for i in range(currentLineFather.fromIndex + place - 1,currentLineFather.fromIndex + place + 2):
+                currentScript.functions[currentLineFather.fromIndex].extra.functions.insert(i, Function(tempFunction[i-(currentLineFather.fromIndex + place - 1)], '', place + 1, '', (place, functionName), ''))
+
         else:
             for i in range(place, place + 4, 1):
                 if (i == place):
@@ -299,9 +305,9 @@ def addFunction():
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
             currentFunction = Function(functionName, '', place, frame1,
                                        (currentLineFather.fromIndex, functionName), repeat)
-            currentScript.functions.insert(place + 1, Function('{', '', place + 1, '', (place, functionName), ''))
-            currentScript.functions.insert(place + 2, Function('', '', place + 1, '', (place, functionName), ''))
-            currentScript.functions.insert(place + 3, Function('}', '', place + 1, '', (place, functionName), ''))
+            for i in range(place + 1, place + 4):
+                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', place + 1, '',
+                                                           (place, functionName), ''))
             currentLineFather = LineFather(place, place + 3, functionName)
         getInputBox(currentFunction.extra, frame1.children.get('label'), frame1.children.get('input'), changeRepeatTime)
     else:
@@ -312,8 +318,8 @@ def addFunction():
             currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
                                            currentLineFather.fatherName)
             repeatFatherFunction = currentScript.functions[currentLineFather.fromIndex]
-            if repeatFatherFunction.extra.functions[0].name == '':
-                currentScript.functions[currentLineFather.fromIndex].extra.functions[0] = Function(functionName, '',
+            if repeatFatherFunction.extra.functions[place - currentLineFather.fromIndex - 2].name == '':
+                currentScript.functions[currentLineFather.fromIndex].extra.functions[place - currentLineFather.fromIndex - 2] = Function(functionName, '',
                                                                                                    place, frame1, (
                                                                                                        currentScript.linesFather[
                                                                                                            place].fromIndex,
@@ -322,7 +328,7 @@ def addFunction():
                                                                                                    '')
             else:
                 currentScript.functions[currentLineFather.fromIndex].extra.functions.insert(
-                    currentLineFather.fromIndex + place - 2, Function(functionName, '', place, frame1, (
+                    place - currentLineFather.fromIndex - 2, Function(functionName, '', place, frame1, (
                         currentLineFather.fromIndex, currentLineFather.fatherName), ''))
 
         else:
@@ -335,6 +341,20 @@ def addFunction():
     updateLb2()
     Lb2.selection_clear(0, END)
     Lb1.selection_clear(0, END)
+def removeFunction(function,functionIndex):
+    listOfIndexToPop = []
+    if function.name == 'Repeat':
+        for func in function.extra.functions:
+            if(func.name == 'Repeat'):
+                listOfIndexToPop.append(removeFunction(func,func.id + functionIndex))
+            else:
+                listOfIndexToPop.append(func.id)
+        listOfIndexToPop.append(function.id)
+        listOfIndexToPop.append(function.id + 1)
+        listOfIndexToPop.append(currentScript.linesFather[function.id].toIndex)
+    else:
+        print('kaka')
+    return listOfIndexToPop
 
 
 def removeFunctions():
@@ -343,26 +363,30 @@ def removeFunctions():
         msgbox = tkinter.messagebox.showerror('Notic!', 'You cant remove this, this is not a function.')
 
     popedFunc = currentScript.functions[index]
-    popedFuncName =''
-    try:
-        popedFuncName = popedFunc.name.split('(',2)[0]   # to avoid () in functions like sleep repeat etc.
-    except:
-        popedFuncName = popedFunc.name
+    popedFuncName =popedFunc.name
 
-    listOfIndexToPop = []
-    for x in range(len(currentScript.functions)):
-        if currentScript.functions[x].father == (index, popedFuncName):
-            listOfIndexToPop.append(x)
+    kaka = removeFunction(popedFunc,index)
+    print (kaka)
 
-    for x in listOfIndexToPop[::-1]:      # this will reverse the list of index to pop to avoid  IndexError exeption.
-        try:
-            img = currentScript.functions[x].img.img
-            if(img!=''):
-                path = currentScript.path+'ScreenShots\\'+img
-                os.remove(path)
-        except:
-            pass
-        currentScript.functions.pop(x)
+    #
+    # listOfIndexToPop = []
+    # for x in range(len(currentScript.functions)):
+    #
+    #     if currentScript.functions[x].father == (index, popedFuncName):
+    #         listOfIndexToPop.append(x)
+    #     if currentScript.functions[x].name == 'Repeat':
+    #         index = x
+    #         popedFuncName = 'Repeat'
+    #
+    # for x in listOfIndexToPop[::-1]:      # this will reverse the list of index to pop to avoid  IndexError exeption.
+    #     try:
+    #         img = currentScript.functions[x].img.img
+    #         if(img!=''):
+    #             path = currentScript.path+'ScreenShots\\'+img
+    #             os.remove(path)
+    #     except:
+    #         pass
+    #     currentScript.functions.pop(x)
 
 
     # for x in currentScript.functions:
@@ -667,7 +691,15 @@ def insertB():
     if len(currentScript.functions) > 1:
         previousFunction = currentScript.functions[place - 1]
     if len(currentScript.functions) > 1 and previousFunction.father[1] == 'Repeat' and previousFunction.name != '}':
-        currentScript.linesFather.insert(place, currentScript.linesFather[place])
+        currentScript.linesFather.insert(place, LineFather(currentScript.linesFather[place].fromIndex,
+                                                           currentScript.linesFather[place].toIndex, currentScript.linesFather[place].fatherName))
+
+        fromIndex = currentScript.linesFather[place].fromIndex
+        toIndex = currentScript.linesFather[place].toIndex+2
+        for i in range(fromIndex,toIndex):
+            currentScript.linesFather[i].toIndex += 1
+        currentScript.functions[place].father = (fromIndex, previousFunction.father[1])
+        currentScript.functions[fromIndex].extra.functions.insert(place-fromIndex-2,Function('', '', place, '', (fromIndex,previousFunction.father[1]),''))
     else:
         currentScript.linesFather.insert(place, LineFather(place, place, ''))
     for x in range(len(currentScript.functions)):
