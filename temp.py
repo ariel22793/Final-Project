@@ -20,13 +20,43 @@ class Sleep():
     def getDict(self):
         return {'time':str(self.time)}
 
+    @classmethod
+    def getExtra(cls, extra):
+        return Sleep(extra['time'])
+
+
 class Repeat():
     def __init__(self,time, functions):
         self.time = time
         self.functions = functions
 
     def getDict(self):
-        return {'time':str(self.time)}
+        block = []
+        if(len(self.functions) >0):
+            for x in self.functions:
+                if (x.img != ''):
+                    imgdict = x.img.getDict()
+                else:
+                    imgdict = ''
+                if(x.extra != ''):
+                    block.append({'name':x.name, 'img':imgdict, 'id':str(x.id),'frame':'','father':str(x.father), 'extra':x.extra.getDict()})
+                else:
+                    block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'father': str(x.father),
+                                  'extra':''})
+        return {'time':str(self.time),'functions':block}
+
+    @classmethod
+    def getExtra(cls, extra):
+        functions = []
+        if(len(extra['functions'])>0):
+            for x in extra['functions']:
+                functions.append(Function.getFunction(x))
+        if(extra['time'] == '?'):
+            return Repeat(extra['time'],functions)
+        else:
+            return Repeat(int(extra['time']),functions)
+
+
 class Photo():
     def __init__(self,x0,y0,x1,y1,imgPath):
         self.x0Cord = x0
@@ -37,6 +67,11 @@ class Photo():
     def getDict(self):
          return({'x0Cord':str(self.x0Cord), 'x1Cord':str(self.x1Cord), 'y0Cord':str(self.y0Cord), 'y1Cord':str(self.y1Cord), 'img':self.img})
 
+    @classmethod
+    def getImg(cls, img):
+        return Photo(int(img['x0Cord']),int(img['y0Cord']),int(img['x1Cord']),int(img['y1Cord']),img['img'])
+
+
 class Function():
     def __init__(self, name, img, id, frame, father,extra):
         self.name = name
@@ -45,6 +80,29 @@ class Function():
         self.frame = frame
         self.father = father
         self.extra = extra
+
+    @classmethod
+    def getFunction(cls, func):
+        extra = ''
+        img = ''
+        frame = ''
+
+        if(func['img'] != ''):
+            img = Photo.getImg(func['img'])
+        if (func['extra'] != ''):
+            if(func['name'] == 'Repeat'):
+                extra = Repeat.getExtra(func['extra'])
+            if (func['name'] == 'Sleep'):
+                extra = Sleep.getExtra(func['extra'])
+        if (func['name'] != '{' and func['name'] != '}'):
+            frame = getFrame(func['name'])
+            if (func['name'] == 'Repeat'):
+                getInputBox(extra, frame.children.get('label'), frame.children.get('input'),
+                            changeRepeatTime)
+            elif(func['name'] == 'Sleep'):
+                getInputBox(extra, frame.children.get('label'), frame.children.get('input'),
+                            changeSleepTime)
+        return Function(func['name'],img,int(func['id']),frame,func['father'],extra)
 
     def printFunction(self):
         temp = 'name:' + str(self.name) + ', id:' + str(self.id) + ', img:' + str(self.img) + ', father:' + str(self.father)
@@ -148,9 +206,9 @@ class ScreenShotWindow():
 def changeSleepTime(sv):
     index = Lb2.curselection()[0]
     currentScript.functions[index].extra.time = int(sv.get())
-    currentScript.functions[index].name = "Sleep({})".format(sv.get())
+    currentScript.functions[index].name = "Sleep"
     Lb2.delete(index)
-    Lb2.insert(index, currentScript.functions[index].name)
+    Lb2.insert(index, currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
     Lb2.selection_set(index)
     return True
 
@@ -158,7 +216,7 @@ def changeSleepTime(sv):
 def changeRepeatTime(sv):
     index = Lb2.curselection()[0]
     currentScript.functions[index].extra.time = int(sv.get())
-    currentScript.functions[index].name = "Repeat".format(sv.get())
+    currentScript.functions[index].name = "Repeat"
     Lb2.delete(index)
     Lb2.insert(index, currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
     Lb2.selection_set(index)
@@ -207,7 +265,8 @@ def getInputBox(function, frameLabel, frameInput, eventFunction):
             label.place(x=0, y=0)
 
             frameInput.place(x=150, y=y)
-            sv = StringVar()
+
+            sv = StringVar(value=function.time)
             entry = Entry(frameInput, textvariable=sv)
             entry.bind('<Return>', (lambda _: eventFunction(entry)))
             entry.pack()
@@ -222,7 +281,7 @@ def getFrame(functionName):
         Frame(frame1, width=200, height=30, bg='white', name='label')
         Frame(frame1, width=200, height=30, bg='white', name='input')
     else:
-        fileNameLabel = Label(frame1, text='File Name : ')
+        fileNameLabel = Label(frame1, text='File Name : ',name = 'fileName')
         functionNameLabel.place(x=50, y=200)
         fileNameLabel.place(x=50, y=250)
         littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, width=437, height=150, bg='white', name='canvasFrame')
@@ -354,6 +413,7 @@ def addFunction():
     updateLb2()
     Lb2.selection_clear(0, END)
     Lb1.selection_clear(0, END)
+
 def removeFunction(function,functionIndex):
     listOfIndexToPop = []
     if function.name == 'Repeat':
@@ -441,21 +501,26 @@ def FocusOnSelectedFunc(event):
     for x in currentScript.functions:
         if x.id == id:
             try:
-                photoName = x.img.img
+                if(x.img != ''):
+                    photoName = x.img.img
                 functionName = x.name
             except:
                 pass
             frame = currentScript.functions[index].frame
+            break
     if frame != '':
         frame.place(x=1455, y=600)
         if photoName != '':
             for childName, childValue in frame.children.items():
+                if childName == 'fileName':
+                    childValue.config(text='File Name: {}'.format(photoName))
                 if childName == 'canvasFrame':
                     canvas = Canvas(childValue, width=437, height=150, name='canvas')
                     one = PhotoImage(file=currentScript.path + "ScreenShots\\" + photoName)
                     photoViewFrame.one = one  # to prevent the image garbage collected.
                     canvas.create_image((0, 0), image=one, anchor="nw")
                     canvas.pack()
+
         frame.tkraise()
 
 
@@ -567,52 +632,40 @@ def runHendle():
     mainScreen.deiconify()
 
 
+def saveFunctions():
+    block = []
+    for x in currentScript.functions:
+        if (x.img != ''):
+            imgdict = x.img.getDict()
+        else:
+            imgdict = ''
+        if (x.extra != ''):
+            block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'father': str(x.father),
+                          'extra': x.extra.getDict()})
+        else:
+            block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'father': str(x.father),
+                          'extra': ''})
+    return block
+
+
+def saveLinesFather():
+    block = []
+    for x in currentScript.linesFather:
+        block.append({'fatherName':x.fatherName,'fromIndex':x.fromIndex,'toIndex':x.toIndex})
+    return block
+
+
 def savehundle():
     functionPath = currentScript.path + "functions.json"
     try:
         os.remove(functionPath)
     except:
         pass
-    block = {}
+    functionsblock = saveFunctions()
+    linesFatherblock = saveLinesFather()
+    with open(functionPath, 'w+') as outfile:
+        outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
 
-    for x in currentScript.functions:
-        if(x.name!='{' and x.name!='}' and x.name!=''):
-            if(x.img != ''):
-                imgdict = x.img.getDict()
-            else:
-                imgdict=' '
-            if(x.hasFather()) :
-                    fathersId = x.father[0]
-                    try:
-                          specialExtra = x.extra.getDict()                                  # in case that we have special function inside a special function
-                    except:
-                        specialExtra =''
-                    block.get(str(fathersId))['Childrens'].update( {str(x.id):{'name':x.name, 'img':imgdict, 'extra': specialExtra, 'Childrens':''}})
-            else:
-                    block.update({str(x.id):{ 'name':x.name, 'img':imgdict, 'extra':x.extra.getDict(), 'Childrens':{} }})
-            with open(functionPath, 'w+') as outfile:
-                    json.dump(block, outfile, indent=4)
-
-    # functionPath = currentScript.path + "functions.json"
-    # # file = open(functionPath,"w+")
-    # functionFile = ""
-    # for func in currentScript.functions:
-    #     functionFile += '{'
-    #     for i in func:
-    #         if i == 'id':  # last atribute of func
-    #             functionFile += '"' + i + '" : ' + '"' + str(func[i]) + '"},'
-    #         elif i == 'img':
-    #             if func[i] != '':
-    #                 functionFile += '"' + i + '" : ' + json.dumps(func[i].__dict__) + ', '
-    #             else:
-    #                 functionFile += '"' + i + '" : "", '
-    #
-    #         else:
-    #             functionFile += '"' + i + '" : "' + func[i] + '", '
-    #
-    # temp = ast.literal_eval(functionFile)
-    # with open(functionPath, 'w') as outfile:
-    #     json.dump(temp, outfile)
 
 
 def saveAsHundle():
@@ -637,27 +690,33 @@ def saveAsHundle():
     file.close()
 
 
+def openFunctions(data):
+    inputFunctions = []
+    for x in data:
+        inputFunctions.append(Function.getFunction(x))
+    currentScript.functions = copy.copy(inputFunctions)
+
+
+def openLinesFather(data):
+    inputFunctions = []
+    for x in data:
+        inputFunctions.append(LineFather(x['fromIndex'],x['toIndex'],x['fatherName']))
+    currentScript.linesFather = copy.copy(inputFunctions)
+
+
 def openButton():
-    pass
-    # filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
-    #                                               filetypes=(("json files", "*.json"), ("all files", "*.*")))
-    # currentScript.functions.clear()
-    #
-    # with open(filePath) as json_file:
-    #     data = json.load(json_file)
-    #
-    # for x in data:
-    #     for key, value in x.items():
-    #         if key == 'id':
-    #             x['id'] = int(value)
-    #         if key == 'img' and value != '':
-    #             img = Photo(value.get('x0Cord'), value.get('y0Cord'), value.get('x1Cord'), value.get('y1Cord'),
-    #                         value.get('img'))
-    #             x['img'] = img
-    #
-    # currentScript.functions = copy.deepcopy(data)
-    #
-    # listReload(Lb2)
+    filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
+                                                  filetypes=(("json files", "*.json"), ("all files", "*.*")))
+    currentScript.functions.clear()
+
+    with open(filePath) as json_file:
+        data = json_file.read()
+        functionsData = json.loads(data[:data.index('\n')])
+        linesFatherData = json.loads(data[data.index('\n')+1:])
+
+    openFunctions(functionsData)
+    openLinesFather(linesFatherData)
+    updateLb2()
 
 
 def TreeviewD_Click(event):
