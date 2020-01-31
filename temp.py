@@ -10,9 +10,13 @@ import functions_handler
 import script
 import ast
 import copy
+import time
+from win32api import GetSystemMetrics
+
 
 functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("Folder1",[],0)
+firstTime = True
 
 class Sleep():
     def __init__(self, time):
@@ -473,18 +477,16 @@ def window2():
     window2 = ScreenShotWindow()
 
 
-def SUBS(path, parent, tree, fileImg):
+def SUBS(path, parent, tree):
     for p in os.listdir(path):
         abspath = os.path.join(path, p)
-        tree.image = fileImg
-
-        tree.image = fileImg
+        # tree.image = fileImg
 
         if os.path.isdir(abspath):
             parent_element = tree.insert(parent, 'end', text=p, open=True, tag="T")
-            SUBS(abspath, parent_element, tree, fileImg)
+            SUBS(abspath, parent_element, tree)
         else:
-            parent_element = tree.insert(parent, 'end', text=p, open=True, image=fileImg, tag="T")
+            parent_element = tree.insert(parent, 'end', text=p, open=True, tag="T")
 
 
 def FocusOnSelectedFunc(event):
@@ -533,13 +535,11 @@ def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
     s.configure('Treeview', rowheight=40)
-
     path = os.path.dirname(os.path.abspath(__file__))
-
     root = tree.insert('', 'end', text=path + '\Scripts', open=True, tag='T')
-    fileImg = PhotoImage(file='').subsample(3, 3)
-    tree.image = fileImg
-    SUBS(path + '\\Scripts', root, tree, fileImg)
+    # fileImg = PhotoImage(file='').subsample(3, 3)
+    # tree.image = fileImg
+    SUBS(path + '\\Scripts', root, tree)
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
 
     tree.place(x=0, y=0)
@@ -799,13 +799,83 @@ def insertB():
     updateLb2()
     Lb2.select_set(place)
 
+def closeStartWindow(event, startWin):
+    startWin.destroy()
+    mainScreen.deiconify()
+    mainScreen.state("zoomed")
+
+
+def getCenterOfScreen(screen):
+    h = screen.winfo_height()
+    w = screen.winfo_width()
+    wScreen = GetSystemMetrics(0)
+    hScreen = GetSystemMetrics(1)
+    xPoint = (wScreen/2) - (w/2)
+    yPoint = hScreen/2 - h/2
+    return(int(xPoint), int(yPoint))
+
+def Minimize_and_Open(event, screenToMini):
+    screenToMini.iconify()
+    try:
+        filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
+                                                  filetypes=(("json files", "*.json"), ("all files", "*.*")))
+        print(filePath)
+        currentScript.functions.clear()
+        with open(filePath) as json_file:
+            data = json_file.read()
+            functionsData = json.loads(data[:data.index('\n')])
+            linesFatherData = json.loads(data[data.index('\n') + 1:])
+
+        openFunctions(functionsData)
+        openLinesFather(linesFatherData)
+        updateLb2()
+
+        closeStartWindow(None,screenToMini)
+
+    except:
+        screenToMini.deiconify()
+        
+
+def startScreen():
+    firstTime = False
+    startS = Tk()
+    startS.title("Automation Tool Program")
+    startS.geometry('1100x500')
+    startS.update_idletasks()
+    mainScreen.withdraw()
+    x,y = getCenterOfScreen(startS)
+    startS.geometry("1100x500+" + str(x)+'+'+str(y))
+    startS.update_idletasks()
+
+
+
+    title = Label(startS, text = 'Automation Testing Tool', font=("Helvetica", 30))
+    title.place(x=200,y=10)
+    subtitle = Label(startS, text='Welcome! please select you pice of shit!', font=("Helvetica", 12))
+    subtitle.place(x=250, y=100)
+
+    newProject = Button(startS, text='New Project', width=20)
+    newProject.bind('<Button-1>', lambda event: closeStartWindow(event, startS))
+    newProject.place(x=400, y=200)
+
+    load = Button(startS, text='load', width =20)
+    load.bind('<Button-1>', lambda event: Minimize_and_Open(event, startS))
+    load.place(x=400, y=250)
+
+    close = Button(startS, text='Close', width=20)
+    close.bind('<Button-1>', func=quit)
+    close.place(x=400, y=300)
+    startS.attributes('-topmost', True)
+
 
 if __name__ == '__main__':
     functionFather = []
+
     mainScreen = Tk()
     mainScreen.state("zoomed")
     mainScreen.title("MyApp")
-
+    if firstTime :
+        startScreen()
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
     toolbarFrame.place(x=0, y=50)
 
