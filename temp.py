@@ -709,7 +709,6 @@ def openButton():
     filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
                                                   filetypes=(("json files", "*.json"), ("all files", "*.*")))
     currentScript.functions.clear()
-
     with open(filePath) as json_file:
         data = json_file.read()
         functionsData = json.loads(data[:data.index('\n')])
@@ -742,19 +741,13 @@ def TreeviewD_Click(event):
     currentScript.functions.clear()
 
     with open(fullPath) as json_file:
-        data = json.load(json_file)
+        data = json_file.read()
+        functionsData = json.loads(data[:data.index('\n')])
+        linesFatherData = json.loads(data[data.index('\n')+1:])
 
-    for x in data:
-        for key, value in x.items():
-            if key == 'id':
-                x['id'] = int(value)
-            if key == 'img' and value != '':
-                img = Photo(value.get('x0Cord'), value.get('y0Cord'), value.get('x1Cord'), value.get('y1Cord'),
-                            value.get('img'))
-                x['img'] = img
-
-    currentScript.functions = copy.deepcopy(data)
-    listReload(Lb2)
+    openFunctions(functionsData)
+    openLinesFather(linesFatherData)
+    updateLb2()
 
 
 def insertA():
