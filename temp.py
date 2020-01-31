@@ -889,7 +889,6 @@ def exposeReport(event, frame, button):
             y = frame.winfo_y() + 30
             frame.place(y=y)
             frame.update()
-            # time.sleep(0.01)
             counter += 1
         buttonUp['text'] = '⬆'
 
