@@ -877,7 +877,6 @@ def exposeReport(event, frame, button):
     counter = 0
 
     if(button.cget('text')=='⬆'):
-        print('up')
         while(counter!=10):
                 y = frame.winfo_y() - 30
                 frame.place(y=y)
@@ -886,7 +885,6 @@ def exposeReport(event, frame, button):
                 counter+=1
         buttonUp['text'] = '⬇'
     else:
-        print('down' +str(counter))
         while (counter != 10):
             y = frame.winfo_y() + 30
             frame.place(y=y)
