@@ -13,7 +13,6 @@ import copy
 import time
 from win32api import GetSystemMetrics
 
-
 functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("Folder1",[],0)
 firstTime = True
@@ -525,8 +524,7 @@ def FocusOnSelectedFunc(event):
                     canvas.pack()
 
         frame.tkraise()
-
-
+    reportFrame()
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
 
@@ -872,25 +870,40 @@ def startScreen():
     startS.attributes('-topmost', True)
 
 
+def reportFrame():
+    reportFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=400)
+    reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
+
+    buttonUp = Button(reportFrame, text='⬆')
+    buttonUp.place(x=mainScreen.winfo_width() - 40)
+    buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
+    clearReport = Button(reportFrame, text='Clear All')
+    clearReport.place(x=mainScreen.winfo_width() - 150)
+
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=400)
+    reportContex.place(x=100, y=50)
+
 
 def exposeReport(event, frame, button):
     counter = 0
 
     if(button.cget('text')=='⬆'):
+
         while(counter!=10):
                 y = frame.winfo_y() - 30
                 frame.place(y=y)
                 frame.update()
                 time.sleep(0.02)
                 counter+=1
-        buttonUp['text'] = '⬇'
+        button['text'] = '⬇'
+
     else:
         while (counter != 10):
             y = frame.winfo_y() + 30
             frame.place(y=y)
             frame.update()
             counter += 1
-        buttonUp['text'] = '⬆'
+        button['text'] = '⬆'
 
 
 
@@ -979,13 +992,7 @@ if __name__ == '__main__':
     tree = createTree(explorerFrame)
     tree.bind("<Double-1>", TreeviewD_Click)
 
-    reportFrame = Frame (mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=400)
-    reportFrame.place(x=0, y=mainScreen.winfo_height()-50)
+    reportFrame()
 
-    buttonUp = Button(reportFrame, text='⬆')
-    buttonUp.place(x=mainScreen.winfo_width()-40)
-    buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
-    clearReport = Button(reportFrame, text='Clear All')
-    clearReport.place(x=mainScreen.winfo_width() - 150)
 
 mainScreen.mainloop()
