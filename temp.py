@@ -670,25 +670,20 @@ def savehundle():
 
 
 def saveAsHundle():
-    filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
-                                                    filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
-    functionPath = filePath + ".txt"
-    file = open(functionPath, "w+")
-    functionFile = ""
-    for func in currentScript.functions:
-        functionFile += '{'
-        for i in func:
-            if i == 'id':  # last atribute of func
-                functionFile += i + " : " + str(func[i]) + "}\n"
-            elif i == 'img':
-                if func[i] != '':
-                    functionFile += i + " : " + json.dumps(func[i].__dict__) + ", "
-                else:
-                    functionFile += i + " : {}, "
-            else:
-                functionFile += i + " : " + func[i] + ", "
-    file.write(functionFile)
-    file.close()
+    # filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
+    #                                                 filetypes=(("txt files", "*.json"), ("all files", "*.*")))
+
+    functionPath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
+                                                    filetypes=(("Json file", "*.json"), ("all files", "*.*")))
+    functionPath+= '.json'
+    try:
+        os.remove(functionPath)
+    except:
+        pass
+    functionsblock = saveFunctions()
+    linesFatherblock = saveLinesFather()
+    with open(functionPath, 'w+') as outfile:
+        outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
 
 
 def openFunctions(data):
