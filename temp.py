@@ -47,7 +47,6 @@ class Repeat():
                 else:
                     block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'father': str(x.father),
                                   'extra':''})
-        print('innn')
         return {'time':str(self.time),'functions':block}
 
     @classmethod
@@ -902,7 +901,6 @@ def getReport(event, frameToWrite):
             else:
                 extra="no other parameters"
 
-            print(extra)
             data['set_info'].update({
                 x.name:{
                     'id_number': str(x.id),
@@ -914,18 +912,6 @@ def getReport(event, frameToWrite):
             })
             counter+=1
 
-    # tree = ttk.Treeview(frameToWrite)
-    # s = ttk.Style()
-    # tree.pack()
-    # scrollbar = Scrollbar(frameToWrite)
-    # scrollbar.pack(side=RIGHT, fill=Y)
-    #
-    # tree.configure(yscrollcommand = scrollbar.set)
-    # for x in range (10):
-    #     root = tree.insert('', 'end', text='dasda', open=True, tag='T')
-    # # jsonTree(frameToWrite,data, tree, root)
-    #
-    # scrollbar.config(command=tree.yview)
 
     scrollbar = Scrollbar(frameToWrite)
     scrollbar.pack(side=RIGHT, fill=Y)
