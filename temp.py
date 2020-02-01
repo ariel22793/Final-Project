@@ -47,6 +47,7 @@ class Repeat():
                 else:
                     block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'father': str(x.father),
                                   'extra':''})
+        print('innn')
         return {'time':str(self.time),'functions':block}
 
     @classmethod
@@ -870,6 +871,9 @@ def startScreen():
     startS.attributes('-topmost', True)
 
 
+
+
+
 def reportFrame():
     reportFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=400)
     reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
@@ -882,6 +886,81 @@ def reportFrame():
 
     reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=400)
     reportContex.place(x=100, y=50)
+
+    getRepo = Button(reportFrame, text='Get Repo')
+    getRepo.place(x=mainScreen.winfo_width() - 150, y=100)
+    getRepo.bind('<Button-1>', lambda event: getReport(event, reportContex))
+
+def getReport(event, frameToWrite):
+    data = {}
+    data.update({"set_info":{}})
+    counter=1
+    for x in currentScript.functions:
+        if x.name!='{' and x.name !='}':
+            if(x.extra!=''):
+                extra = x.extra.getDict()
+            else:
+                extra="no other parameters"
+
+            print(extra)
+            data['set_info'].update({
+                x.name:{
+                    'id_number': str(x.id),
+                    'more_vars': extra
+                }
+
+
+
+            })
+            counter+=1
+
+    # tree = ttk.Treeview(frameToWrite)
+    # s = ttk.Style()
+    # tree.pack()
+    # scrollbar = Scrollbar(frameToWrite)
+    # scrollbar.pack(side=RIGHT, fill=Y)
+    #
+    # tree.configure(yscrollcommand = scrollbar.set)
+    # for x in range (10):
+    #     root = tree.insert('', 'end', text='dasda', open=True, tag='T')
+    # # jsonTree(frameToWrite,data, tree, root)
+    #
+    # scrollbar.config(command=tree.yview)
+
+    scrollbar = Scrollbar(frameToWrite)
+    scrollbar.pack(side=RIGHT, fill=Y)
+
+    tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set)
+    root = tree.insert('', 'end', text='', open=True, tag='T')
+    s = ttk.Style()
+
+    tree.pack(side = LEFT, fill = BOTH, expand = 10)
+    scrollbar.config(command=tree.yview)
+    jsonTree(frameToWrite, data, tree, root)
+    tree.column("#0", width=frameToWrite.winfo_reqwidth(), stretch=False)
+
+def jsonTree(frame, data, tree, parent):
+
+    for key, value in data.items():
+        if isinstance(value,list):
+            value = value[0]
+
+        if isinstance(value,dict):
+            parent_element = tree.insert(parent, 'end', text=key, open=True, tag="T")
+            jsonTree(frame, value , tree, parent_element)
+            # print('insert ' + str(key) + ' his uid is: ' + str(parent_element) + ' his parent uid is: ' + str(parent) )
+
+        else:
+            parent_element = tree.insert(parent, 'end', text=(key + ':' + value), open=True, tag="T")
+            pass
+
+
+
+
+
+
+
+
 
 
 def exposeReport(event, frame, button):
@@ -928,8 +1007,11 @@ if __name__ == '__main__':
     saveAsButton = Button(toolbarFrame, text="Save As", command=saveAsHundle)
     saveAsButton.place(x=140, y=0)
 
-    runButton = Button(toolbarFrame, text="Run", command=runHendle)
+    photo = PhotoImage(file=r"img\start2.png")
+    photoimage = photo.subsample(3, 3)
+    runButton = Button(toolbarFrame, text="Run", command=runHendle, image = photoimage,)
     runButton.place(x=230, y=0)
+
 
     stopButton = Button(toolbarFrame, text="Stop")
     stopButton.place(x=290, y=0)
