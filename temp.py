@@ -131,8 +131,6 @@ class ScreenShotWindow():
         window2.title("window2")
         window2.attributes('-fullscreen', True)
         window2.attributes('-alpha', 0.3)
-
-        tkinter.messagebox.showinfo("Notic!", "Press ENTER To Take ScreenShot\nPress ESC To Quit")
         self.width = window2.winfo_screenwidth()
         self.heigth = window2.winfo_screenheight()
 
@@ -140,14 +138,16 @@ class ScreenShotWindow():
         self.canvas = Canvas(window2, width=window2.winfo_screenwidth(), height=window2.winfo_screenheight(),
                              highlightthickness=0)
         self.canvas.pack()
+        self.canvas.focus_force()
         self.click = 0
         self.window = window2
         window2.bind('<Button-1>', self.getMaousePosition)
         window2.bind('<Motion>', self.paint)
         window2.bind('<ButtonRelease-1>', self.getMaousePosition)
-        window2.bind('<Key>', self.keyPress)
+        window2.bind("<Key>",self.keyPress)
 
     def keyPress(self, event):
+
         if str(event.keysym) == 'Return':
             if self.x0 != self.x1 and self.y0 != self.y1:
                 myScreenshot = pyautogui.screenshot()
@@ -178,6 +178,9 @@ class ScreenShotWindow():
                                 func - currentScript.functions[func].father[0] - 2].img = img
                 Lb2.select_clear(0, END)
                 createTree(explorerFrame)
+            else:
+                msgbox = tkinter.messagebox.showerror('Notic!', 'No ScreeShot Zone Selected!.')
+                self.canvas.focus_force()
 
         if str(event.keysym) == 'Escape':
             print("Quit window")
@@ -188,6 +191,7 @@ class ScreenShotWindow():
             pass
 
     def paint(self, event):
+
         if self.click == 1:
             self.x1, self.y1 = event.x, event.y
             self.canvas.delete('all')
@@ -199,6 +203,7 @@ class ScreenShotWindow():
             self.canvas.create_rectangle(self.x1, 0, self.width, self.heigth, fill='red', outline='red')  # outter
 
     def getMaousePosition(self, event):
+
         if (str(event.type) == 'ButtonPress'):
             self.click = 1
             self.x0, self.y0 = event.x, event.y
@@ -470,6 +475,9 @@ def removeFunctions():
     #     print(x.printFunction())
     updateCurrentScript()
     updateLb2()
+
+
+
 
 
 def window2():
@@ -1015,12 +1023,6 @@ if __name__ == '__main__':
 
     stopButton = Button(toolbarFrame, text="Stop")
     stopButton.place(x=290, y=0)
-
-    close = Button(mainScreen, text="Close", command=mainScreen.destroy)
-    close.place(x=0, y=0)
-
-    minimize = Button(mainScreen, text="Minimize", command=mainScreen.iconify)
-    minimize.place(x=60, y=0)
 
     addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state=DISABLED)
     addFunc.place(x=1600, y=100)
