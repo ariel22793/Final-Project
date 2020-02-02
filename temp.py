@@ -11,9 +11,12 @@ import functions_handler
 import script
 import ast
 import copy
+import time
+from win32api import GetSystemMetrics
 
 functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("Folder1",[],0)
+firstTime = True
 
 class Sleep():
     def __init__(self, time):
@@ -477,18 +480,16 @@ def window2():
     window2 = ScreenShotWindow()
 
 
-def SUBS(path, parent, tree, fileImg):
+def SUBS(path, parent, tree):
     for p in os.listdir(path):
         abspath = os.path.join(path, p)
-        tree.image = fileImg
-
-        tree.image = fileImg
+        # tree.image = fileImg
 
         if os.path.isdir(abspath):
             parent_element = tree.insert(parent, 'end', text=p, open=True, tag="T")
-            SUBS(abspath, parent_element, tree, fileImg)
+            SUBS(abspath, parent_element, tree)
         else:
-            parent_element = tree.insert(parent, 'end', text=p, open=True, image=fileImg, tag="T")
+            parent_element = tree.insert(parent, 'end', text=p, open=True, tag="T")
 
 
 def FocusOnSelectedFunc(event):
@@ -527,8 +528,7 @@ def FocusOnSelectedFunc(event):
                     canvas.pack()
 
         frame.tkraise()
-
-
+    reportFrame()
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
 
@@ -537,13 +537,11 @@ def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
     s.configure('Treeview', rowheight=40)
-
     path = os.path.dirname(os.path.abspath(__file__))
-
     root = tree.insert('', 'end', text=path + '\Scripts', open=True, tag='T')
-    fileImg = PhotoImage(file='').subsample(3, 3)
-    tree.image = fileImg
-    SUBS(path + '\\Scripts', root, tree, fileImg)
+    # fileImg = PhotoImage(file='').subsample(3, 3)
+    # tree.image = fileImg
+    SUBS(path + '\\Scripts', root, tree)
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
 
     tree.place(x=0, y=0)
@@ -674,25 +672,20 @@ def savehundle():
 
 
 def saveAsHundle():
-    filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
-                                                    filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
-    functionPath = filePath + ".txt"
-    file = open(functionPath, "w+")
-    functionFile = ""
-    for func in currentScript.functions:
-        functionFile += '{'
-        for i in func:
-            if i == 'id':  # last atribute of func
-                functionFile += i + " : " + str(func[i]) + "}\n"
-            elif i == 'img':
-                if func[i] != '':
-                    functionFile += i + " : " + json.dumps(func[i].__dict__) + ", "
-                else:
-                    functionFile += i + " : {}, "
-            else:
-                functionFile += i + " : " + func[i] + ", "
-    file.write(functionFile)
-    file.close()
+    # filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
+    #                                                 filetypes=(("txt files", "*.json"), ("all files", "*.*")))
+
+    functionPath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
+                                                    filetypes=(("Json file", "*.json"), ("all files", "*.*")))
+    functionPath+= '.json'
+    try:
+        os.remove(functionPath)
+    except:
+        pass
+    functionsblock = saveFunctions()
+    linesFatherblock = saveLinesFather()
+    with open(functionPath, 'w+') as outfile:
+        outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
 
 
 def openFunctions(data):
@@ -713,7 +706,6 @@ def openButton():
     filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
                                                   filetypes=(("json files", "*.json"), ("all files", "*.*")))
     currentScript.functions.clear()
-
     with open(filePath) as json_file:
         data = json_file.read()
         functionsData = json.loads(data[:data.index('\n')])
@@ -746,19 +738,13 @@ def TreeviewD_Click(event):
     currentScript.functions.clear()
 
     with open(fullPath) as json_file:
-        data = json.load(json_file)
+        data = json_file.read()
+        functionsData = json.loads(data[:data.index('\n')])
+        linesFatherData = json.loads(data[data.index('\n')+1:])
 
-    for x in data:
-        for key, value in x.items():
-            if key == 'id':
-                x['id'] = int(value)
-            if key == 'img' and value != '':
-                img = Photo(value.get('x0Cord'), value.get('y0Cord'), value.get('x1Cord'), value.get('y1Cord'),
-                            value.get('img'))
-                x['img'] = img
-
-    currentScript.functions = copy.deepcopy(data)
-    listReload(Lb2)
+    openFunctions(functionsData)
+    openLinesFather(linesFatherData)
+    updateLb2()
 
 
 def insertA():
@@ -815,13 +801,204 @@ def insertB():
     updateLb2()
     Lb2.select_set(place)
 
+def closeStartWindow(event, startWin):
+    startWin.destroy()
+    mainScreen.deiconify()
+    mainScreen.state("zoomed")
+
+
+def getCenterOfScreen(screen):
+    h = screen.winfo_height()
+    w = screen.winfo_width()
+    wScreen = GetSystemMetrics(0)
+    hScreen = GetSystemMetrics(1)
+    xPoint = (wScreen/2) - (w/2)
+    yPoint = hScreen/2 - h/2
+    return(int(xPoint), int(yPoint))
+
+def Minimize_and_Open(event, screenToMini):
+    screenToMini.iconify()
+    try:
+        filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
+                                                  filetypes=(("json files", "*.json"), ("all files", "*.*")))
+        print(filePath)
+        currentScript.functions.clear()
+        with open(filePath) as json_file:
+            data = json_file.read()
+            functionsData = json.loads(data[:data.index('\n')])
+            linesFatherData = json.loads(data[data.index('\n') + 1:])
+
+        openFunctions(functionsData)
+        openLinesFather(linesFatherData)
+        updateLb2()
+
+        closeStartWindow(None,screenToMini)
+
+    except:
+        screenToMini.deiconify()
+
+
+
+
+
+
+def startScreen():
+    firstTime = False
+    startS = Tk()
+    startS.title("Automation Tool Program")
+    startS.geometry('1100x500')
+    startS.update_idletasks()
+    mainScreen.withdraw()
+    x,y = getCenterOfScreen(startS)
+    startS.geometry("1100x500+" + str(x)+'+'+str(y))
+    startS.update_idletasks()
+
+
+
+    title = Label(startS, text = 'Automation Testing Tool', font=("Helvetica", 30))
+    title.place(x=200,y=10)
+    subtitle = Label(startS, text='Welcome! please select you pice of shit!', font=("Helvetica", 12))
+    subtitle.place(x=250, y=100)
+
+    newProject = Button(startS, text='New Project', width=20)
+    newProject.bind('<Button-1>', lambda event: closeStartWindow(event, startS))
+    newProject.place(x=400, y=200)
+
+    load = Button(startS, text='load', width =20)
+    load.bind('<Button-1>', lambda event: Minimize_and_Open(event, startS))
+    load.place(x=400, y=250)
+
+    close = Button(startS, text='Close', width=20)
+    close.bind('<Button-1>', func=quit)
+    close.place(x=400, y=300)
+    startS.attributes('-topmost', True)
+
+
+
+
+
+def reportFrame():
+    data = {}
+
+    reportFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=400)
+    reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
+
+    buttonUp = Button(reportFrame, text='⬆')
+    buttonUp.place(x=mainScreen.winfo_width() - 40)
+    buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
+
+
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=400)
+    reportContex.place(x=100, y=50)
+    size = GetSystemMetrics(0) - 300
+    getRepo = Button(reportFrame, text='Get Repo')
+    getRepo.place(x=mainScreen.winfo_width() - 150, y=100)
+    getRepo.bind('<Button-1>', lambda event: getReport(event, reportContex, data, size))
+
+    clearReport = Button(reportFrame, text='Clear All')
+    clearReport.place(x=mainScreen.winfo_width() - 150)
+    clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex ))
+
+
+def clearRe(event, data, frame):
+    data.clear()
+    for i in frame.winfo_children():
+        try:
+            i.destroy()
+        except:
+            pass
+
+
+def getReport(event, frameToWrite, data, size):
+    data.update({"set_info":{}})
+    counter=1
+    for x in currentScript.functions:
+        if x.name!='{' and x.name !='}':
+            if(x.extra!=''):
+                extra = x.extra.getDict()
+            else:
+                extra="no other parameters"
+
+            data['set_info'].update({
+                x.name:{
+                    'id_number': str(x.id),
+                    'more_vars': extra
+                }
+
+
+
+            })
+            counter+=1
+
+
+    scrollbar = Scrollbar(frameToWrite)
+    scrollbar.pack(side=RIGHT, fill=Y,expand=False)
+
+    tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set)
+    root = tree.insert('', 'end', text='', open=True, tag='T')
+    s = ttk.Style()
+
+    tree.pack(side = LEFT, fill = BOTH)
+    scrollbar.config(command=tree.yview)
+    jsonTree(frameToWrite, data, tree, root)
+    tree.column("#0", width=size, stretch=False)
+
+def jsonTree(frame, data, tree, parent):
+
+    for key, value in data.items():
+        if isinstance(value,list):
+            value = value[0]
+
+        if isinstance(value,dict):
+            parent_element = tree.insert(parent, 'end', text=key, open=True, tag="T")
+            jsonTree(frame, value , tree, parent_element)
+            # print('insert ' + str(key) + ' his uid is: ' + str(parent_element) + ' his parent uid is: ' + str(parent) )
+
+        else:
+            parent_element = tree.insert(parent, 'end', text=(key + ':' + value), open=True, tag="T")
+            pass
+
+
+
+
+
+
+
+
+
+
+def exposeReport(event, frame, button):
+    counter = 0
+
+    if(button.cget('text')=='⬆'):
+
+        while(counter!=10):
+                y = frame.winfo_y() - 30
+                frame.place(y=y)
+                frame.update()
+                time.sleep(0.02)
+                counter+=1
+        button['text'] = '⬇'
+
+    else:
+        while (counter != 10):
+            y = frame.winfo_y() + 30
+            frame.place(y=y)
+            frame.update()
+            counter += 1
+        button['text'] = '⬆'
+
+
+
 
 if __name__ == '__main__':
     functionFather = []
+
     mainScreen = Tk()
     mainScreen.state("zoomed")
     mainScreen.title("MyApp")
-
+    if firstTime :
+        startScreen()
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
     toolbarFrame.place(x=0, y=50)
 
@@ -834,8 +1011,11 @@ if __name__ == '__main__':
     saveAsButton = Button(toolbarFrame, text="Save As", command=saveAsHundle)
     saveAsButton.place(x=140, y=0)
 
-    runButton = Button(toolbarFrame, text="Run", command=runHendle)
+    photo = PhotoImage(file=r"img\start2.png")
+    photoimage = photo.subsample(3, 3)
+    runButton = Button(toolbarFrame, text="Run", command=runHendle, image = photoimage,)
     runButton.place(x=230, y=0)
+
 
     stopButton = Button(toolbarFrame, text="Stop")
     stopButton.place(x=290, y=0)
@@ -897,5 +1077,8 @@ if __name__ == '__main__':
 
     tree = createTree(explorerFrame)
     tree.bind("<Double-1>", TreeviewD_Click)
+
+    reportFrame()
+
 
 mainScreen.mainloop()
