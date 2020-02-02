@@ -313,9 +313,12 @@ def updateLb2():
 def addFunction():
     place = Lb2.curselection()[0]
     functionName = functionList[Lb1.curselection()[0]]
-    currentFunction = currentScript.functions[place]
-    currentLineFather = currentScript.linesFather[place]
-
+    try:
+        currentFunction = currentScript.functions[place]
+        currentLineFather = currentScript.linesFather[place]
+    except:
+        if(currentScript.functions==[] and place ==0):      ## case that this is the first time we add a function
+            print('first time!')
     if functionName == 'Sleep':
         count = 0
         sleep = Sleep('?')
@@ -504,6 +507,7 @@ def FocusOnSelectedFunc(event):
         index = Lb2.curselection()[0]
     except:
         return
+
     frame = ''
     id = index
     photoName = ''
@@ -751,7 +755,7 @@ def TreeviewD_Click(event):
     updateLb2()
 
 
-def insertA():
+def insert_A():
     try:
         place = Lb2.curselection()[0]
     except:
@@ -775,7 +779,7 @@ def insertA():
     Lb2.select_set(place)
 
 
-def insertB():
+def insert_B():
     try:
         place = Lb2.curselection()[0] + 1
     except:
@@ -992,6 +996,28 @@ def exposeReport(event, frame, button):
             counter += 1
         button['text'] = '⬆'
 
+def firstInsert():
+    try:
+        place = Lb2.curselection()[0]
+    except:
+        place = 0
+    currentScript.functions.insert(place, Function('', '', place, '', '', ''))
+    if len(currentScript.functions) > 1:
+        nextFunction = currentScript.functions[place + 1]
+    if (len(currentScript.functions) > 1 and nextFunction.father[1] == 'Repeat' and not (
+            nextFunction.name == 'Repeat')):
+        currentScript.linesFather.insert(place, currentScript.linesFather[place + 1])
+        currentScript.linesFather[currentScript.linesFather[place + 1].fromIndex].toIndex += 1
+    else:
+        currentScript.linesFather.insert(place, LineFather(place, place, ''))
+    for x in range(len(currentScript.functions)):
+        if x > place:
+            newId = currentScript.functions[x].id
+
+    if len(currentScript.functions) > 0:
+        updateCurrentScript()
+    updateLb2()
+    Lb2.select_set(place)
 
 
 
@@ -1042,10 +1068,10 @@ if __name__ == '__main__':
     removeFunc = Button(mainFrame, text="Remove Function", command=removeFunctions)
     removeFunc.place(x=240, y=0)
 
-    insertB = Button(mainFrame, text="Insert Below", command=insertB)
+    insertB = Button(mainFrame, text="Insert Below", command=insert_B)
     insertB.place(x=410, y=0)
 
-    insertA = Button(mainFrame, text="Insert Above", command=insertA)
+    insertA = Button(mainFrame, text="Insert Above", command=insert_A)
     insertA.place(x=550, y=0)
 
     takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
@@ -1070,6 +1096,14 @@ if __name__ == '__main__':
 
     Lb2.place(x=0, y=40)
 
+
+    #### this will startup with a black place in Lb2 to avoid first insert.
+    insert_A()
+    Lb2.select_set(0)
+    Lb2.focus_force()
+    FocusOnSelectedFunc(None)
+
+    ######################################################################
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
