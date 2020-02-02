@@ -12,11 +12,13 @@ import ast
 import copy
 import time
 from win32api import GetSystemMetrics
+import threading
+import datetime
 
 functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("Folder1",[],0)
 firstTime = True
-
+process = []
 class Sleep():
     def __init__(self, time):
         self.time = time
@@ -996,30 +998,51 @@ def exposeReport(event, frame, button):
             counter += 1
         button['text'] = '⬆'
 
-def firstInsert():
+def autosave():
+
+        countThread = process[0]
+        print(AutoSave.get())
+        flag =0
+        if('No' in AutoSave.get()):
+            return
+        while (True):
+            counter = 60*10
+            while(counter!=0):
+                if (not countThread.is_alive()):
+                    flag = 1
+                else:
+                    flag =0
+                print(counter)
+                time.sleep(1)
+                counter -= 1
+                if flag==1:
+                    return
+            savehundle()
+
+def comboBoxSelect(event):
     try:
-        place = Lb2.curselection()[0]
+        for x in process:
+           x._is_stopped = True
+           time.sleep(1)
+
+           x._is_stopped = False
+
     except:
-        place = 0
-    currentScript.functions.insert(place, Function('', '', place, '', '', ''))
-    if len(currentScript.functions) > 1:
-        nextFunction = currentScript.functions[place + 1]
-    if (len(currentScript.functions) > 1 and nextFunction.father[1] == 'Repeat' and not (
-            nextFunction.name == 'Repeat')):
-        currentScript.linesFather.insert(place, currentScript.linesFather[place + 1])
-        currentScript.linesFather[currentScript.linesFather[place + 1].fromIndex].toIndex += 1
-    else:
-        currentScript.linesFather.insert(place, LineFather(place, place, ''))
-    for x in range(len(currentScript.functions)):
-        if x > place:
-            newId = currentScript.functions[x].id
+        print('in exept')
 
-    if len(currentScript.functions) > 0:
-        updateCurrentScript()
-    updateLb2()
-    Lb2.select_set(place)
+    process.clear()
+    saver = threading.Thread(target=autosave)
+    process.append(saver)
+
+    saver.start()
 
 
+
+def on_closing():
+        if tkinter.messagebox.askokcancel("Quit", "Do you want to quit?"):
+            for x in process:
+                x._is_stopped = True
+            mainScreen.destroy()
 
 if __name__ == '__main__':
     functionFather = []
@@ -1096,6 +1119,16 @@ if __name__ == '__main__':
 
     Lb2.place(x=0, y=40)
 
+    AutoSave = ttk.Combobox(toolbarFrame,values=[
+                                                "No AutoSave",
+                                                "Every 10 Min",
+                                                ],
+                                                state="readonly"
+                            )
+    AutoSave.bind('<<ComboboxSelected>>', lambda event: comboBoxSelect(event))
+    AutoSave.place(x=mainScreen.winfo_width()-300,y=0)
+    AutoSave.current(0)
+
 
     #### this will startup with a black place in Lb2 to avoid first insert.
     insert_A()
@@ -1112,5 +1145,6 @@ if __name__ == '__main__':
 
     reportFrame()
 
+    mainScreen.protocol("WM_DELETE_WINDOW", on_closing)
 
 mainScreen.mainloop()
