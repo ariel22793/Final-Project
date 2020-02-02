@@ -1,3 +1,4 @@
+import time
 from tkinter import *
 import tkinter.filedialog
 import tkinter.messagebox
@@ -129,7 +130,7 @@ class ScreenShotWindow():
         window2.attributes('-fullscreen', True)
         window2.attributes('-alpha', 0.3)
 
-        tkinter.messagebox.showinfo("Notic!", "Press ENTER To Take ScreenShot\nPress ESC To Quit")
+        #tkinter.messagebox.showinfo("Notic!", "Press ENTER To Take ScreenShot\nPress ESC To Quit")
         self.width = window2.winfo_screenwidth()
         self.heigth = window2.winfo_screenheight()
 
@@ -140,11 +141,14 @@ class ScreenShotWindow():
         self.click = 0
         self.window = window2
         window2.bind('<Button-1>', self.getMaousePosition)
+        window2.bind('<Key>', self.keyPress)
         window2.bind('<Motion>', self.paint)
         window2.bind('<ButtonRelease-1>', self.getMaousePosition)
-        window2.bind('<Key>', self.keyPress)
+
+
 
     def keyPress(self, event):
+
         if str(event.keysym) == 'Return':
             if self.x0 != self.x1 and self.y0 != self.y1:
                 myScreenshot = pyautogui.screenshot()
@@ -427,7 +431,7 @@ def removeFunction(function,functionIndex):
         listOfIndexToPop.append(function.id + 1)
         listOfIndexToPop.append(currentScript.linesFather[function.id].toIndex)
     else:
-        print('kaka')
+        pass
     return listOfIndexToPop
 
 
