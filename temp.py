@@ -874,24 +874,38 @@ def startScreen():
 
 
 def reportFrame():
+    data = {}
+
     reportFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=400)
     reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
 
     buttonUp = Button(reportFrame, text='⬆')
     buttonUp.place(x=mainScreen.winfo_width() - 40)
     buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
-    clearReport = Button(reportFrame, text='Clear All')
-    clearReport.place(x=mainScreen.winfo_width() - 150)
+
 
     reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=400)
     reportContex.place(x=100, y=50)
-
+    size = GetSystemMetrics(0) - 300
     getRepo = Button(reportFrame, text='Get Repo')
     getRepo.place(x=mainScreen.winfo_width() - 150, y=100)
-    getRepo.bind('<Button-1>', lambda event: getReport(event, reportContex))
+    getRepo.bind('<Button-1>', lambda event: getReport(event, reportContex, data, size))
 
-def getReport(event, frameToWrite):
-    data = {}
+    clearReport = Button(reportFrame, text='Clear All')
+    clearReport.place(x=mainScreen.winfo_width() - 150)
+    clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex ))
+
+
+def clearRe(event, data, frame):
+    data.clear()
+    for i in frame.winfo_children():
+        try:
+            i.destroy()
+        except:
+            pass
+
+
+def getReport(event, frameToWrite, data, size):
     data.update({"set_info":{}})
     counter=1
     for x in currentScript.functions:
@@ -914,16 +928,16 @@ def getReport(event, frameToWrite):
 
 
     scrollbar = Scrollbar(frameToWrite)
-    scrollbar.pack(side=RIGHT, fill=Y)
+    scrollbar.pack(side=RIGHT, fill=Y,expand=False)
 
     tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set)
     root = tree.insert('', 'end', text='', open=True, tag='T')
     s = ttk.Style()
 
-    tree.pack(side = LEFT, fill = BOTH, expand = 10)
+    tree.pack(side = LEFT, fill = BOTH)
     scrollbar.config(command=tree.yview)
     jsonTree(frameToWrite, data, tree, root)
-    tree.column("#0", width=frameToWrite.winfo_reqwidth(), stretch=False)
+    tree.column("#0", width=size, stretch=False)
 
 def jsonTree(frame, data, tree, parent):
 
