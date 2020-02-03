@@ -502,9 +502,15 @@ def SUBS(path, parent, tree):
 
 
 def FocusOnSelectedFunc(event):
+
+
     takeScreenShot.config(state='normal')
     Lb1.config(state='normal')
     addFunc.config(state='normal')
+
+    mainScreen.update_idletasks()
+    # mainScreen.update()
+
     try:
         index = Lb2.curselection()[0]
     except:
@@ -513,7 +519,8 @@ def FocusOnSelectedFunc(event):
     frame = ''
     id = index
     photoName = ''
-    functionName = ''
+    functionName = ''    # repoFrame_and_Button[0].destroy()
+
     for x in currentScript.functions:
         if x.id == id:
             try:
@@ -890,15 +897,14 @@ def startScreen():
 def reportFrame():
     data = {}
 
-    reportFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=400)
+    reportFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame')
     reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
 
-    buttonUp = Button(reportFrame, text='⬆')
+    buttonUp = Button(reportFrame, text='⬆', name='arrow')
     buttonUp.place(x=mainScreen.winfo_width() - 40)
     buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
 
-
-    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=400)
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=100)
     reportContex.place(x=100, y=50)
     size = GetSystemMetrics(0) - 300
     getRepo = Button(reportFrame, text='Get Repo')
@@ -908,6 +914,7 @@ def reportFrame():
     clearReport = Button(reportFrame, text='Clear All')
     clearReport.place(x=mainScreen.winfo_width() - 150)
     clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex ))
+
 
 
 def clearRe(event, data, frame):
@@ -972,12 +979,8 @@ def jsonTree(frame, data, tree, parent):
 
 
 
-
-
-
-
-
 def exposeReport(event, frame, button):
+
     counter = 0
 
     if(button.cget('text')=='⬆'):
@@ -986,7 +989,7 @@ def exposeReport(event, frame, button):
                 y = frame.winfo_y() - 30
                 frame.place(y=y)
                 frame.update()
-                time.sleep(0.02)
+                time.sleep(0.009)
                 counter+=1
         button['text'] = '⬇'
 
@@ -995,8 +998,11 @@ def exposeReport(event, frame, button):
             y = frame.winfo_y() + 30
             frame.place(y=y)
             frame.update()
+            # time.sleep(0.009)
             counter += 1
         button['text'] = '⬆'
+
+
 
 def autosave():
 
@@ -1129,6 +1135,7 @@ if __name__ == '__main__':
     AutoSave.place(x=mainScreen.winfo_width()-300,y=0)
     AutoSave.current(0)
 
+    reportFrame()
 
     #### this will startup with a black place in Lb2 to avoid first insert.
     insert_A()
@@ -1137,13 +1144,13 @@ if __name__ == '__main__':
     FocusOnSelectedFunc(None)
 
     ######################################################################
+
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
     tree = createTree(explorerFrame)
     tree.bind("<Double-1>", TreeviewD_Click)
 
-    reportFrame()
 
     mainScreen.protocol("WM_DELETE_WINDOW", on_closing)
 
