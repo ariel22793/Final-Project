@@ -885,34 +885,72 @@ def startScreen():
 
     newPButton = PhotoImage(file=r"img\buttonNP.png")
     canvas.Button1 = newPButton
-    canvas.create_image(150,420, anchor=NW, image=newPButton,  tags="NewProject")
+    np = canvas.create_image(150,400, anchor=NW, image=newPButton,  tags="NewProject")
     canvas.tag_bind('NewProject','<Button-1>', lambda event: closeStartWindow(event, startS))
+    canvas.tag_bind('NewProject', '<Enter>', lambda event: hoverOn(event, canvas, np))
+    canvas.tag_bind('NewProject', '<Leave>', lambda event: hoverOff(event, canvas, np))
+
 
     loadButton = PhotoImage(file=r"img\buttonLoad.png")
     canvas.Button2 = loadButton
-    canvas.create_image(450, 420, anchor=NW, image=loadButton, tags="Load")
+    load = canvas.create_image(450, 400, anchor=NW, image=loadButton, tags="Load")
     canvas.tag_bind('Load', '<Button-1>', lambda event: Minimize_and_Open(event, startS))
+    canvas.tag_bind('Load', '<Enter>',lambda event: hoverOn(event,canvas, load))
+    canvas.tag_bind('Load', '<Leave>',lambda event: hoverOff(event, canvas, load))
 
     closeButton = PhotoImage(file=r"img\buttonClose.png")
     canvas.Button3 = closeButton
-    canvas.create_image(750, 420, anchor=NW, image=closeButton, tags="Close")
+    close=canvas.create_image(750, 400, anchor=NW, image=closeButton, tags="Close")
     canvas.tag_bind('Close', '<Button-1>',func=quit)
+    canvas.tag_bind('Close', '<Enter>',lambda event: hoverOn(event,canvas, close))
+    canvas.tag_bind('Close', '<Leave>',lambda event: hoverOff(event, canvas, close))
+
+
 
     startS.attributes('-topmost', True)
 
+def hoverOn(event,canvas, item):
+    if(item==2):
+        Button1 = PhotoImage(file=r"img\buttonNPHover.png")
+        canvas.z = Button1
+        canvas.itemconfig(item, image = Button1)
+    if(item==3):
+        Button1 = PhotoImage(file=r"img\buttonLoadHover.png")
+        canvas.y = Button1
+        canvas.itemconfig(item, image = Button1)
+
+    if(item==4):
+        Button1 = PhotoImage(file=r"img\buttonCloseHover.png")
+        canvas.x = Button1
+        canvas.itemconfig(item, image = Button1)
 
 
+def hoverOff(event,canvas, item):
+    if (item == 2):
+        Button1 = PhotoImage(file=r"img\buttonNP.png")
+        canvas.z = Button1
+        canvas.itemconfig(item, image=Button1)
+
+    if (item == 3):
+        Button1 = PhotoImage(file=r"img\buttonLoad.png")
+        canvas.y = Button1
+        canvas.itemconfig(item, image=Button1)
+
+    if(item==4):
+        closeButton1 = PhotoImage(file=r"img\buttonClose.png")
+        canvas.x = closeButton1
+        canvas.itemconfig(item, image=closeButton1)
 def reportFrame():
     data = {}
 
-    reportFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame')
+    reportFrame = Frame(mainScreen, bd=6, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame')
     reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
 
     buttonUp = Button(reportFrame, text='⬆', name='arrow')
     buttonUp.place(x=mainScreen.winfo_width() - 40)
     buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
 
-    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=270)
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=270)
     reportContex.place(x=100, y=50)
     size = GetSystemMetrics(0) - 300
     getRepo = Button(reportFrame, text='Get Repo')
@@ -964,9 +1002,9 @@ def getReport(event, frameToWrite, data, size):
     scrollbar.config(command=tree.yview)
     jsonTree(frameToWrite, data, tree, root)
     tree.column("#0", width=size)
-    tree.pack(fill='x')
+    tree.pack(fill=BOTH, expand=True)
 
-    frameToWrite.place( height=270)
+    frameToWrite.place(height=270)
 
 
 def jsonTree(frame, data, tree, parent):
@@ -1065,10 +1103,11 @@ if __name__ == '__main__':
     mainScreen = Tk()
     mainScreen.state("zoomed")
     mainScreen.title("MyApp")
+
     if firstTime :
         startScreen()
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
-    toolbarFrame.place(x=0, y=50)
+    toolbarFrame.place(x=0, y=0)
 
     openButton = Button(toolbarFrame, text="Open", command=openButton)
     openButton.place(x=0, y=0)
