@@ -861,36 +861,43 @@ def Minimize_and_Open(event, screenToMini):
 
 def startScreen():
     firstTime = False
-    startS = Tk()
+    startS = Toplevel()
     startS.title("Automation Tool Program")
     startS.geometry('1100x500')
+
     startS.update_idletasks()
     mainScreen.withdraw()
     x,y = getCenterOfScreen(startS)
     startS.geometry("1100x500+" + str(x)+'+'+str(y))
     startS.update_idletasks()
 
+    frame = Frame(startS, width=110, height=500)
+    frame.pack(fill=BOTH)
+
+    canvas = Canvas(frame, width=110, height=500)
+    canvas.pack(fill=BOTH)
+
+    background = PhotoImage(file=r"img\StartUpScreen.png")
+    canvas.bg = background
+    canvas.create_image(0,0,anchor=NW, image=background)
 
 
-    title = Label(startS, text = 'Automation Testing Tool', font=("Helvetica", 30))
-    title.place(x=200,y=10)
-    subtitle = Label(startS, text='Welcome! please select you pice of shit!', font=("Helvetica", 12))
-    subtitle.place(x=250, y=100)
+    newPButton = PhotoImage(file=r"img\buttonNP.png")
+    canvas.Button1 = newPButton
+    canvas.create_image(150,420, anchor=NW, image=newPButton,  tags="NewProject")
+    canvas.tag_bind('NewProject','<Button-1>', lambda event: closeStartWindow(event, startS))
 
-    newProject = Button(startS, text='New Project', width=20)
-    newProject.bind('<Button-1>', lambda event: closeStartWindow(event, startS))
-    newProject.place(x=400, y=200)
+    loadButton = PhotoImage(file=r"img\buttonLoad.png")
+    canvas.Button2 = loadButton
+    canvas.create_image(450, 420, anchor=NW, image=loadButton, tags="Load")
+    canvas.tag_bind('Load', '<Button-1>', lambda event: Minimize_and_Open(event, startS))
 
-    load = Button(startS, text='load', width =20)
-    load.bind('<Button-1>', lambda event: Minimize_and_Open(event, startS))
-    load.place(x=400, y=250)
+    closeButton = PhotoImage(file=r"img\buttonClose.png")
+    canvas.Button3 = closeButton
+    canvas.create_image(750, 420, anchor=NW, image=closeButton, tags="Close")
+    canvas.tag_bind('Close', '<Button-1>',func=quit)
 
-    close = Button(startS, text='Close', width=20)
-    close.bind('<Button-1>', func=quit)
-    close.place(x=400, y=300)
     startS.attributes('-topmost', True)
-
-
 
 
 
@@ -1073,7 +1080,7 @@ if __name__ == '__main__':
 
     photo = PhotoImage(file=r"img\start2.png")
     photoimage = photo.subsample(3, 3)
-    runButton = Button(toolbarFrame, text="Run", command=runHendle, image = photoimage,)
+    runButton = Button(toolbarFrame, text="Run", command=runHendle, image = photoimage)
     runButton.place(x=230, y=0)
 
 
