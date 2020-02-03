@@ -862,7 +862,8 @@ def Minimize_and_Open(event, screenToMini):
 def startScreen():
     firstTime = False
     startS = Toplevel()
-    startS.title("Automation Tool Program")
+    startS.resizable(False, False)
+    startS.overrideredirect(True)
     startS.geometry('1100x500')
 
     startS.update_idletasks()
