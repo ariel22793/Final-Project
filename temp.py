@@ -904,7 +904,7 @@ def reportFrame():
     buttonUp.place(x=mainScreen.winfo_width() - 40)
     buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
 
-    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=100)
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=270)
     reportContex.place(x=100, y=50)
     size = GetSystemMetrics(0) - 300
     getRepo = Button(reportFrame, text='Get Repo')
@@ -949,16 +949,17 @@ def getReport(event, frameToWrite, data, size):
 
 
     scrollbar = Scrollbar(frameToWrite)
-    scrollbar.pack(side=RIGHT, fill=Y,expand=False)
-
-    tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set, name='repoTree')
     root = tree.insert('', 'end', text='', open=True, tag='T')
-    s = ttk.Style()
 
-    tree.pack(side = LEFT, fill = BOTH)
     scrollbar.config(command=tree.yview)
     jsonTree(frameToWrite, data, tree, root)
-    tree.column("#0", width=size, stretch=False)
+    tree.column("#0", width=size)
+    tree.pack(fill='x')
+
+    frameToWrite.place( height=270)
+
 
 def jsonTree(frame, data, tree, parent):
 
