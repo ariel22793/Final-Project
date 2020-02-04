@@ -9,7 +9,7 @@ def repeat_handle(repeatTime,functions,path):
     functionNum = 0
     for i in range(repeatTime):
         for func in functions:
-            if ('(' in func.name and func.name[:func.name.index('(')] == 'Repeat'):
+            if (func.name == 'Repeat'):
                 functionNum += repeat_handle(func.extra.time, func.extra.functions,path) + 3
             elif (func.name == 'Left-Click'):
                 left_click_handle(func.img, path)
