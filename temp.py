@@ -22,10 +22,13 @@ from LineFather import LineFather
 import Function
 from Function import Function
 from win32api import GetSystemMetrics
+import threading
+import datetime
 
 functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
 currentScript = script.Script("Folder1",[],0)
 firstTime = True
+process = []
 
 def updateCurrentScript(index,delta):
     fromIndex = 0
@@ -99,6 +102,12 @@ def addFunction():
     currentLineFather = currentScript.linesFather[place]
     delta = 0
 
+    try:
+        currentFunction = currentScript.functions[place]
+        currentLineFather = currentScript.linesFather[place]
+    except:
+        if(currentScript.functions==[] and place ==0):      ## case that this is the first time we add a function
+            print('first time!')
     if functionName == 'Sleep':
         sleep = Sleep('?')
 
@@ -215,6 +224,9 @@ def removeFunctions():
     updateLb2()
 
 
+
+
+
 def window2():
     window2 = ScreenShotWindow(mainScreen,Lb2,currentScript,explorerFrame)
 
@@ -232,17 +244,25 @@ def SUBS(path, parent, tree):
 
 
 def FocusOnSelectedFunc(event):
+
+
     takeScreenShot.config(state='normal')
     Lb1.config(state='normal')
     addFunc.config(state='normal')
+
+    mainScreen.update_idletasks()
+    # mainScreen.update()
+
     try:
         index = Lb2.curselection()[0]
     except:
         return
+
     frame = ''
     id = index
     photoName = ''
-    functionName = ''
+    functionName = ''    # repoFrame_and_Button[0].destroy()
+
     for x in currentScript.functions:
         if x.id == id:
             try:
@@ -488,7 +508,7 @@ def TreeviewD_Click(event):
     updateLb2()
 
 
-def insertA():
+def insert_A():
     try:
         place = Lb2.curselection()[0]
     except:
@@ -534,7 +554,7 @@ def insertA():
     Lb2.select_set(place)
 
 
-def insertB():
+def insert_B():
     try:
         place = Lb2.curselection()[0] + 1
     except:
@@ -609,51 +629,96 @@ def Minimize_and_Open(event, screenToMini):
 
 def startScreen():
     firstTime = False
-    startS = Tk()
-    startS.title("Automation Tool Program")
+    startS = Toplevel()
+    startS.resizable(False, False)
+    startS.overrideredirect(True)
     startS.geometry('1100x500')
+
     startS.update_idletasks()
     mainScreen.withdraw()
     x,y = getCenterOfScreen(startS)
     startS.geometry("1100x500+" + str(x)+'+'+str(y))
     startS.update_idletasks()
 
+    frame = Frame(startS, width=110, height=500)
+    frame.pack(fill=BOTH)
+
+    canvas = Canvas(frame, width=110, height=500)
+    canvas.pack(fill=BOTH)
+
+    background = PhotoImage(file=r"img\StartUpScreen.png")
+    canvas.bg = background
+    canvas.create_image(0,0,anchor=NW, image=background)
 
 
-    title = Label(startS, text = 'Automation Testing Tool', font=("Helvetica", 30))
-    title.place(x=200,y=10)
-    subtitle = Label(startS, text='Welcome! please select you pice of shit!', font=("Helvetica", 12))
-    subtitle.place(x=250, y=100)
+    newPButton = PhotoImage(file=r"img\buttonNP.png")
+    canvas.Button1 = newPButton
+    np = canvas.create_image(150,400, anchor=NW, image=newPButton,  tags="NewProject")
+    canvas.tag_bind('NewProject','<Button-1>', lambda event: closeStartWindow(event, startS))
+    canvas.tag_bind('NewProject', '<Enter>', lambda event: hoverOn(event, canvas, np))
+    canvas.tag_bind('NewProject', '<Leave>', lambda event: hoverOff(event, canvas, np))
 
-    newProject = Button(startS, text='New Project', width=20)
-    newProject.bind('<Button-1>', lambda event: closeStartWindow(event, startS))
-    newProject.place(x=400, y=200)
 
-    load = Button(startS, text='load', width =20)
-    load.bind('<Button-1>', lambda event: Minimize_and_Open(event, startS))
-    load.place(x=400, y=250)
+    loadButton = PhotoImage(file=r"img\buttonLoad.png")
+    canvas.Button2 = loadButton
+    load = canvas.create_image(450, 400, anchor=NW, image=loadButton, tags="Load")
+    canvas.tag_bind('Load', '<Button-1>', lambda event: Minimize_and_Open(event, startS))
+    canvas.tag_bind('Load', '<Enter>',lambda event: hoverOn(event,canvas, load))
+    canvas.tag_bind('Load', '<Leave>',lambda event: hoverOff(event, canvas, load))
 
-    close = Button(startS, text='Close', width=20)
-    close.bind('<Button-1>', func=quit)
-    close.place(x=400, y=300)
+    closeButton = PhotoImage(file=r"img\buttonClose.png")
+    canvas.Button3 = closeButton
+    close=canvas.create_image(750, 400, anchor=NW, image=closeButton, tags="Close")
+    canvas.tag_bind('Close', '<Button-1>',func=quit)
+    canvas.tag_bind('Close', '<Enter>',lambda event: hoverOn(event,canvas, close))
+    canvas.tag_bind('Close', '<Leave>',lambda event: hoverOff(event, canvas, close))
+
+
+
     startS.attributes('-topmost', True)
 
+def hoverOn(event,canvas, item):
+    if(item==2):
+        Button1 = PhotoImage(file=r"img\buttonNPHover.png")
+        canvas.z = Button1
+        canvas.itemconfig(item, image = Button1)
+    if(item==3):
+        Button1 = PhotoImage(file=r"img\buttonLoadHover.png")
+        canvas.y = Button1
+        canvas.itemconfig(item, image = Button1)
+
+    if(item==4):
+        Button1 = PhotoImage(file=r"img\buttonCloseHover.png")
+        canvas.x = Button1
+        canvas.itemconfig(item, image = Button1)
 
 
+def hoverOff(event,canvas, item):
+    if (item == 2):
+        Button1 = PhotoImage(file=r"img\buttonNP.png")
+        canvas.z = Button1
+        canvas.itemconfig(item, image=Button1)
 
+    if (item == 3):
+        Button1 = PhotoImage(file=r"img\buttonLoad.png")
+        canvas.y = Button1
+        canvas.itemconfig(item, image=Button1)
 
+    if(item==4):
+        closeButton1 = PhotoImage(file=r"img\buttonClose.png")
+        canvas.x = closeButton1
+        canvas.itemconfig(item, image=closeButton1)
 def reportFrame():
     data = {}
 
-    reportFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=GetSystemMetrics(0), height=400)
+    reportFrame = Frame(mainScreen, bd=6, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame')
     reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
 
-    buttonUp = Button(reportFrame, text='⬆')
+    buttonUp = Button(reportFrame, text='⬆', name='arrow')
     buttonUp.place(x=mainScreen.winfo_width() - 40)
     buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
 
-
-    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, bg='white', height=400)
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=270)
     reportContex.place(x=100, y=50)
     size = GetSystemMetrics(0) - 300
     getRepo = Button(reportFrame, text='Get Repo')
@@ -663,6 +728,7 @@ def reportFrame():
     clearReport = Button(reportFrame, text='Clear All')
     clearReport.place(x=mainScreen.winfo_width() - 150)
     clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex ))
+
 
 
 def clearRe(event, data, frame):
@@ -697,16 +763,17 @@ def getReport(event, frameToWrite, data, size):
 
 
     scrollbar = Scrollbar(frameToWrite)
-    scrollbar.pack(side=RIGHT, fill=Y,expand=False)
-
-    tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set)
+    scrollbar.pack(side=RIGHT, fill=Y)
+    tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set, name='repoTree')
     root = tree.insert('', 'end', text='', open=True, tag='T')
-    s = ttk.Style()
 
-    tree.pack(side = LEFT, fill = BOTH)
     scrollbar.config(command=tree.yview)
     jsonTree(frameToWrite, data, tree, root)
-    tree.column("#0", width=size, stretch=False)
+    tree.column("#0", width=size)
+    tree.pack(fill=BOTH, expand=True)
+
+    frameToWrite.place(height=270)
+
 
 def jsonTree(frame, data, tree, parent):
 
@@ -724,7 +791,11 @@ def jsonTree(frame, data, tree, parent):
             pass
 
 
+
+
+
 def exposeReport(event, frame, button):
+
     counter = 0
 
     if(button.cget('text')=='⬆'):
@@ -733,7 +804,7 @@ def exposeReport(event, frame, button):
                 y = frame.winfo_y() - 30
                 frame.place(y=y)
                 frame.update()
-                time.sleep(0.02)
+                time.sleep(0.009)
                 counter+=1
         button['text'] = '⬇'
 
@@ -742,11 +813,57 @@ def exposeReport(event, frame, button):
             y = frame.winfo_y() + 30
             frame.place(y=y)
             frame.update()
+            # time.sleep(0.009)
             counter += 1
         button['text'] = '⬆'
 
 
 
+def autosave():
+
+        countThread = process[0]
+        print(AutoSave.get())
+        flag =0
+        if('No' in AutoSave.get()):
+            return
+        while (True):
+            counter = 60*10
+            while(counter!=0):
+                if (not countThread.is_alive()):
+                    flag = 1
+                else:
+                    flag =0
+                print(counter)
+                time.sleep(1)
+                counter -= 1
+                if flag==1:
+                    return
+            savehundle()
+
+def comboBoxSelect(event):
+    try:
+        for x in process:
+           x._is_stopped = True
+           time.sleep(1)
+
+           x._is_stopped = False
+
+    except:
+        print('in exept')
+
+    process.clear()
+    saver = threading.Thread(target=autosave)
+    process.append(saver)
+
+    saver.start()
+
+
+
+def on_closing():
+        if tkinter.messagebox.askokcancel("Quit", "Do you want to quit?"):
+            for x in process:
+                x._is_stopped = True
+            mainScreen.destroy()
 
 if __name__ == '__main__':
     functionFather = []
@@ -754,10 +871,11 @@ if __name__ == '__main__':
     mainScreen = Tk()
     mainScreen.state("zoomed")
     mainScreen.title("MyApp")
+
     if firstTime :
         startScreen()
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
-    toolbarFrame.place(x=0, y=50)
+    toolbarFrame.place(x=0, y=0)
 
     openButton = Button(toolbarFrame, text="Open", command=openButton)
     openButton.place(x=0, y=0)
@@ -770,18 +888,12 @@ if __name__ == '__main__':
 
     photo = PhotoImage(file=r"img\start2.png")
     photoimage = photo.subsample(3, 3)
-    runButton = Button(toolbarFrame, text="Run", command=runHendle, image = photoimage,)
+    runButton = Button(toolbarFrame, text="Run", command=runHendle, image = photoimage)
     runButton.place(x=230, y=0)
 
 
     stopButton = Button(toolbarFrame, text="Stop")
     stopButton.place(x=290, y=0)
-
-    close = Button(mainScreen, text="Close", command=mainScreen.destroy)
-    close.place(x=0, y=0)
-
-    minimize = Button(mainScreen, text="Minimize", command=mainScreen.iconify)
-    minimize.place(x=60, y=0)
 
     addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state=DISABLED)
     addFunc.place(x=1600, y=100)
@@ -801,10 +913,10 @@ if __name__ == '__main__':
     removeFunc = Button(mainFrame, text="Remove Function", command=removeFunctions)
     removeFunc.place(x=240, y=0)
 
-    insertB = Button(mainFrame, text="Insert Below", command=insertB)
+    insertB = Button(mainFrame, text="Insert Below", command=insert_B)
     insertB.place(x=410, y=0)
 
-    insertA = Button(mainFrame, text="Insert Above", command=insertA)
+    insertA = Button(mainFrame, text="Insert Above", command=insert_A)
     insertA.place(x=550, y=0)
 
     takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
@@ -829,13 +941,33 @@ if __name__ == '__main__':
 
     Lb2.place(x=0, y=40)
 
+    AutoSave = ttk.Combobox(toolbarFrame,values=[
+                                                "No AutoSave",
+                                                "Every 10 Min",
+                                                ],
+                                                state="readonly"
+                            )
+    AutoSave.bind('<<ComboboxSelected>>', lambda event: comboBoxSelect(event))
+    AutoSave.place(x=mainScreen.winfo_width()-300,y=0)
+    AutoSave.current(0)
+
+    reportFrame()
+
+    #### this will startup with a black place in Lb2 to avoid first insert.
+    insert_A()
+    Lb2.select_set(0)
+    Lb2.focus_force()
+    FocusOnSelectedFunc(None)
+
+    ######################################################################
+
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
     tree = createTree(explorerFrame)
     tree.bind("<Double-1>", TreeviewD_Click)
 
-    reportFrame()
 
+    mainScreen.protocol("WM_DELETE_WINDOW", on_closing)
 
 mainScreen.mainloop()
