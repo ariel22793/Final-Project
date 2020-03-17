@@ -33,7 +33,7 @@ process = []
 def updateCurrentScript(index,delta):
     fromIndex = 0
     toIndex = 0
-    for i in range(len(currentScript.functions)):
+    for i in range(len(currentScript.functions)): #run on all the functions
         if(i>toIndex):
             if(currentScript.functions[i].father[0] > index):
                 fromIndex = currentScript.linesFather[currentScript.functions[i].father[0] + delta].fromIndex
@@ -71,35 +71,26 @@ def updateCurrentScript(index,delta):
             currentScript.linesFather[i].fromIndex = i
             currentScript.linesFather[i].toIndex = i
 
-    for i in currentScript.functions:
-        if i.name != '':
-            if i.id == 0:
-                # print('####################')
-            # print('{}:{}'.format(i.id, i.name))
-                pass
-            if i.id == len(currentScript.functions) - 1:
-                pass
-                # print('####################')
-
 
 
 def updateLb2():
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         name = currentScript.functions[x].name
+        shift = ' ' * currentScript.functions[x].indention * 5
         if name == 'Sleep' or name == 'Repeat':
-            Lb2.insert(x, name + '({})'.format(currentScript.functions[x].extra.time))
+            Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
+            print(shift + name + '({})'.format(currentScript.functions[x].extra.time))
             Lb2.place(x=0, y=40)
         else:
-            Lb2.insert(x, name)
+            Lb2.insert(x, shift + name)
+            print(shift + name)
             Lb2.place(x=0, y=40)
 
 
 def addFunction():
     place = Lb2.curselection()[0]
     functionName = functionList[Lb1.curselection()[0]]
-    currentFunction = currentScript.functions[place]
-    currentLineFather = currentScript.linesFather[place]
     delta = 0
 
     try:
@@ -108,14 +99,18 @@ def addFunction():
     except:
         if(currentScript.functions==[] and place ==0):      ## case that this is the first time we add a function
             print('first time!')
+
     if functionName == 'Sleep':
         sleep = Sleep('?')
 
         if currentLineFather.fatherName == 'Repeat':
+
             currentFunction = Function(functionName, '', place, '',
-                                       (currentLineFather.fromIndex, currentLineFather.fatherName), sleep)
+                                       (currentLineFather.fromIndex, currentLineFather.fatherName), sleep,currentScript.functions[currentLineFather.fromIndex].indention +1)
+
             currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
                                            currentLineFather.fatherName)
+
             repeatFatherFunction = currentScript.functions[currentLineFather.fromIndex]
             if repeatFatherFunction.extra.functions[0].name == '':
                 currentScript.functions[currentLineFather.fromIndex].extra.functions[0] = currentFunction
@@ -126,7 +121,7 @@ def addFunction():
             currentFunction = Function(functionName, '', place, '',
                                        (currentLineFather.fromIndex, functionName), sleep)
             currentLineFather = LineFather(place, place, functionName)
-        Function.getInputBox(currentFunction.extra, currentFunction.frame.children.get('label'), currentFunction.frame.children.get('input'), Sleep.changeSleepTime,Lb2,currentScript)
+        currentFunction.getInputBox(currentFunction.extra, currentFunction.frame.children.get('label'), currentFunction.frame.children.get('input'), Sleep.changeSleepTime,Lb2,currentScript)
     elif functionName == 'Repeat':
         delta = 3
         repeat = Repeat('?', [Function('', '', place +2 , '',(place, functionName), '')])
@@ -141,14 +136,14 @@ def addFunction():
                                                               currentScript.linesFather[i].fatherName)
                 else:
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-            currentFunction = Function(functionName, '', place, '',(currentLineFather.fromIndex, currentLineFather.fatherName), repeat)
+            currentFunction = Function(functionName, '', place, '',(currentLineFather.fromIndex, currentLineFather.fatherName), repeat,currentScript.functions[currentLineFather.fromIndex].indention +1)
             repeatFatherFunction = currentScript.functions[currentLineFather.fromIndex]
             if repeatFatherFunction.extra.functions[place-currentLineFather.fromIndex - 2].name == '':
                 repeatFatherFunction.extra.functions[0] = currentFunction
             else:
                 repeatFatherFunction.extra.functions.insert(currentLineFather.fromIndex + place - 2,currentFunction)
             for i in range(place+1,place+4):
-                tempFunc = Function(tempFunction[i-(place+1)], '', place + 1, '', (place, functionName), '')
+                tempFunc = Function(tempFunction[i-(place+1)], '', place + 1, '', (place, functionName), '',currentScript.functions[currentLineFather.fromIndex].indention +1)
                 currentScript.functions.insert(i, tempFunc)
                 repeatFatherFunction.extra.functions.insert(currentLineFather.fromIndex + i - 2,tempFunc)
 
@@ -168,7 +163,7 @@ def addFunction():
     else:
         if currentLineFather.fatherName == 'Repeat':
             currentFunction = Function(functionName, '', place, '',
-                                       (currentLineFather.fromIndex, currentLineFather.fatherName), '')
+                                       (currentLineFather.fromIndex, currentLineFather.fatherName), '',currentScript.functions[currentLineFather.fromIndex].indention +1)
             currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
                                            currentLineFather.fatherName)
             repeatFatherFunction = currentScript.functions[currentLineFather.fromIndex]
@@ -403,10 +398,10 @@ def saveFunctions():
             imgdict = ''
         if (x.extra != ''):
             block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'fatherIndex': str(x.father[0]),'fatherName':x.father[1],
-                          'extra': x.extra.getDict()})
+                          'extra': x.extra.getDict(),'indention':x.indention})
         else:
             block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'fatherIndex': str(x.father[0]),'fatherName':x.father[1],
-                          'extra': ''})
+                          'extra': '','indention':x.indention})
     return block
 
 

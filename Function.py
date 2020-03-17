@@ -8,13 +8,14 @@ from tkinter import *
 
 
 class Function():
-    def __init__(self, name, img, id, frame, father,extra):
+    def __init__(self, name, img, id, frame, father,extra,indention=0):
         self.name = name
         self.img = img
         self.id = id
         self.frame = self.getFrame(name,frame)
         self.father = father
         self.extra = extra
+        self.indention = indention
 
 
     def getFunction(self,func,Lb2,currentScript,tempFunction):
@@ -36,10 +37,10 @@ class Function():
                             Repeat.Repeat.changeRepeatTime,Lb2,currentScript)
             elif(func['name'] == 'Sleep'):
                 self.getInputBox(extra, frame.children.get('label'), frame.children.get('input'),
-                            Sleep.Sleep.changeSleepTime,Lb2,currentScript)
+                            Sleep.changeSleepTime,Lb2,currentScript)
         if(tempFunction[int(func['id'])] == 0):
             function = Function(func['name'], img, int(func['id']), frame,
-                                (int(func['fatherIndex']), func['fatherName']), extra)
+                                (int(func['fatherIndex']), func['fatherName']), extra,int(func['indention']))
             tempFunction[int(func['id'])] = function
             return function
         else:

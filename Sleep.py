@@ -14,7 +14,8 @@ class Sleep():
         currentScript.functions[index].extra.time = int(sv.get())
         currentScript.functions[index].name = "Sleep"
         Lb2.delete(index)
+        shift = ' ' * currentScript.functions[index].indention * 5
         Lb2.insert(index,
-                   currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
+                   shift + currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
         Lb2.selection_set(index)
         return True

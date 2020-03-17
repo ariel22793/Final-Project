@@ -17,10 +17,10 @@ class Repeat():
                 else:
                     imgdict = ''
                 if(x.extra != ''):
-                    block.append({'name':x.name, 'img':imgdict, 'id':str(x.id),'frame':'','fatherIndex': str(x.father[0]),'fatherName':x.father[1], 'extra':x.extra.getDict()})
+                    block.append({'name':x.name, 'img':imgdict, 'id':str(x.id),'frame':'','fatherIndex': str(x.father[0]),'fatherName':x.father[1], 'extra':x.extra.getDict(),'indention':x.indention})
                 else:
                     block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '','fatherIndex': str(x.father[0]),'fatherName':x.father[1],
-                                  'extra':''})
+                                  'extra':'','indention':x.indention})
         return {'time':str(self.time),'functions':block}
 
     @classmethod
@@ -62,7 +62,8 @@ class Repeat():
         currentScript.functions[index].extra.time = int(sv.get())
         currentScript.functions[index].name = "Repeat"
         Lb2.delete(index)
+        shift = ' ' * currentScript.functions[index].indention * 5
         Lb2.insert(index,
-                   currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
+                   shift + currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
         Lb2.selection_set(index)
         return True
