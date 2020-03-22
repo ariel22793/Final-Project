@@ -9,7 +9,7 @@ def repeat_handle(repeatTime,functions,path):
     functionNum = 0
     for i in range(repeatTime):
         for func in functions:
-            if ('(' in func.name and func.name[:func.name.index('(')] == 'Repeat'):
+            if (func.name == 'Repeat'):
                 functionNum += repeat_handle(func.extra.time, func.extra.functions,path) + 3
             elif (func.name == 'Left-Click'):
                 left_click_handle(func.img, path)
@@ -21,13 +21,13 @@ def repeat_handle(repeatTime,functions,path):
                 not_exist_handle(func.img)
                 functionNum += 1
             elif (func.name == 'Double-Click'):
-                double_click_handle(func.img,path)
+                double_click_handle(func.img)
                 functionNum += 1
             elif (func.name == 'Right-Click'):
-                right_click_handle(func.img, path)
+                right_click_handle(func.img)
                 functionNum += 1
             elif (func.name == 'Sleep'):
-                right_click_handle(func.extra.time,path)
+                right_click_handle(func.extra.time)
                 functionNum += 1
     return functionNum/repeatTime
 
