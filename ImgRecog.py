@@ -47,7 +47,7 @@ def photoRec(templatePath,photo, template):
     for pt in zip(*loc[::-1]):
         cv2.rectangle(photo, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 3)
         flag = 1
-
+    
 
 
     if (flag==1):

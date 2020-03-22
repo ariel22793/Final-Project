@@ -13,6 +13,8 @@ import copy
 import time
 from win32api import GetSystemMetrics
 import threading
+
+
 import datetime
 
 functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
@@ -676,7 +678,8 @@ def saveLinesFather():
 
 
 def savehundle():
-    functionPath = currentScript.path + "functions.json"
+    functionPath = currentScript.path + "/functions.json"
+    print(functionPath)
     try:
         os.remove(functionPath)
     except:
@@ -686,7 +689,23 @@ def savehundle():
     with open(functionPath, 'w+') as outfile:
         outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
 
+def make_new_project():
+    functionPath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
+                                                        filetypes=(("Json file", "*.json"), ("all files", "*.*")))
 
+    os.mkdir(functionPath)
+    currentScript.path = functionPath
+
+    functionPath += '/functions.json'
+    functionPath = currentScript.path + "functions.json"
+    try:
+        os.remove(functionPath)
+    except:
+        pass
+    functionsblock = saveFunctions()
+    linesFatherblock = saveLinesFather()
+    with open(functionPath, 'w+') as outfile:
+        outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
 
 def saveAsHundle():
     # filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
@@ -703,7 +722,7 @@ def saveAsHundle():
     linesFatherblock = saveLinesFather()
     with open(functionPath, 'w+') as outfile:
         outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
-
+    currentScript.path = functionPath
 
 def openFunctions(data):
     inputFunctions = []
@@ -820,8 +839,11 @@ def insert_B():
 
 def closeStartWindow(event, startWin):
     startWin.destroy()
+    make_new_project()
     mainScreen.deiconify()
     mainScreen.state("zoomed")
+
+
 
 
 def getCenterOfScreen(screen):
@@ -887,59 +909,70 @@ def startScreen():
     canvas.Button1 = newPButton
     np = canvas.create_image(150,400, anchor=NW, image=newPButton,  tags="NewProject")
     canvas.tag_bind('NewProject','<Button-1>', lambda event: closeStartWindow(event, startS))
-    canvas.tag_bind('NewProject', '<Enter>', lambda event: hoverOn(event, canvas, np))
-    canvas.tag_bind('NewProject', '<Leave>', lambda event: hoverOff(event, canvas, np))
+    canvas.tag_bind('NewProject', '<Enter>', lambda event: hoverOn(event, canvas, np,2))
+    canvas.tag_bind('NewProject', '<Leave>', lambda event: hoverOff(event, canvas, np,2))
 
 
     loadButton = PhotoImage(file=r"img\buttonLoad.png")
     canvas.Button2 = loadButton
     load = canvas.create_image(450, 400, anchor=NW, image=loadButton, tags="Load")
     canvas.tag_bind('Load', '<Button-1>', lambda event: Minimize_and_Open(event, startS))
-    canvas.tag_bind('Load', '<Enter>',lambda event: hoverOn(event,canvas, load))
-    canvas.tag_bind('Load', '<Leave>',lambda event: hoverOff(event, canvas, load))
+    canvas.tag_bind('Load', '<Enter>',lambda event: hoverOn(event,canvas, load,3))
+    canvas.tag_bind('Load', '<Leave>',lambda event: hoverOff(event, canvas, load,3))
 
     closeButton = PhotoImage(file=r"img\buttonClose.png")
     canvas.Button3 = closeButton
     close=canvas.create_image(750, 400, anchor=NW, image=closeButton, tags="Close")
     canvas.tag_bind('Close', '<Button-1>',func=quit)
-    canvas.tag_bind('Close', '<Enter>',lambda event: hoverOn(event,canvas, close))
-    canvas.tag_bind('Close', '<Leave>',lambda event: hoverOff(event, canvas, close))
+    canvas.tag_bind('Close', '<Enter>',lambda event: hoverOn(event,canvas, close,4))
+    canvas.tag_bind('Close', '<Leave>',lambda event: hoverOff(event, canvas, close,4))
 
 
 
     startS.attributes('-topmost', True)
 
-def hoverOn(event,canvas, item):
-    if(item==2):
+def hoverOn(event,canvas, item, number):
+    if (number == 1):
+        Button1 = PhotoImage(file=r"img\buttonStartHover.png")
+        canvas.z = Button1
+        canvas.itemconfig(item, image=Button1)
+
+    if(number==2):
         Button1 = PhotoImage(file=r"img\buttonNPHover.png")
         canvas.z = Button1
         canvas.itemconfig(item, image = Button1)
-    if(item==3):
+    if(number==3):
         Button1 = PhotoImage(file=r"img\buttonLoadHover.png")
         canvas.y = Button1
         canvas.itemconfig(item, image = Button1)
 
-    if(item==4):
+    if(number==4):
         Button1 = PhotoImage(file=r"img\buttonCloseHover.png")
         canvas.x = Button1
         canvas.itemconfig(item, image = Button1)
 
 
-def hoverOff(event,canvas, item):
-    if (item == 2):
+def hoverOff(event,canvas, item, number):
+    if (number == 1):
+        Button1 = PhotoImage(file=r"img\buttonStart.png")
+        canvas.z = Button1
+        canvas.itemconfig(item, image=Button1)
+
+    if (number == 2):
         Button1 = PhotoImage(file=r"img\buttonNP.png")
         canvas.z = Button1
         canvas.itemconfig(item, image=Button1)
 
-    if (item == 3):
+    if (number == 3):
         Button1 = PhotoImage(file=r"img\buttonLoad.png")
         canvas.y = Button1
         canvas.itemconfig(item, image=Button1)
 
-    if(item==4):
+    if(number==4):
         closeButton1 = PhotoImage(file=r"img\buttonClose.png")
         canvas.x = closeButton1
         canvas.itemconfig(item, image=closeButton1)
+
 def reportFrame():
     data = {}
 
