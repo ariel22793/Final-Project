@@ -426,23 +426,25 @@ def savehundle():
     with open(functionPath, 'w+') as outfile:
         outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
 
-def make_new_project():
-    functionPath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
-                                                        filetypes=(("Json file", "*.json"), ("all files", "*.*")))
-
-    os.mkdir(functionPath)
+def make_new_project(label):
+    functionPath = tkinter.filedialog.askdirectory()
     currentScript.path = functionPath
+    label.configure(text = functionPath )
 
-    functionPath += '/functions.json'
-    functionPath = currentScript.path + "functions.json"
-    try:
-        os.remove(functionPath)
-    except:
-        pass
-    functionsblock = saveFunctions()
-    linesFatherblock = saveLinesFather()
-    with open(functionPath, 'w+') as outfile:
-        outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
+    # functionPath += '/functions.json'
+    # functionPath = currentScript.path + "functions.json"
+    # try:
+    #     os.remove(functionPath)
+    # except:
+    #     pass
+    # functionsblock = saveFunctions()
+    # linesFatherblock = saveLinesFather()
+    # with open(functionPath, 'w+') as outfile:
+    #     outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
+
+
+
+
 
 def saveAsHundle():
     # filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
@@ -602,12 +604,89 @@ def insert_B():
 
 def closeStartWindow(event, startWin):
     startWin.destroy()
-    make_new_project()
+
+    firstTime = False
+    startS = Toplevel()
+    startS.resizable(False, False)
+    startS.overrideredirect(True)
+    startS.geometry('1100x500')
+
+    startS.update_idletasks()
+    mainScreen.withdraw()
+    x, y = getCenterOfScreen(startS)
+    startS.geometry("1100x500+" + str(x) + '+' + str(y))
+    startS.update_idletasks()
+
+    frame = Frame(startS, width=110, height=500)
+    frame.pack(fill=BOTH)
+
+    canvas = Canvas(frame, width=110, height=500)
+    canvas.pack(fill=BOTH)
+
+    background = PhotoImage(file=r"img\StartUpScreen2.png")
+    canvas.bg = background
+    canvas.create_image(0, 0, anchor=NW, image=background)
+
+    e1 = Entry(frame)
+    e1.pack()
+    e1.delete(0, END)
+    e1.insert(0, "My_New_Project")
+
+    label = ttk.Label(frame, text="Please select path of new project", background="white")
+    label.place(height=40, width=600, x=365, y=310)
+
+    newPButton = PhotoImage(file=r"img\buttonStart.png")
+    canvas.Button1 = newPButton
+    np = canvas.create_image(150, 400, anchor=NW, image=newPButton, tags="Start")
+    canvas.tag_bind('Start', '<Button-1>', lambda event: save_new_project_and_run_app(label.cget("text"),e1.get(), startS))
+    canvas.tag_bind('Start', '<Enter>', lambda event: hoverOn(event, canvas, np, 1))
+    canvas.tag_bind('Start', '<Leave>', lambda event: hoverOff(event, canvas, np, 1))
+
+
+
+
+    e1.place( height=40, width=600 ,x=365,y=215)
+    Selec_F_Button = PhotoImage(file=r"img\buttonPaN.png")
+    canvas.Button2 = Selec_F_Button
+    Selec_F = canvas.create_image(135, 285, anchor=NW, image=Selec_F_Button, tags="PaN")
+    canvas.tag_bind('PaN', '<Button-1>', lambda event: make_new_project(label))
+    canvas.tag_bind('PaN', '<Enter>', lambda event: hoverOn(event, canvas, Selec_F, 5))
+    canvas.tag_bind('PaN', '<Leave>', lambda event: hoverOff(event, canvas, Selec_F, 5))
+
+
+
+
+    closeButton = PhotoImage(file=r"img\buttonClose.png")
+    canvas.Button3 = closeButton
+    close = canvas.create_image(750, 400, anchor=NW, image=closeButton, tags="Close")
+    canvas.tag_bind('Close', '<Button-1>', func=quit)
+    canvas.tag_bind('Close', '<Enter>', lambda event: hoverOn(event, canvas, close, 4))
+    canvas.tag_bind('Close', '<Leave>', lambda event: hoverOff(event, canvas, close, 4))
+
+
+def save_new_project_and_run_app(label,fileName, window):
+    if label!='Please select path of new project':
+        functionPath =  label+'/'+fileName + "/functions.json"
+        currentScript.path = label+'/'+fileName
+        try:
+            os.remove(functionPath)
+        except:
+            pass
+        try:
+            os.mkdir(label+'/'+fileName)
+        except:
+            print('folder alreay exist!')
+
+
+        functionsblock = saveFunctions()
+        linesFatherblock = saveLinesFather()
+        with open(functionPath, 'w+') as outfile:
+            outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
+
+
+    window.destroy()
     mainScreen.deiconify()
     mainScreen.state("zoomed")
-
-
-
 
 def getCenterOfScreen(screen):
     h = screen.winfo_height()
@@ -714,6 +793,10 @@ def hoverOn(event,canvas, item, number):
         canvas.x = Button1
         canvas.itemconfig(item, image = Button1)
 
+    if (number == 5):
+        Button1 = PhotoImage(file=r"img\buttonPaNHover.png")
+        canvas.y = Button1
+        canvas.itemconfig(item, image=Button1)
 
 def hoverOff(event,canvas, item, number):
     if (number == 1):
@@ -735,7 +818,10 @@ def hoverOff(event,canvas, item, number):
         closeButton1 = PhotoImage(file=r"img\buttonClose.png")
         canvas.x = closeButton1
         canvas.itemconfig(item, image=closeButton1)
-
+    if (number == 5):
+        Button1 = PhotoImage(file=r"img\buttonPaN.png")
+        canvas.y = Button1
+        canvas.itemconfig(item, image=Button1)
 def reportFrame():
     data = {}
 
