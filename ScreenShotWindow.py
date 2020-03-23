@@ -58,10 +58,14 @@ class ScreenShotWindow():
                 for func in range(len(currentScript.functions)):
                     if currentScript.functions[func].id == Lb2.curselection()[0]:
                         currentScript.functions[func].img = img
-                        if currentScript.functions[func].father[1] == 'Repeat':
+                        if currentScript.functions[func].name == 'If-Exist' or \
+                                currentScript.functions[func].name == 'If-Not-Exist':
+                            currentScript.functions[func].extra.image = img.img
+                        if (currentScript.functions[func].father[1] == 'Repeat' or currentScript.functions[func].father[1] == 'If-Exist' or currentScript.functions[func].father[1] == 'If-Not-Exist' or currentScript.functions[func].father[1] == 'Else') and currentScript.functions[func].id !=currentScript.functions[func].father[0]   :
                             currentScript.functions[currentScript.functions[func].father[0]].extra.functions[
                                 func - currentScript.functions[func].father[0] - 2].img = img
                 Lb2.select_clear(0, END)
+                self.updateLb2(Lb2,currentScript)
                 # temp.createTree(explorerFrame)
 
         if str(event.keysym) == 'Escape':
@@ -90,3 +94,18 @@ class ScreenShotWindow():
         else:
             self.click = 2
             self.x1, self.y1 = event.x, event.y
+
+    def updateLb2(self,Lb2,currentScript):
+        Lb2.delete(0, 'end')
+        for x in range(0, len(currentScript.functions)):
+            name = currentScript.functions[x].name
+            shift = ' ' * currentScript.functions[x].indention * 5
+            if name == 'Sleep' or name == 'Repeat':
+                Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
+                Lb2.place(x=0, y=40)
+            elif name == 'If-Exist' or name == 'If-Not-Exist':
+                Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
+                Lb2.place(x=0, y=40)
+            else:
+                Lb2.insert(x, shift + name)
+                Lb2.place(x=0, y=40)

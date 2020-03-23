@@ -1,9 +1,14 @@
 import Photo
 from Photo import Photo
 import Repeat
-
 import Sleep
 from Sleep import Sleep
+import IfExist
+from IfExist import IfExist
+import IfNotExist
+from IfNotExist import IfNotExist
+import Else
+from Else import Else
 from tkinter import *
 
 
@@ -28,8 +33,14 @@ class Function():
         if (func['extra'] != ''):
             if(func['name'] == 'Repeat'):
                 extra = Repeat.Repeat.getExtra(func['extra'],Lb2,currentScript,tempFunction)
-            if (func['name'] == 'Sleep'):
+            elif (func['name'] == 'Sleep'):
                 extra = Sleep.getExtra(func['extra'])
+            elif (func['name'] == 'If-Exist'):
+                extra = IfExist.getExtra(func['extra'],Lb2,currentScript,tempFunction)
+            elif (func['name'] == 'If-Not-Exist'):
+                extra = IfNotExist.getExtra(func['extra'],Lb2,currentScript,tempFunction)
+            elif (func['name'] == 'Else'):
+                extra = Else.getExtra(func['extra'],Lb2,currentScript,tempFunction)
         if (func['name'] != '{' and func['name'] != '}'):
             frame = self.getFrame(func['name'],'')
             if (func['name'] == 'Repeat'):

@@ -16,6 +16,12 @@ import Sleep
 from Sleep import Sleep
 import Repeat
 from Repeat import Repeat
+import IfExist
+from IfExist import IfExist
+import IfNotExist
+from IfNotExist import IfNotExist
+import Else
+from Else import Else
 import Photo
 import LineFather
 from LineFather import LineFather
@@ -23,10 +29,10 @@ import Function
 from Function import Function
 from win32api import GetSystemMetrics
 import threading
-import datetime
+from datetime import datetime
 
-functionList = ['Right-Click','Left-Click','Repeat','If','Else','Try','Except', 'Double-Click','Insert Input','Key-Press', 'Exist', 'NotExist', 'Sleep']
-currentScript = script.Script("Folder1",[],0)
+functionList = ['Right-Click','Left-Click','Repeat','If-Exist','If-Not-Exist','Else', 'Double-Click','Insert-Input', 'Sleep']
+currentScript = script.Script('Folder1',[],0)
 firstTime = True
 process = []
 
@@ -42,11 +48,11 @@ def updateCurrentScript(index,delta):
                 fromIndex = currentScript.linesFather[currentScript.functions[i].father[0]].fromIndex
                 toIndex = currentScript.linesFather[currentScript.functions[i].father[0]].toIndex
 
-        if (currentScript.functions[i].name == 'Repeat'):
+        if (currentScript.functions[i].name == 'Repeat' or currentScript.functions[i].name == 'If-Exist' or currentScript.functions[i].name == 'If-Not-Exist' or currentScript.functions[i].name == 'Else' ):
             fromIndex = i
             toIndex = i + len(currentScript.functions[i].extra.functions) + 2
 
-        if currentScript.functions[i].father != '' and currentScript.functions[i].father[1] == 'Repeat':
+        if currentScript.functions[i].father != '' and (currentScript.functions[i].father[1] == 'Repeat' or currentScript.functions[i].father[1] == 'If-Exist' or currentScript.functions[i].father[1] == 'If-Not-Exist' or currentScript.functions[i].father[1] == 'Else'):
             if(i != fromIndex and currentScript.functions[i].name != '{' and currentScript.functions[i].name != '}'):
                 try:
                     if (currentScript.functions[i].father[0] > index ):
@@ -80,11 +86,12 @@ def updateLb2():
         shift = ' ' * currentScript.functions[x].indention * 5
         if name == 'Sleep' or name == 'Repeat':
             Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
-            print(shift + name + '({})'.format(currentScript.functions[x].extra.time))
+            Lb2.place(x=0, y=40)
+        elif name == 'If-Exist' or name == 'If-Not-Exist':
+            Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
             Lb2.place(x=0, y=40)
         else:
             Lb2.insert(x, shift + name)
-            print(shift + name)
             Lb2.place(x=0, y=40)
 
 
@@ -103,7 +110,7 @@ def addFunction():
     if functionName == 'Sleep':
         sleep = Sleep('?')
 
-        if currentLineFather.fatherName == 'Repeat':
+        if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
 
             currentFunction = Function(functionName, '', place, '',
                                        (currentLineFather.fromIndex, currentLineFather.fatherName), sleep,currentScript.functions[currentLineFather.fromIndex].indention +1)
@@ -111,11 +118,19 @@ def addFunction():
             currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
                                            currentLineFather.fatherName)
 
-            repeatFatherFunction = currentScript.functions[currentLineFather.fromIndex]
-            if repeatFatherFunction.extra.functions[0].name == '':
-                currentScript.functions[currentLineFather.fromIndex].extra.functions[0] = currentFunction
-            else:
-                currentScript.functions[currentLineFather.fromIndex].extra.functions.insert(currentLineFather.fromIndex + place - 2, currentFunction)
+            tempLineFather = currentLineFather
+            tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+            while True:
+                if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+                    tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
+                else:
+                    tempFatherFunction.extra.functions.insert(
+                        place - tempLineFather.fromIndex - 2, currentFunction)
+                if tempFatherFunction.father[0] == tempFatherFunction.id:
+                    break
+                tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
 
         else:
             currentFunction = Function(functionName, '', place, '',
@@ -127,7 +142,7 @@ def addFunction():
         repeat = Repeat('?', [Function('', '', place +2 , '',(place, functionName), '')])
         tempFunction = ['{', '', '}']
 
-        if currentLineFather.fatherName == 'Repeat' and currentLineFather.fromIndex != place:
+        if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
 
             for i in range(place, place + 4, 1):
                 if i == place:
@@ -136,16 +151,28 @@ def addFunction():
                                                               currentScript.linesFather[i].fatherName)
                 else:
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+
             currentFunction = Function(functionName, '', place, '',(currentLineFather.fromIndex, currentLineFather.fatherName), repeat,currentScript.functions[currentLineFather.fromIndex].indention +1)
-            repeatFatherFunction = currentScript.functions[currentLineFather.fromIndex]
-            if repeatFatherFunction.extra.functions[place-currentLineFather.fromIndex - 2].name == '':
-                repeatFatherFunction.extra.functions[0] = currentFunction
-            else:
-                repeatFatherFunction.extra.functions.insert(currentLineFather.fromIndex + place - 2,currentFunction)
-            for i in range(place+1,place+4):
-                tempFunc = Function(tempFunction[i-(place+1)], '', place + 1, '', (place, functionName), '',currentScript.functions[currentLineFather.fromIndex].indention +1)
-                currentScript.functions.insert(i, tempFunc)
-                repeatFatherFunction.extra.functions.insert(currentLineFather.fromIndex + i - 2,tempFunc)
+
+            tempLineFather = currentLineFather
+            tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+            tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
+
+            while True:
+                if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+                    tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
+                else:
+                    tempFatherFunction.extra.functions.insert(
+                        place - tempLineFather.fromIndex - 2, currentFunction)
+                for i in range(place + 1, place + 4):
+                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, '', (place, functionName), '',tempIndention)
+                    if tempFatherFunction.father[0] == tempFatherFunction.id:
+                        currentScript.functions.insert(i, tempFunc)
+                    tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
+                if tempFatherFunction.father[0] == tempFatherFunction.id:
+                    break
+                tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
 
         else:
             for i in range(place, place + 4, 1):
@@ -156,23 +183,184 @@ def addFunction():
             currentFunction = Function(functionName, '', place, '',
                                        (currentLineFather.fromIndex, functionName), repeat)
             for i in range(place + 1, place + 4):
-                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', place + 1, '',
+                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, '',
                                                            (place, functionName), ''))
             currentLineFather = LineFather(place, place + 3, functionName)
         currentFunction.getInputBox(currentFunction.extra, currentFunction.frame.children.get('label'), currentFunction.frame.children.get('input'), Repeat.changeRepeatTime,Lb2,currentScript)
+    elif functionName == 'If-Exist':
+        delta = 3
+        ifExist = IfExist('?', [Function('', '', place +2 , '',(place, functionName), '')])
+        tempFunction = ['{', '', '}']
+
+        if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
+
+            for i in range(place, place + 4, 1):
+                if i == place:
+                    currentScript.linesFather[i] = LineFather(currentScript.linesFather[i].fromIndex,
+                                                              currentScript.linesFather[i].toIndex,
+                                                              currentScript.linesFather[i].fatherName)
+                else:
+                    currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+            currentFunction = Function(functionName, '', place, '',(currentLineFather.fromIndex, currentLineFather.fatherName), ifExist,currentScript.functions[currentLineFather.fromIndex].indention +1)
+
+            tempLineFather = currentLineFather
+            tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+            tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
+
+            while True:
+                if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+                    tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
+                else:
+                    tempFatherFunction.extra.functions.insert(
+                        place - tempLineFather.fromIndex - 2, currentFunction)
+                for i in range(place + 1, place + 4):
+                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, '', (place, functionName), '',
+                                        tempIndention)
+                    if tempFatherFunction.father[0] == tempFatherFunction.id:
+                        currentScript.functions.insert(i, tempFunc)
+                    tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
+                if tempFatherFunction.father[0] == tempFatherFunction.id:
+                    break
+                tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+        else:
+            for i in range(place, place + 4, 1):
+                if (i == place):
+                    currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
+                else:
+                    currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+            currentFunction = Function(functionName, '', place, '',
+                                       (currentLineFather.fromIndex, functionName), ifExist)
+            for i in range(place + 1, place + 4):
+                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, '',
+                                                           (place, functionName), ''))
+            currentLineFather = LineFather(place, place + 3, functionName)
+
+    elif functionName == 'If-Not-Exist':
+        delta = 3
+        ifNotExist = IfNotExist('?', [Function('', '', place + 2, '', (place, functionName), '')])
+        tempFunction = ['{', '', '}']
+
+        if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
+
+            for i in range(place, place + 4, 1):
+                if i == place:
+                    currentScript.linesFather[i] = LineFather(currentScript.linesFather[i].fromIndex,
+                                                              currentScript.linesFather[i].toIndex,
+                                                              currentScript.linesFather[i].fatherName)
+                else:
+                    currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+            currentFunction = Function(functionName, '', place, '',
+                                       (currentLineFather.fromIndex, currentLineFather.fatherName), ifNotExist,
+                                       currentScript.functions[currentLineFather.fromIndex].indention + 1)
+
+            tempLineFather = currentLineFather
+            tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+            tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
+
+
+            while True:
+                if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+                    tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
+                else:
+                    tempFatherFunction.extra.functions.insert(
+                        place - tempLineFather.fromIndex - 2, currentFunction)
+                for i in range(place + 1, place + 4):
+                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, '', (place, functionName), '',
+                                        tempIndention)
+                    if tempFatherFunction.father[0] == tempFatherFunction.id:
+                        currentScript.functions.insert(i, tempFunc)
+                    tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
+                if tempFatherFunction.father[0] == tempFatherFunction.id:
+                    break
+                tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+        else:
+            for i in range(place, place + 4, 1):
+                if (i == place):
+                    currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
+                else:
+                    currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+            currentFunction = Function(functionName, '', place, '',
+                                       (currentLineFather.fromIndex, functionName), ifNotExist)
+            for i in range(place + 1, place + 4):
+                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, '',
+                                                           (place, functionName), ''))
+            currentLineFather = LineFather(place, place + 3, functionName)
+    elif functionName == 'Else':
+        if place == 0 or (currentScript.functions[place-1].father[1] != 'If-Exist' and currentScript.functions[place-1].father[1] != 'If-Not-Exist'):
+            popupmsg('cannot use Else function without ifExist or ifNotExist')
+        else:
+            delta = 3
+            elseObj = Else([Function('', '', place +2 , '',(place, functionName), '')])
+            tempFunction = ['{', '', '}']
+
+            if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
+
+                for i in range(place, place + 4, 1):
+                    if i == place:
+                        currentScript.linesFather[i] = LineFather(currentScript.linesFather[i].fromIndex,
+                                                                  currentScript.linesFather[i].toIndex,
+                                                                  currentScript.linesFather[i].fatherName)
+                    else:
+                        currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+                currentFunction = Function(functionName, '', place, '',(currentLineFather.fromIndex, currentLineFather.fatherName), elseObj,currentScript.functions[currentLineFather.fromIndex].indention +1)
+
+                tempLineFather = currentLineFather
+                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+                tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
+
+                while True:
+                    if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+                        tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
+                    else:
+                        tempFatherFunction.extra.functions.insert(
+                            place - tempLineFather.fromIndex - 2, currentFunction)
+                    for i in range(place + 1, place + 4):
+                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, '', (place, functionName), '',
+                                            tempIndention)
+                        if tempFatherFunction.father[0] == tempFatherFunction.id:
+                            currentScript.functions.insert(i, tempFunc)
+                        tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
+                    if tempFatherFunction.father[0] == tempFatherFunction.id:
+                        break
+                    tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+            else:
+                for i in range(place, place + 4, 1):
+                    if (i == place):
+                        currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
+                    else:
+                        currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+                currentFunction = Function(functionName, '', place, '',
+                                           (currentLineFather.fromIndex, functionName), elseObj)
+                for i in range(place + 1, place + 4):
+                    currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, '',
+                                                               (place, functionName), ''))
+                currentLineFather = LineFather(place, place + 3, functionName)
     else:
-        if currentLineFather.fatherName == 'Repeat':
+        if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
             currentFunction = Function(functionName, '', place, '',
                                        (currentLineFather.fromIndex, currentLineFather.fatherName), '',currentScript.functions[currentLineFather.fromIndex].indention +1)
             currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
                                            currentLineFather.fatherName)
-            repeatFatherFunction = currentScript.functions[currentLineFather.fromIndex]
-            if repeatFatherFunction.extra.functions[place - currentLineFather.fromIndex - 2].name == '':
-                repeatFatherFunction.extra.functions[place - currentLineFather.fromIndex - 2] = currentFunction
-            else:
-                repeatFatherFunction.extra.functions.insert(
-                    place - currentLineFather.fromIndex - 2, currentFunction)
 
+            tempLineFather = currentLineFather
+            tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+            while True:
+                if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+                    tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
+                else:
+                    tempFatherFunction.extra.functions.insert(
+                        place - tempLineFather.fromIndex - 2, currentFunction)
+                if tempFatherFunction.father[0] == tempFatherFunction.id:
+                    break
+                tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
         else:
             currentFunction = Function(functionName, '', place, '', (currentLineFather.fromIndex, functionName), '')
             currentLineFather = LineFather(place, place, functionName)
@@ -349,7 +537,13 @@ def checkImageInFunc():
         elif func.name == 'Sleep':
             if func.extra.time == '?':
                 funcWithoutImage += ("The {} in line {} doesn't have sleep time\n".format(func.name, index))
-        elif func.img == '' and func.name != '' and func.name != '{' and func.name != '}':
+        elif func.name == 'If-Exist':
+            if func.extra.image == '?':
+                funcWithoutImage += ("The {} in line {} doesn't have image\n".format(func.name, index))
+        elif func.name == 'If-Not-Exist':
+            if func.extra.image == '?':
+                funcWithoutImage += ("The {} in line {} doesn't have image\n".format(func.name, index))
+        elif func.img == '' and func.name != '' and func.name != '{' and func.name != '}' and func.name != 'Else':
             funcWithoutImage += ("The {} in line {} doesn't have screenshot\n".format(func.name, index))
         index += 1
     return funcWithoutImage
@@ -357,6 +551,7 @@ def checkImageInFunc():
 
 def runHendle():
     functionNum = 0
+    ifExistFlag = True
     funcWithoutImage = checkImageInFunc()
     if funcWithoutImage != '':
         popupmsg(funcWithoutImage)
@@ -371,11 +566,16 @@ def runHendle():
                 elif currentScript.functions[func].name == 'Left-Click':
                     functions_handler.left_click_handle(currentScript.functions[func].img, currentScript.path)
                     functionNum += 1
-                elif currentScript.functions[func].name == 'Exist':
-                    functions_handler.exist_handle(currentScript.functions[func].img)
-                    functionNum += 1
-                elif currentScript.functions[func].name == 'NotExist':
-                    functions_handler.not_exist_handle(currentScript.functions[func].img)
+                elif currentScript.functions[func].name == 'If-Exist':
+                    exist,tempFunctionNum = functions_handler.exist_handle(currentScript.functions[func].img,currentScript.path,currentScript.functions[func].extra.functions)
+                    functionNum += tempFunctionNum
+                    ifExistFlag = exist
+                elif currentScript.functions[func].name == 'If-Not-Exist':
+                    exist,tempFunctionNum = functions_handler.not_exist_handle(currentScript.functions[func].img,currentScript.path,currentScript.functions[func].extra.functions)
+                    functionNum += tempFunctionNum
+                    ifExistFlag = exist
+                elif currentScript.functions[func].name == 'Else' and not ifExistFlag:
+                    functions_handler.not_exist_handle(currentScript.functions[func].img,currentScript.path,currentScript.functions[func].extra.functions)
                     functionNum += 1
                 elif currentScript.functions[func].name == 'Double-Click':
                     functions_handler.double_click_handle(currentScript.functions[func].img, currentScript.path)
@@ -412,7 +612,7 @@ def saveLinesFather():
     return block
 
 
-def savehundle():
+def saveHundle():
     functionPath = currentScript.path + "functions.json"
     try:
         os.remove(functionPath)
@@ -488,7 +688,7 @@ def TreeviewD_Click(event):
     if currentScript.functions != []:
         msgbox = tkinter.messagebox.askyesnocancel('Notic!', 'Do you want to save changes you made?')
         if (msgbox == True):
-            savehundle()
+            saveHundle()
         elif (msgbox == None):
             return
     currentScript.functions.clear()
@@ -616,11 +816,6 @@ def Minimize_and_Open(event, screenToMini):
 
     except:
         screenToMini.deiconify()
-
-
-
-
-
 
 def startScreen():
     firstTime = False
@@ -833,7 +1028,7 @@ def autosave():
                 counter -= 1
                 if flag==1:
                     return
-            savehundle()
+            saveHundle()
 
 def comboBoxSelect(event):
     try:
@@ -875,7 +1070,7 @@ if __name__ == '__main__':
     openButton = Button(toolbarFrame, text="Open", command=openButton)
     openButton.place(x=0, y=0)
 
-    saveButton = Button(toolbarFrame, text="Save", command=savehundle)
+    saveButton = Button(toolbarFrame, text="Save", command=saveHundle)
     saveButton.place(x=70, y=0)
 
     saveAsButton = Button(toolbarFrame, text="Save As", command=saveAsHundle)
