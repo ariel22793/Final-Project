@@ -603,8 +603,10 @@ def insert_B():
     Lb2.select_set(place)
 
 def closeStartWindow(event, startWin):
-    startWin.destroy()
-
+    try:
+        startWin.destroy()
+    except:
+        pass
     firstTime = False
     startS = Toplevel()
     startS.resizable(False, False)
@@ -698,25 +700,27 @@ def getCenterOfScreen(screen):
     return(int(xPoint), int(yPoint))
 
 def Minimize_and_Open(event, screenToMini):
-    screenToMini.iconify()
+    screenToMini.destroy()
+
     try:
         filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
                                                   filetypes=(("json files", "*.json"), ("all files", "*.*")))
-        print(filePath)
         currentScript.functions.clear()
+
         with open(filePath) as json_file:
             data = json_file.read()
             functionsData = json.loads(data[:data.index('\n')])
             linesFatherData = json.loads(data[data.index('\n') + 1:])
 
+
         openFunctions(functionsData)
         openLinesFather(linesFatherData)
         updateLb2()
-
-        closeStartWindow(None,screenToMini)
-
+        # closeStartWindow(None,screenToMini)
+        mainScreen.deiconify()
+        mainScreen.state("zoomed")
     except:
-        screenToMini.deiconify()
+        startScreen()
 
 
 
