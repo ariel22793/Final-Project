@@ -558,34 +558,36 @@ def runHendle():
     else:
         mainScreen.iconify()
         for func in range(len(currentScript.functions)):
-            if func >= functionNum:
-                if currentScript.functions[func].name == 'Repeat':
-                    functionNum += functions_handler.repeat_handle(currentScript.functions[func].extra.time,
-                                                                   currentScript.functions[func].extra.functions,
-                                                                   currentScript.path) + 3
-                elif currentScript.functions[func].name == 'Left-Click':
-                    functions_handler.left_click_handle(currentScript.functions[func].img, currentScript.path)
-                    functionNum += 1
-                elif currentScript.functions[func].name == 'If-Exist':
-                    exist,tempFunctionNum = functions_handler.exist_handle(currentScript.functions[func].img,currentScript.path,currentScript.functions[func].extra.functions)
-                    functionNum += tempFunctionNum
-                    ifExistFlag = exist
-                elif currentScript.functions[func].name == 'If-Not-Exist':
-                    exist,tempFunctionNum = functions_handler.not_exist_handle(currentScript.functions[func].img,currentScript.path,currentScript.functions[func].extra.functions)
-                    functionNum += tempFunctionNum
-                    ifExistFlag = exist
-                elif currentScript.functions[func].name == 'Else' and not ifExistFlag:
-                    functions_handler.not_exist_handle(currentScript.functions[func].img,currentScript.path,currentScript.functions[func].extra.functions)
-                    functionNum += 1
-                elif currentScript.functions[func].name == 'Double-Click':
-                    functions_handler.double_click_handle(currentScript.functions[func].img, currentScript.path)
-                    functionNum += 1
-                elif currentScript.functions[func].name == 'Right-Click':
-                    functions_handler.right_click_handle(currentScript.functions[func].img, currentScript.path)
-                    functionNum += 1
-                elif currentScript.functions[func].name == 'Sleep':
-                    functions_handler.sleep_handle(currentScript.functions[func].extra.time)
-                    functionNum += 1
+            if currentScript.functions[func].father[0] == currentScript.functions[func].id:
+                if func >= functionNum:
+                    if currentScript.functions[func].name == 'Repeat':
+                        functionNum += functions_handler.repeat_handle(currentScript.functions[func],
+                                                                       currentScript.path) + 3
+                    elif currentScript.functions[func].name == 'Left-Click':
+                        functions_handler.left_click_handle(currentScript.functions[func].img, currentScript.path)
+                        functionNum += 1
+                    elif currentScript.functions[func].name == 'If-Exist':
+                        exist,tempFunctionNum = functions_handler.exist_handle(currentScript.functions[func],currentScript.path)
+                        functionNum += tempFunctionNum
+                        ifExistFlag = exist
+                    elif currentScript.functions[func].name == 'If-Not-Exist':
+                        exist,tempFunctionNum = functions_handler.not_exist_handle(currentScript.functions[func],
+                                                                       currentScript.path)
+                        functionNum += tempFunctionNum
+                        ifExistFlag = exist
+                    elif currentScript.functions[func].name == 'Else' and not ifExistFlag:
+                        functions_handler.else_handle(currentScript.functions[func],
+                                                                       currentScript.path)
+                        functionNum += 1
+                    elif currentScript.functions[func].name == 'Double-Click':
+                        functions_handler.double_click_handle(currentScript.functions[func].img, currentScript.path)
+                        functionNum += 1
+                    elif currentScript.functions[func].name == 'Right-Click':
+                        functions_handler.right_click_handle(currentScript.functions[func].img, currentScript.path)
+                        functionNum += 1
+                    elif currentScript.functions[func].name == 'Sleep':
+                        functions_handler.sleep_handle(currentScript.functions[func].extra.time)
+                        functionNum += 1
     mainScreen.deiconify()
 
 
