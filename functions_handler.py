@@ -80,8 +80,8 @@ def exist_handle(fatherFunction,path):
     ifExistFlag = True
     screenShot = ImgRecog.tempScreenShot(template)
     exist = ImgRecog.photoRec(path, screenShot, template)
+    functionNum = 0
     if(exist == True):
-        functionNum = 0
         for func in childrenFunctions:
             if(func.father[0] == fatherFunction.id):
                 if (func.name == 'Repeat'):
