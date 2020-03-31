@@ -32,7 +32,8 @@ import threading
 from datetime import datetime
 
 functionList = ['Right-Click','Left-Click','Repeat','If-Exist','If-Not-Exist','Else', 'Double-Click','Insert-Input', 'Sleep']
-currentScript = script.Script('Folder1',[],0)
+# currentScript = script.Script('Folder1',[],0)
+currentScript = None
 firstTime = True
 process = []
 
@@ -480,12 +481,12 @@ def createTree(frame):
     s = ttk.Style()
     s.configure('Treeview', rowheight=40)
     path = os.path.dirname(os.path.abspath(__file__))
-    root = tree.insert('', 'end', text=path + '\Scripts', open=True, tag='T')
+    print(path)
+    # root = tree.insert('', 'end', text=path + '\Scripts', open=True, tag='T')
     # fileImg = PhotoImage(file='').subsample(3, 3)
     # tree.image = fileImg
-    SUBS(path + '\\Scripts', root, tree)
+    # SUBS(path + '\\Scripts', root, tree)
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
-
     tree.place(x=0, y=0)
     return tree
 
@@ -628,7 +629,7 @@ def saveHundle():
 
 def make_new_project(label):
     functionPath = tkinter.filedialog.askdirectory()
-    currentScript.path = functionPath
+    # currentScript.path = functionPath
     label.configure(text = functionPath )
 
     # functionPath += '/functions.json'
@@ -865,11 +866,14 @@ def closeStartWindow(event, startWin):
     canvas.tag_bind('Close', '<Enter>', lambda event: hoverOn(event, canvas, close, 4))
     canvas.tag_bind('Close', '<Leave>', lambda event: hoverOff(event, canvas, close, 4))
 
+    mainScreen.wait_window(startS)
+
 
 def save_new_project_and_run_app(label,fileName, window):
     if label!='Please select path of new project':
         functionPath =  label+'/'+fileName + "/functions.json"
-        currentScript.path = label+'/'+fileName
+        global currentScript
+        currentScript = script.Script(fileName,[],datetime.now(),path=label + '/')
         try:
             os.remove(functionPath)
         except:
@@ -882,6 +886,16 @@ def save_new_project_and_run_app(label,fileName, window):
 
         functionsblock = saveFunctions()
         linesFatherblock = saveLinesFather()
+
+        root = tree.insert('', 'end', text=label+'/'+fileName, open=True, tag='T')
+        SUBS(label+'/'+fileName, root, tree)
+
+        insert_A()
+        Lb2.select_set(0)
+        Lb2.focus_force()
+        FocusOnSelectedFunc(None)
+
+        updateLb2()
         with open(functionPath, 'w+') as outfile:
             outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
 
@@ -919,7 +933,8 @@ def Minimize_and_Open(event, screenToMini):
         # closeStartWindow(None,screenToMini)
         mainScreen.deiconify()
         mainScreen.state("zoomed")
-    except:
+    except Exception as e:
+        print(e)
         startScreen()
 
 def startScreen():
@@ -1249,8 +1264,7 @@ if __name__ == '__main__':
     Lb1.config(state=DISABLED)
 
     Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0)
-    for x in range(0, len(currentScript.functions)):
-        Lb2.insert(x, currentScript.functions[x])
+
 
     Lb2.place(x=0, y=40)
 
@@ -1266,13 +1280,6 @@ if __name__ == '__main__':
 
     reportFrame()
 
-    #### this will startup with a black place in Lb2 to avoid first insert.
-    insert_A()
-    Lb2.select_set(0)
-    Lb2.focus_force()
-    FocusOnSelectedFunc(None)
-
-    ######################################################################
 
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
