@@ -1,20 +1,26 @@
 import Photo
 from Photo import Photo
 import Repeat
-
 import Sleep
 from Sleep import Sleep
+import IfExist
+from IfExist import IfExist
+import IfNotExist
+from IfNotExist import IfNotExist
+import Else
+from Else import Else
 from tkinter import *
 
 
 class Function():
-    def __init__(self, name, img, id, frame, father,extra):
+    def __init__(self, name, img, id, frame, father,extra,indention=0):
         self.name = name
         self.img = img
         self.id = id
         self.frame = self.getFrame(name,frame)
         self.father = father
         self.extra = extra
+        self.indention = indention
 
 
     def getFunction(self,func,Lb2,currentScript,tempFunction):
@@ -27,8 +33,14 @@ class Function():
         if (func['extra'] != ''):
             if(func['name'] == 'Repeat'):
                 extra = Repeat.Repeat.getExtra(func['extra'],Lb2,currentScript,tempFunction)
-            if (func['name'] == 'Sleep'):
+            elif (func['name'] == 'Sleep'):
                 extra = Sleep.getExtra(func['extra'])
+            elif (func['name'] == 'If-Exist'):
+                extra = IfExist.getExtra(func['extra'],Lb2,currentScript,tempFunction)
+            elif (func['name'] == 'If-Not-Exist'):
+                extra = IfNotExist.getExtra(func['extra'],Lb2,currentScript,tempFunction)
+            elif (func['name'] == 'Else'):
+                extra = Else.getExtra(func['extra'],Lb2,currentScript,tempFunction)
         if (func['name'] != '{' and func['name'] != '}'):
             frame = self.getFrame(func['name'],'')
             if (func['name'] == 'Repeat'):
@@ -36,10 +48,10 @@ class Function():
                             Repeat.Repeat.changeRepeatTime,Lb2,currentScript)
             elif(func['name'] == 'Sleep'):
                 self.getInputBox(extra, frame.children.get('label'), frame.children.get('input'),
-                            Sleep.Sleep.changeSleepTime,Lb2,currentScript)
+                            Sleep.changeSleepTime,Lb2,currentScript)
         if(tempFunction[int(func['id'])] == 0):
             function = Function(func['name'], img, int(func['id']), frame,
-                                (int(func['fatherIndex']), func['fatherName']), extra)
+                                (int(func['fatherIndex']), func['fatherName']), extra,int(func['indention']))
             tempFunction[int(func['id'])] = function
             return function
         else:

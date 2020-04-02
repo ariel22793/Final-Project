@@ -3,9 +3,8 @@ import os
 import Function
 # from Function import Function
 
-class Repeat():
-    def __init__(self,time, functions):
-        self.time = time
+class Else():
+    def __init__(self, functions):
         self.functions = functions
 
     def getDict(self):
@@ -21,7 +20,7 @@ class Repeat():
                 else:
                     block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '','fatherIndex': str(x.father[0]),'fatherName':x.father[1],
                                   'extra':'','indention':x.indention})
-        return {'time':str(self.time),'functions':block}
+        return {'functions':block}
 
     @classmethod
     def getExtra(cls, extra,Lb2,currentScript,tempFunction):
@@ -31,20 +30,17 @@ class Repeat():
                 func = Function.Function('','','','','','')
                 func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction)
                 functions.append(func)
-        if(extra['time'] == '?'):
-            return Repeat(extra['time'],functions)
-        else:
-            return Repeat(int(extra['time']),functions)
+        return Else(functions)
 
     @classmethod
-    def removeRepeat(cls, index,currentScript):
+    def removeElse(cls, index,currentScript):
         fromIndex = currentScript.linesFather[index].fromIndex
         toIndex = currentScript.linesFather[index].toIndex
         place = toIndex-1
         for i in range(toIndex-1,fromIndex+1,-1):
             if(i <= place):
                 if(currentScript.functions[i].name == '}'):
-                    place = cls.removeRepeat(currentScript.functions[i].father[0], currentScript)
+                    place = cls.removeElse(currentScript.functions[i].father[0], currentScript)
                 elif(currentScript.functions[i].father != (i,currentScript.functions[i].name)):
                     currentScript.functions.pop(i)
                     currentScript.functions[fromIndex].extra.functions.pop(i-fromIndex-2)
@@ -57,7 +53,7 @@ class Repeat():
         currentScript.linesFather.pop(fromIndex)
         return fromIndex-1
 
-    def changeRepeatTime(sv,Lb2,currentScript):
+    def changeElse(sv,Lb2,currentScript):
         index = Lb2.curselection()[0]
         currentScript.functions[index].extra.time = int(sv.get())
         currentScript.functions[index].name = "Repeat"
