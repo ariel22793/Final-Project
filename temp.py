@@ -373,6 +373,7 @@ def addFunction():
     Lb2.selection_clear(0, END)
     Lb1.selection_clear(0, END)
 
+
 def removeFunction(function,functionIndex):
     listOfIndexToPop = []
     if function.name == 'Repeat':
@@ -472,6 +473,7 @@ def FocusOnSelectedFunc(event):
 
         frame.tkraise()
     reportFrame()
+
 def disableTakeScreenShot(event):
     takeScreenShot.config(state=DISABLED)
 
@@ -846,7 +848,6 @@ def closeStartWindow(event, startWin):
     canvas.tag_bind('return', '<Button-1>', lambda event: startScreen())
     canvas.tag_bind('return', '<Enter>', lambda event: hoverOn(event, canvas, returnB, 6))
     canvas.tag_bind('return', '<Leave>', lambda event: hoverOff(event, canvas, returnB, 6))
-
 
     mainScreen.wait_window(startS)
 
@@ -1255,18 +1256,20 @@ if __name__ == '__main__':
     takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
     takeScreenShot.place(x=690, y=0)
 
-    funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
-    funFrame.place(x=1455, y=150)
+    # funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
+    # funFrame.place(x=1455, y=150)
 
     photoViewFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=350, bg='white', name='photoViewFrame')
     photoViewFrame.place(x=1455, y=600)
 
-    Lb1 = Listbox(funFrame, width=450, height=2400, exportselection=0)
+    Lb1 = Listbox(mainScreen, width=45, height=11, exportselection=0)
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
 
-    Lb1.place(x=0, y=0)
+    Lb1.place(x=1450, y=150)
     Lb1.config(state=DISABLED)
+
+
 
     Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0)
 
@@ -1292,7 +1295,7 @@ if __name__ == '__main__':
     tree = createTree(explorerFrame)
     tree.bind("<Double-1>", TreeviewD_Click)
 
-
     mainScreen.protocol("WM_DELETE_WINDOW", on_closing)
+
 
 mainScreen.mainloop()
