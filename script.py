@@ -11,11 +11,8 @@ class Script():
         if(os.path.isdir(self.path) == False):
             try:
                 os.mkdir(self.path)
-                open(self.path + "functions.txt","w+")
             except OSError:
                 print("Creation of the directory %s failed" % path)
-            else:
-                print("Successfully created the directory %s " % path)
 
 
     def getFunctions(scriptPath):

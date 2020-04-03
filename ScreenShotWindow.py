@@ -32,7 +32,6 @@ class ScreenShotWindow():
 
 
     def keyPress(self, event,mainScreen,Lb2,currentScript,explorerFrame):
-
         if str(event.keysym) == 'Return':
             if self.x0 != self.x1 and self.y0 != self.y1:
                 myScreenshot = pyautogui.screenshot()
@@ -40,15 +39,17 @@ class ScreenShotWindow():
                 img = Image.open("Screen.png")
                 img = img.crop((self.x0, self.y0, self.x1, self.y1))
 
-                id = ''
-                for x in currentScript.functions:
-                    if x.id == Lb2.curselection()[0]:
-                        id = x.id
-                imgName = "Screen" + str(id) + ".png"
+                currentFunction = currentScript.functions[Lb2.curselection()[0]]
+
+                numberOfImages = len([name for name in os.listdir(currentScript.path + 'ScreenShots\\')])
+                imgName = "Screen" + str(numberOfImages) + ".png"
                 if not os.path.exists(currentScript.path + 'ScreenShots\\'):
                     os.mkdir(currentScript.path + 'ScreenShots\\')
 
-                img = img.save(currentScript.path + 'ScreenShots\\' + imgName)
+                if currentFunction.img == '':
+                    img.save(currentScript.path + 'ScreenShots\\' + imgName)
+                else:
+                    img.save(currentScript.path + 'ScreenShots\\' + currentFunction.img.img)
 
                 img = Photo(self.x0, self.y0, self.x1, self.y1, imgName)
 
@@ -66,7 +67,7 @@ class ScreenShotWindow():
                                 func - currentScript.functions[func].father[0] - 2].img = img
                 Lb2.select_clear(0, END)
                 self.updateLb2(Lb2,currentScript)
-                # temp.createTree(explorerFrame)
+
 
         if str(event.keysym) == 'Escape':
             print("Quit window")

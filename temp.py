@@ -629,23 +629,7 @@ def saveHundle():
 
 def make_new_project(label):
     functionPath = tkinter.filedialog.askdirectory()
-    # currentScript.path = functionPath
-    label.configure(text = functionPath )
-
-    # functionPath += '/functions.json'
-    # functionPath = currentScript.path + "functions.json"
-    # try:
-    #     os.remove(functionPath)
-    # except:
-    #     pass
-    # functionsblock = saveFunctions()
-    # linesFatherblock = saveLinesFather()
-    # with open(functionPath, 'w+') as outfile:
-    #     outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
-
-
-
-
+    label.configure(text = functionPath)
 
 def saveAsHundle():
     # filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
@@ -683,7 +667,10 @@ def openLinesFather(data):
 def openButton():
     filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
                                                   filetypes=(("json files", "*.json"), ("all files", "*.*")))
-    currentScript.functions.clear()
+    projectNamePath = os.path.split(os.path.split(filePath)[0])
+    label = projectNamePath[0]
+    global currentScript
+    currentScript = script.Script(projectNamePath[1], [], datetime.now(), path=label + '/')
     with open(filePath) as json_file:
         data = json_file.read()
         functionsData = json.loads(data[:data.index('\n')])
@@ -845,9 +832,6 @@ def closeStartWindow(event, startWin):
     canvas.tag_bind('Start', '<Enter>', lambda event: hoverOn(event, canvas, np, 1))
     canvas.tag_bind('Start', '<Leave>', lambda event: hoverOff(event, canvas, np, 1))
 
-
-
-
     e1.place( height=40, width=600 ,x=365,y=215)
     Selec_F_Button = PhotoImage(file=r"img\buttonPaN.png")
     canvas.Button2 = Selec_F_Button
@@ -875,13 +859,17 @@ def save_new_project_and_run_app(label,fileName, window):
         global currentScript
         currentScript = script.Script(fileName,[],datetime.now(),path=label + '/')
         try:
-            os.remove(functionPath)
-        except:
-            pass
-        try:
-            os.mkdir(label+'/'+fileName)
+            os.mkdir(label+'/'+fileName + '/ScreenShots')
         except:
             print('folder alreay exist!')
+
+        #**************************** Just for testing **********************************
+        try:
+            os.mkdir(label+'/'+fileName + '/Test Image')
+        except:
+            print('folder alreay exist!')
+
+        #********************************************************************************
 
 
         functionsblock = saveFunctions()
@@ -919,7 +907,10 @@ def Minimize_and_Open(event, screenToMini):
     try:
         filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
                                                   filetypes=(("json files", "*.json"), ("all files", "*.*")))
-        currentScript.functions.clear()
+        projectNamePath = os.path.split(os.path.split(filePath)[0])
+        label = projectNamePath[0]
+        global currentScript
+        currentScript = script.Script(projectNamePath[1], [], datetime.now(), path=label + '/')
 
         with open(filePath) as json_file:
             data = json_file.read()

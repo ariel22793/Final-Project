@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import numpy as np
 import pyautogui
@@ -31,22 +33,27 @@ def getCord(img,delta):
 
 
 def tempScreenShot(img):
-    x0,x1,y0,y1 = getCord(img,50)
+    x0,x1,y0,y1 = getCord(img,10)
     myScreenshot = pyautogui.screenshot()
     myScreenshot = myScreenshot.crop((x0, y0, x1, y1))
     return myScreenshot
 
-def photoRec(templatePath,photo, template):
+def photoRec(templatePath,photo, templateImage):
     photo = np.array(photo)
     gray_img = cv2.cvtColor(photo, cv2.COLOR_BGR2GRAY)
-    template = cv2.imread(templatePath + "ScreenShots\\" + template.img,0)
+    template = cv2.imread(templatePath + "ScreenShots\\" + templateImage.img,0)
     w, h = template.shape[::-1]
+    print('my Screenshot height:{} , temp Screenshot height:{}'.format(template.shape[0],gray_img.shape[0]))
+    print('my Screenshot width:{} , temp Screenshot width:{}'.format(template.shape[1],gray_img.shape[1]))
+    print('image name:{}'.format(templateImage.img))
+
     result = cv2.matchTemplate(gray_img, template, cv2.TM_CCOEFF_NORMED)
     loc = np.where(result >= 0.6)
     flag=0
     for pt in zip(*loc[::-1]):
         cv2.rectangle(photo, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 3)
         flag = 1
+        cv2.imwrite(os.path.join(templatePath , 'Test Image\\ ' + templateImage.img),photo)
     
 
 

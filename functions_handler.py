@@ -52,7 +52,7 @@ def left_click_handle(template,path):
     y = (template.y1Cord + template.y0Cord) / 2
     print(exist)
     if(exist == True):
-        pyautogui.click(x,y,duration=0.5)
+        pyautogui.click(x,y,duration=1)
 
 def double_click_handle(template,path):
     screenShot = ImgRecog.tempScreenShot(template)
@@ -62,7 +62,7 @@ def double_click_handle(template,path):
     y = (template.y1Cord + template.y0Cord) / 2
     print(exist)
     if(exist == True):
-        pyautogui.doubleClick(x,y,duration=0.5)
+        pyautogui.doubleClick(x,y,duration=1)
 
 def right_click_handle(template,path):
     screenShot = ImgRecog.tempScreenShot(template)
@@ -72,7 +72,7 @@ def right_click_handle(template,path):
     y = (template.y1Cord + template.y0Cord) / 2
     print(exist)
     if(exist == True):
-        pyautogui.rightClick(x,y,duration=0.5)
+        pyautogui.rightClick(x,y,duration=1)
 
 def exist_handle(fatherFunction,path):
     childrenFunctions = fatherFunction.extra.functions
