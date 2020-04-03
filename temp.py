@@ -840,15 +840,13 @@ def closeStartWindow(event, startWin):
     canvas.tag_bind('PaN', '<Enter>', lambda event: hoverOn(event, canvas, Selec_F, 5))
     canvas.tag_bind('PaN', '<Leave>', lambda event: hoverOff(event, canvas, Selec_F, 5))
 
+    returnButton = PhotoImage(file=r"img\buttonReturn.png")
+    canvas.Button3 = returnButton
+    returnB = canvas.create_image(750, 400, anchor=NW, image=returnButton, tags="return")
+    canvas.tag_bind('return', '<Button-1>', lambda event: startScreen())
+    canvas.tag_bind('return', '<Enter>', lambda event: hoverOn(event, canvas, returnB, 6))
+    canvas.tag_bind('return', '<Leave>', lambda event: hoverOff(event, canvas, returnB, 6))
 
-
-
-    closeButton = PhotoImage(file=r"img\buttonClose.png")
-    canvas.Button3 = closeButton
-    close = canvas.create_image(750, 400, anchor=NW, image=closeButton, tags="Close")
-    canvas.tag_bind('Close', '<Button-1>', func=quit)
-    canvas.tag_bind('Close', '<Enter>', lambda event: hoverOn(event, canvas, close, 4))
-    canvas.tag_bind('Close', '<Leave>', lambda event: hoverOff(event, canvas, close, 4))
 
     mainScreen.wait_window(startS)
 
@@ -970,13 +968,19 @@ def startScreen():
     closeButton = PhotoImage(file=r"img\buttonClose.png")
     canvas.Button3 = closeButton
     close=canvas.create_image(750, 400, anchor=NW, image=closeButton, tags="Close")
-    canvas.tag_bind('Close', '<Button-1>',func=quit)
+    canvas.tag_bind('Close', '<Button-1>', lambda event: terminate(startS))
     canvas.tag_bind('Close', '<Enter>',lambda event: hoverOn(event,canvas, close,4))
     canvas.tag_bind('Close', '<Leave>',lambda event: hoverOff(event, canvas, close,4))
 
 
 
     startS.attributes('-topmost', True)
+def terminate(screen):
+    for widget in mainScreen.winfo_children():
+        if isinstance(widget,Toplevel):
+            widget.destroy()
+    screen.destroy()
+    exit()
 
 def hoverOn(event,canvas, item, number):
     if (number == 1):
@@ -1000,6 +1004,11 @@ def hoverOn(event,canvas, item, number):
 
     if (number == 5):
         Button1 = PhotoImage(file=r"img\buttonPaNHover.png")
+        canvas.y = Button1
+        canvas.itemconfig(item, image=Button1)
+
+    if (number == 6):
+        Button1 = PhotoImage(file=r"img\buttonReturnHover.png")
         canvas.y = Button1
         canvas.itemconfig(item, image=Button1)
 
@@ -1027,6 +1036,11 @@ def hoverOff(event,canvas, item, number):
         Button1 = PhotoImage(file=r"img\buttonPaN.png")
         canvas.y = Button1
         canvas.itemconfig(item, image=Button1)
+    if (number == 6):
+        Button1 = PhotoImage(file=r"img\buttonReturn.png")
+        canvas.y = Button1
+        canvas.itemconfig(item, image=Button1)
+
 def reportFrame():
     data = {}
 
