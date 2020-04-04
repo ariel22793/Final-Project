@@ -1287,7 +1287,7 @@ if __name__ == '__main__':
 
 
 
-    Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0)
+    Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0, selectmode=EXTENDED)
 
 
     Lb2.place(x=0, y=40)
