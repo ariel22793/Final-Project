@@ -2,6 +2,8 @@ import os
 
 import Function
 # from Function import Function
+import LineFather
+from LineFather import LineFather
 
 class Repeat():
     def __init__(self,time, functions):
@@ -37,24 +39,51 @@ class Repeat():
             return Repeat(int(extra['time']),functions)
 
     @classmethod
-    def removeRepeat(cls, index,currentScript):
+    def removeRepeat(cls,removeFuncFatherIndex, index,currentScript,haveFather):
         fromIndex = currentScript.linesFather[index].fromIndex
         toIndex = currentScript.linesFather[index].toIndex
         place = toIndex-1
         for i in range(toIndex-1,fromIndex+1,-1):
             if(i <= place):
                 if(currentScript.functions[i].name == '}'):
-                    place = cls.removeRepeat(currentScript.functions[i].father[0], currentScript)
+                    if currentScript.functions[i].father[1] == 'Repeat':
+                        place = cls.removeRepeat(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather)
+                    elif currentScript.functions[i].father[1] == 'If-Exist':
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather)
+                    elif currentScript.functions[i].father[1] == 'If-Not-Exist':
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfNotExist(removeFuncFatherIndex,
+                            currentScript.functions[i].father[0], currentScript,haveFather)
+                    elif currentScript.functions[i].father[1] == 'Else':
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeElse(removeFuncFatherIndex,
+                            currentScript.functions[i].father[0], currentScript,haveFather)
                 elif(currentScript.functions[i].father != (i,currentScript.functions[i].name)):
                     currentScript.functions.pop(i)
+                    if haveFather == True:
+                        currentScript.functions[removeFuncFatherIndex].extra.functions.pop(i - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
+                        currentScript.linesFather[removeFuncFatherIndex].toIndex -= 1
                     currentScript.functions[fromIndex].extra.functions.pop(i-fromIndex-2)
                     currentScript.linesFather.pop(i)
+
         currentScript.functions.pop(fromIndex+2)
         currentScript.linesFather.pop(fromIndex+2)
         currentScript.functions.pop(fromIndex+1)
         currentScript.linesFather.pop(fromIndex+1)
         currentScript.functions.pop(fromIndex)
         currentScript.linesFather.pop(fromIndex)
+        if haveFather == True:
+            currentScript.functions[removeFuncFatherIndex].extra.functions.pop(
+                (fromIndex + 2) - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
+            currentScript.functions[removeFuncFatherIndex].extra.functions.pop(
+                (fromIndex + 1) - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
+            currentScript.functions[removeFuncFatherIndex].extra.functions.pop(
+                fromIndex - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
+            currentScript.linesFather[removeFuncFatherIndex].toIndex -= 3
+            if len(currentScript.functions[removeFuncFatherIndex].extra.functions) == 0:
+                currentScript.functions.insert(removeFuncFatherIndex+2, Function.Function('','',removeFuncFatherIndex+2,'',currentScript.functions[removeFuncFatherIndex].father,'',currentScript.functions[removeFuncFatherIndex].indention))
+                currentScript.functions[removeFuncFatherIndex].extra.functions.append(Function.Function('','',removeFuncFatherIndex+2,'',currentScript.functions[removeFuncFatherIndex].father,'',currentScript.functions[removeFuncFatherIndex].indention))
+                currentScript.linesFather.insert(removeFuncFatherIndex+2,LineFather(currentScript.linesFather[removeFuncFatherIndex].fromIndex,currentScript.linesFather[removeFuncFatherIndex].toIndex,currentScript.linesFather[removeFuncFatherIndex].fatherName))
+                currentScript.linesFather[removeFuncFatherIndex].toIndex +=1
+
         return fromIndex-1
 
     def changeRepeatTime(sv,Lb2,currentScript):

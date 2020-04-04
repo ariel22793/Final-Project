@@ -392,6 +392,13 @@ def removeFunction(function,functionIndex):
 def removeFunctions():
     delta = 0
     index = Lb2.curselection()[0]
+    removeFuncFatherIndex = index
+    haveFather = False
+
+    if currentScript.functions[index].father != (index,currentScript.functions[index].name):
+        haveFather = True
+        removeFuncFatherIndex = currentScript.linesFather[currentScript.functions[index].father[0]].fromIndex
+
     if(currentScript.functions[index].name =='{' or currentScript.functions[index].name =='}' ):
         msgbox = tkinter.messagebox.showerror('Notic!', 'You cant remove this, this is not a function.')
 
@@ -399,7 +406,16 @@ def removeFunctions():
     popedFuncName =popedFunc.name
     if(popedFuncName == 'Repeat'):
         delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
-        Repeat.removeRepeat(index,currentScript)
+        Repeat.removeRepeat(removeFuncFatherIndex,index,currentScript,haveFather)
+    elif (popedFuncName == 'If-Exist'):
+        delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+        IfExist.removeIfExist(removeFuncFatherIndex,index, currentScript,haveFather)
+    elif (popedFuncName == 'If-Not-Exist'):
+        delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+        IfNotExist.removeIfNotExist(removeFuncFatherIndex,index, currentScript,haveFather)
+    elif (popedFuncName == 'Else'):
+        delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+        Else.removeElse(removeFuncFatherIndex,index, currentScript,haveFather)
     else:
         delta = -1
         currentScript.functions.pop(index)
