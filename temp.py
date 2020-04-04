@@ -87,13 +87,16 @@ def updateLb2():
         shift = ' ' * currentScript.functions[x].indention * 5
         if name == 'Sleep' or name == 'Repeat':
             Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
-            Lb2.place(x=0, y=40)
+            Lb2.pack(side="left", fill="y")
+            # Lb2.place(x=0, y=40)
         elif name == 'If-Exist' or name == 'If-Not-Exist':
             Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
-            Lb2.place(x=0, y=40)
+            Lb2.pack(side="left", fill="y")
+            # Lb2.place(x=0, y=40)
         else:
             Lb2.insert(x, shift + name)
-            Lb2.place(x=0, y=40)
+            Lb2.pack(side="left", fill="y")
+            # Lb2.place(x=0, y=40)
 
 
 def addFunction():
@@ -538,7 +541,8 @@ def listReload(list):
     list.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         Lb2.insert(x, currentScript.functions[x].name)
-        Lb2.place(x=0, y=40)
+        Lb2.pack(side="left", fill="y")
+        # Lb2.place(x=0, y=40)
 
 
 def popupmsg(msg):
@@ -1256,25 +1260,29 @@ if __name__ == '__main__':
     explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=500, height=430, bg='white')
     explorerFrame.place(x=10, y=150)
 
-    mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=800, bg='white')
-    mainFrame.place(x=535, y=150)
+    mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=700, bg='white')
+    mainFrame.place(x=535, y=200)
 
-    moveDownButton = Button(mainFrame, text="Move down", command=moveDown)
+    mainFrame2 = Frame(mainScreen, bd=3, relief=SUNKEN, width=899, height=50, bg='white')
+    mainFrame2.place(x=535, y=150)
+
+
+    moveDownButton = Button(mainFrame2, text="Move down", command=moveDown)
     moveDownButton.place(x=20, y=0)
 
-    moveUpButton = Button(mainFrame, text="Move up", command=moveUp)
+    moveUpButton = Button(mainFrame2, text="Move up", command=moveUp)
     moveUpButton.place(x=140, y=0)
 
-    removeFunc = Button(mainFrame, text="Remove Function", command=removeFunctions)
+    removeFunc = Button(mainFrame2, text="Remove Function", command=removeFunctions)
     removeFunc.place(x=240, y=0)
 
-    insertB = Button(mainFrame, text="Insert Below", command=insert_B)
+    insertB = Button(mainFrame2, text="Insert Below", command=insert_B)
     insertB.place(x=410, y=0)
 
-    insertA = Button(mainFrame, text="Insert Above", command=insert_A)
+    insertA = Button(mainFrame2, text="Insert Above", command=insert_A)
     insertA.place(x=550, y=0)
 
-    takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
+    takeScreenShot = Button(mainFrame2, text="Take Screen Shot", command=window2, state=DISABLED)
     takeScreenShot.place(x=690, y=0)
 
     # funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
@@ -1292,10 +1300,15 @@ if __name__ == '__main__':
 
 
 
-    Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0, selectmode=EXTENDED)
+    
+    Lb2 = Listbox(mainFrame, width=78, height=25, font=("Ariel", 10), exportselection=0, selectmode=EXTENDED)
+    Lb2.pack(side="left", fill="y" )
 
+    scrollbar = Scrollbar(mainFrame, orient="vertical")
+    scrollbar.config(command=Lb2.yview)
+    scrollbar.pack(side="right", fill="y")
 
-    Lb2.place(x=0, y=40)
+    Lb2.config(yscrollcommand=scrollbar.set)
 
     AutoSave = ttk.Combobox(toolbarFrame,values=[
                                                 "No AutoSave",
