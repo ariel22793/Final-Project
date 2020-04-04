@@ -1300,7 +1300,7 @@ if __name__ == '__main__':
 
 
 
-    
+
     Lb2 = Listbox(mainFrame, width=78, height=25, font=("Ariel", 10), exportselection=0, selectmode=EXTENDED)
     Lb2.pack(side="left", fill="y" )
 

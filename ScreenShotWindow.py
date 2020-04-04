@@ -103,10 +103,15 @@ class ScreenShotWindow():
             shift = ' ' * currentScript.functions[x].indention * 5
             if name == 'Sleep' or name == 'Repeat':
                 Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
-                Lb2.place(x=0, y=40)
+                # Lb2.place(x=0, y=40)
+                Lb2.pack(side="left", fill="y")
+
             elif name == 'If-Exist' or name == 'If-Not-Exist':
                 Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
-                Lb2.place(x=0, y=40)
+                # Lb2.place(x=0, y=40)
+                Lb2.pack(side="left", fill="y")
+
             else:
                 Lb2.insert(x, shift + name)
-                Lb2.place(x=0, y=40)
+                # Lb2.place(x=0, y=40)
+                Lb2.pack(side="left", fill="y")
