@@ -75,6 +75,7 @@ def updateCurrentScript(index,delta):
 
         else:
             currentScript.functions[i].id = i
+            currentScript.functions[i].father= (i,currentScript.functions[i].father[1])
             currentScript.linesFather[i].fromIndex = i
             currentScript.linesFather[i].toIndex = i
 
@@ -1285,10 +1286,7 @@ if __name__ == '__main__':
     Lb1.place(x=1450, y=150)
     Lb1.config(state=DISABLED)
 
-
-
-    Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0)
-
+    Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0, selectmode=EXTENDED)
 
     Lb2.place(x=0, y=40)
 
