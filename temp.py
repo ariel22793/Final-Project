@@ -1250,9 +1250,12 @@ def Treeview_right_click(event):
         menu = Menu(explorerFrame, tearoff=0)
         menu.add_command(label="Change Name", command = lambda: changeName(item_iid,tree.item(item)["text"], path))
         menu.add_command(label="Preview", command = lambda: image_preview(path))
-        menu.add_command(label="Delete Photo")
+        menu.add_command(label="Delete Photo", command = lambda: deletePhoto(path, item_iid))
         menu.post(event.x_root, event.y_root)
-
+def deletePhoto(path,iid):
+    if tkinter.messagebox.askokcancel("Delete", "Are you sure you want to delete this file?\nThis will keep the function if exist but without the image"):
+        os.remove(path)
+        tree.delete(iid)
 def changeName(iid, fileName, path):
     bbox = tree.bbox(iid)
     x = bbox[0]
@@ -1264,13 +1267,14 @@ def changeName(iid, fileName, path):
     entry.focus()
     entry.bind('<FocusOut>', lambda event: out(entry, iid, path))
     entry.bind('<Return>', lambda event: out(entry, iid, path))
+    entry.bind('<Escape>', lambda event: out(entry, iid, path))
 
 def out(entry, iid, path):
     new_name = entry.get()
     entry.destroy()
     tree.item(iid, text=new_name)
     new_path = path[0:path.rfind('/')]+'/' + new_name
-    print(new_path)
+
     os.rename(path, new_path)
 
 def image_preview(filePath):
