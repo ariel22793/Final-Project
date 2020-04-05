@@ -94,13 +94,16 @@ def updateLb2():
         shift = ' ' * currentScript.functions[x].indention * 5
         if name == 'Sleep' or name == 'Repeat':
             Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
-            Lb2.place(x=0, y=40)
+            Lb2.pack(side="left", fill="y")
+            # Lb2.place(x=0, y=40)
         elif name == 'If-Exist' or name == 'If-Not-Exist':
             Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
-            Lb2.place(x=0, y=40)
+            Lb2.pack(side="left", fill="y")
+            # Lb2.place(x=0, y=40)
         else:
             Lb2.insert(x, shift + name)
-            Lb2.place(x=0, y=40)
+            Lb2.pack(side="left", fill="y")
+            # Lb2.place(x=0, y=40)
 
 
 def addFunction():
@@ -508,20 +511,27 @@ def disableTakeScreenShot(event):
 def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
-    s.configure('Treeview', rowheight=40)
+    s.configure('Treeview', rowheight=30)
     path = os.path.dirname(os.path.abspath(__file__))
-    print(path)
     # root = tree.insert('', 'end', text=path + '\Scripts', open=True, tag='T')
     # fileImg = PhotoImage(file='').subsample(3, 3)
     # tree.image = fileImg
     # SUBS(path + '\\Scripts', root, tree)
-    tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
-    tree.place(x=0, y=0)
+
+    tree.pack(side='left')
+
+    vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+    vsb.pack(side='right', fill='y')
+
+    tree.configure(yscrollcommand=vsb.set)
+    tree.column("#0", width=frame.winfo_reqwidth(), stretch=False, anchor='c')
+    tree.heading("#0", text="Project Files View")
     return tree
 
 
 def moveUp():
-    index = Lb2.curselection()[0]
+    index = Lb2.curselection()[0]    # tree.place(x=0, y=0)
+
     currentScript.functions[index].id = index - 1
     currentScript.functions[index - 1].id = index
     a, b = index, index - 1
@@ -544,7 +554,8 @@ def listReload(list):
     list.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         Lb2.insert(x, currentScript.functions[x].name)
-        Lb2.place(x=0, y=40)
+        Lb2.pack(side="left", fill="y")
+        # Lb2.place(x=0, y=40)
 
 
 def popupmsg(msg):
@@ -948,6 +959,10 @@ def Minimize_and_Open(event, screenToMini):
         openLinesFather(linesFatherData)
         updateLb2()
         # closeStartWindow(None,screenToMini)
+        folder_path = filePath[0:filePath.rfind('/')]
+        root = tree.insert('', 'end', text=folder_path, open=True, tag='T')
+        SUBS(folder_path, root, tree)
+
         mainScreen.deiconify()
         mainScreen.state("zoomed")
     except Exception as e:
@@ -1013,60 +1028,61 @@ def terminate(screen):
 def hoverOn(event,canvas, item, number):
     if (number == 1):
         Button1 = PhotoImage(file=r"img\buttonStartHover.png")
-        canvas.z = Button1
+        canvas.a = Button1
         canvas.itemconfig(item, image=Button1)
 
     if(number==2):
         Button1 = PhotoImage(file=r"img\buttonNPHover.png")
-        canvas.z = Button1
+        canvas.b = Button1
         canvas.itemconfig(item, image = Button1)
     if(number==3):
         Button1 = PhotoImage(file=r"img\buttonLoadHover.png")
-        canvas.y = Button1
+        canvas.c = Button1
         canvas.itemconfig(item, image = Button1)
 
     if(number==4):
         Button1 = PhotoImage(file=r"img\buttonCloseHover.png")
-        canvas.x = Button1
+        canvas.d = Button1
         canvas.itemconfig(item, image = Button1)
 
     if (number == 5):
+
         Button1 = PhotoImage(file=r"img\buttonPaNHover.png")
-        canvas.y = Button1
+        canvas.e = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 6):
         Button1 = PhotoImage(file=r"img\buttonReturnHover.png")
-        canvas.y = Button1
+        canvas.f = Button1
         canvas.itemconfig(item, image=Button1)
 
 def hoverOff(event,canvas, item, number):
     if (number == 1):
         Button1 = PhotoImage(file=r"img\buttonStart.png")
-        canvas.z = Button1
+        canvas.a = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 2):
         Button1 = PhotoImage(file=r"img\buttonNP.png")
-        canvas.z = Button1
+        canvas.b = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 3):
         Button1 = PhotoImage(file=r"img\buttonLoad.png")
-        canvas.y = Button1
+        canvas.c = Button1
         canvas.itemconfig(item, image=Button1)
 
     if(number==4):
         closeButton1 = PhotoImage(file=r"img\buttonClose.png")
-        canvas.x = closeButton1
+        canvas.d = closeButton1
         canvas.itemconfig(item, image=closeButton1)
     if (number == 5):
         Button1 = PhotoImage(file=r"img\buttonPaN.png")
-        canvas.y = Button1
+        canvas.e = Button1
         canvas.itemconfig(item, image=Button1)
     if (number == 6):
         Button1 = PhotoImage(file=r"img\buttonReturn.png")
-        canvas.y = Button1
+        canvas.f = Button1
         canvas.itemconfig(item, image=Button1)
 
 def reportFrame():
@@ -1226,6 +1242,65 @@ def on_closing():
                 x._is_stopped = True
             mainScreen.destroy()
 
+
+
+def Treeview_right_click(event):
+    tree.selection_set(tree.identify_row(event.y))
+    item = tree.identify("item", event.x, event.y)
+
+    item_iid = tree.selection()[0]
+    parent_iid = tree.parent(item_iid)
+    node = tree.item(parent_iid)['text']
+    path = currentScript.path[0:-1] +'/' + node +'/' + tree.item(item)["text"]
+
+    if '.png' in tree.item(item)["text"]:
+        menu = Menu(explorerFrame, tearoff=0)
+        menu.add_command(label="Change Name", command = lambda: changeName(item_iid,tree.item(item)["text"], path))
+        menu.add_command(label="Preview", command = lambda: image_preview(path))
+        menu.add_command(label="Delete Photo", command = lambda: deletePhoto(path, item_iid))
+        menu.post(event.x_root, event.y_root)
+def deletePhoto(path,iid):
+    if tkinter.messagebox.askokcancel("Delete", "Are you sure you want to delete this file?\nThis will keep the function if exist but without the image"):
+        os.remove(path)
+        tree.delete(iid)
+def changeName(iid, fileName, path):
+    bbox = tree.bbox(iid)
+    x = bbox[0]
+    y = bbox[1]
+
+    entry = Entry(explorerFrame, borderwidth=2, relief="groove")
+    entry.insert(END, fileName)
+    entry.place(x=x+30,y=y)
+    entry.focus()
+    entry.bind('<FocusOut>', lambda event: out(entry,fileName, iid, path))
+    entry.bind('<Return>', lambda event: out(entry,fileName, iid, path))
+    entry.bind('<Escape>', lambda event: out(entry,fileName, iid, path))
+
+def out(entry,fileName, iid, path):
+    new_name = entry.get()
+    entry.destroy()
+    tree.item(iid, text=new_name)
+    new_path = path[0:path.rfind('/')]+'/' + new_name
+    os.rename(path, new_path)
+    for x in currentScript.functions:
+        if x.img.img == fileName:
+            x.img.img = new_name
+
+
+
+def image_preview(filePath):
+    r = Toplevel()
+    my_image = PhotoImage(file=filePath, master=mainScreen)
+    canvas_image = my_image.zoom(2, 2)
+
+    canvas = Canvas(r, height=my_image.width()+100, width=my_image.height()+100)
+    canvas.pack()
+
+    canvas.create_image(0, 0, anchor=NW, image=canvas_image)
+
+    r.mainloop()
+
+
 if __name__ == '__main__':
     functionFather = []
 
@@ -1259,28 +1334,32 @@ if __name__ == '__main__':
     addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state=DISABLED)
     addFunc.place(x=1600, y=100)
 
-    explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=500, height=430, bg='white')
+    explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=400, height=430, bg='white')
     explorerFrame.place(x=10, y=150)
 
-    mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=800, bg='white')
-    mainFrame.place(x=535, y=150)
+    mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=700, bg='white')
+    mainFrame.place(x=535, y=200)
 
-    moveDownButton = Button(mainFrame, text="Move down", command=moveDown)
+    mainFrame2 = Frame(mainScreen, bd=3, relief=SUNKEN, width=899, height=50, bg='white')
+    mainFrame2.place(x=535, y=150)
+
+
+    moveDownButton = Button(mainFrame2, text="Move down", command=moveDown)
     moveDownButton.place(x=20, y=0)
 
-    moveUpButton = Button(mainFrame, text="Move up", command=moveUp)
+    moveUpButton = Button(mainFrame2, text="Move up", command=moveUp)
     moveUpButton.place(x=140, y=0)
 
-    removeFunc = Button(mainFrame, text="Remove Function", command=removeFunctions)
+    removeFunc = Button(mainFrame2, text="Remove Function", command=removeFunctions)
     removeFunc.place(x=240, y=0)
 
-    insertB = Button(mainFrame, text="Insert Below", command=insert_B)
+    insertB = Button(mainFrame2, text="Insert Below", command=insert_B)
     insertB.place(x=410, y=0)
 
-    insertA = Button(mainFrame, text="Insert Above", command=insert_A)
+    insertA = Button(mainFrame2, text="Insert Above", command=insert_A)
     insertA.place(x=550, y=0)
 
-    takeScreenShot = Button(mainFrame, text="Take Screen Shot", command=window2, state=DISABLED)
+    takeScreenShot = Button(mainFrame2, text="Take Screen Shot", command=window2, state=DISABLED)
     takeScreenShot.place(x=690, y=0)
 
     # funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
@@ -1298,10 +1377,15 @@ if __name__ == '__main__':
 
 
 
-    Lb2 = Listbox(mainFrame, width=99, height=300, exportselection=0, selectmode=EXTENDED)
 
+    Lb2 = Listbox(mainFrame, width=78, height=25, font=("Ariel", 10), exportselection=0, selectmode=EXTENDED)
+    Lb2.pack(side="left", fill="y" )
 
-    Lb2.place(x=0, y=40)
+    scrollbar = Scrollbar(mainFrame, orient="vertical")
+    scrollbar.config(command=Lb2.yview)
+    scrollbar.pack(side="right", fill="y")
+
+    Lb2.config(yscrollcommand=scrollbar.set)
 
     AutoSave = ttk.Combobox(toolbarFrame,values=[
                                                 "No AutoSave",
@@ -1321,6 +1405,7 @@ if __name__ == '__main__':
 
     tree = createTree(explorerFrame)
     tree.bind("<Double-1>", TreeviewD_Click)
+    tree.bind("<Button-3>", Treeview_right_click)
 
     mainScreen.protocol("WM_DELETE_WINDOW", on_closing)
 

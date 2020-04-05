@@ -1,6 +1,6 @@
 from tkinter import *
 from PIL import Image, ImageTk
-counter=0
+counter=1
 success = 0
 
 def fun(number_of_button):
