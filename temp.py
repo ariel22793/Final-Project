@@ -1022,60 +1022,61 @@ def terminate(screen):
 def hoverOn(event,canvas, item, number):
     if (number == 1):
         Button1 = PhotoImage(file=r"img\buttonStartHover.png")
-        canvas.z = Button1
+        canvas.a = Button1
         canvas.itemconfig(item, image=Button1)
 
     if(number==2):
         Button1 = PhotoImage(file=r"img\buttonNPHover.png")
-        canvas.z = Button1
+        canvas.b = Button1
         canvas.itemconfig(item, image = Button1)
     if(number==3):
         Button1 = PhotoImage(file=r"img\buttonLoadHover.png")
-        canvas.y = Button1
+        canvas.c = Button1
         canvas.itemconfig(item, image = Button1)
 
     if(number==4):
         Button1 = PhotoImage(file=r"img\buttonCloseHover.png")
-        canvas.x = Button1
+        canvas.d = Button1
         canvas.itemconfig(item, image = Button1)
 
     if (number == 5):
+        
         Button1 = PhotoImage(file=r"img\buttonPaNHover.png")
-        canvas.y = Button1
+        canvas.e = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 6):
         Button1 = PhotoImage(file=r"img\buttonReturnHover.png")
-        canvas.y = Button1
+        canvas.f = Button1
         canvas.itemconfig(item, image=Button1)
 
 def hoverOff(event,canvas, item, number):
     if (number == 1):
         Button1 = PhotoImage(file=r"img\buttonStart.png")
-        canvas.z = Button1
+        canvas.a = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 2):
         Button1 = PhotoImage(file=r"img\buttonNP.png")
-        canvas.z = Button1
+        canvas.b = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 3):
         Button1 = PhotoImage(file=r"img\buttonLoad.png")
-        canvas.y = Button1
+        canvas.c = Button1
         canvas.itemconfig(item, image=Button1)
 
     if(number==4):
         closeButton1 = PhotoImage(file=r"img\buttonClose.png")
-        canvas.x = closeButton1
+        canvas.d = closeButton1
         canvas.itemconfig(item, image=closeButton1)
     if (number == 5):
         Button1 = PhotoImage(file=r"img\buttonPaN.png")
-        canvas.y = Button1
+        canvas.e = Button1
         canvas.itemconfig(item, image=Button1)
     if (number == 6):
         Button1 = PhotoImage(file=r"img\buttonReturn.png")
-        canvas.y = Button1
+        canvas.f = Button1
         canvas.itemconfig(item, image=Button1)
 
 def reportFrame():
