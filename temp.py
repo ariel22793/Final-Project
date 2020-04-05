@@ -1040,7 +1040,7 @@ def hoverOn(event,canvas, item, number):
         canvas.itemconfig(item, image = Button1)
 
     if (number == 5):
-        
+
         Button1 = PhotoImage(file=r"img\buttonPaNHover.png")
         canvas.e = Button1
         canvas.itemconfig(item, image=Button1)
@@ -1266,17 +1266,21 @@ def changeName(iid, fileName, path):
     entry.insert(END, fileName)
     entry.place(x=x+30,y=y)
     entry.focus()
-    entry.bind('<FocusOut>', lambda event: out(entry, iid, path))
-    entry.bind('<Return>', lambda event: out(entry, iid, path))
-    entry.bind('<Escape>', lambda event: out(entry, iid, path))
+    entry.bind('<FocusOut>', lambda event: out(entry,fileName, iid, path))
+    entry.bind('<Return>', lambda event: out(entry,fileName, iid, path))
+    entry.bind('<Escape>', lambda event: out(entry,fileName, iid, path))
 
-def out(entry, iid, path):
+def out(entry,fileName, iid, path):
     new_name = entry.get()
     entry.destroy()
     tree.item(iid, text=new_name)
     new_path = path[0:path.rfind('/')]+'/' + new_name
-
     os.rename(path, new_path)
+    for x in currentScript.functions:
+        if x.img.img == fileName:
+            x.img.img = new_name
+
+
 
 def image_preview(filePath):
     r = Toplevel()
