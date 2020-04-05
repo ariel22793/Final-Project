@@ -1248,11 +1248,26 @@ def Treeview_right_click(event):
 
     if '.png' in tree.item(item)["text"]:
         menu = Menu(explorerFrame, tearoff=0)
-        menu.add_command(label="Change Name")
+        menu.add_command(label="Change Name", command = lambda: changeName(item_iid,tree.item(item)["text"]))
         menu.add_command(label="Preview", command = lambda: image_preview(path))
         menu.add_command(label="Delete Photo")
         menu.post(event.x_root, event.y_root)
 
+def changeName(iid, fileName):
+    bbox = tree.bbox(iid)
+    x = bbox[0]
+    y = bbox[1]
+
+    entry = Entry(explorerFrame, borderwidth=2, relief="groove")
+    entry.insert(END, fileName)
+    entry.place(x=x+30,y=y)
+    entry.focus()
+    entry.bind('<FocusOut>', lambda event: out(entry, iid))
+
+def out(entry, iid):
+    new_name = entry.get()
+    entry.destroy()
+    tree.item(iid, text=new_name)
 
 def image_preview(filePath):
     r = Toplevel()
