@@ -1235,6 +1235,38 @@ def on_closing():
                 x._is_stopped = True
             mainScreen.destroy()
 
+
+
+def Treeview_right_click(event):
+    tree.selection_set(tree.identify_row(event.y))
+    item = tree.identify("item", event.x, event.y)
+
+    item_iid = tree.selection()[0]
+    parent_iid = tree.parent(item_iid)
+    node = tree.item(parent_iid)['text']
+    path = currentScript.path[0:-1] +'/' + node +'/' + tree.item(item)["text"]
+
+    if '.png' in tree.item(item)["text"]:
+        menu = Menu(explorerFrame, tearoff=0)
+        menu.add_command(label="Change Name")
+        menu.add_command(label="Preview", command = lambda: image_preview(path))
+        menu.add_command(label="Delete Photo")
+        menu.post(event.x_root, event.y_root)
+
+
+def image_preview(filePath):
+    r = Toplevel()
+    my_image = PhotoImage(file=filePath, master=mainScreen)
+    canvas_image = my_image.zoom(2, 2)
+
+    canvas = Canvas(r, height=my_image.width()+100, width=my_image.height()+100)
+    canvas.pack()
+
+    canvas.create_image(0, 0, anchor=NW, image=canvas_image)
+
+    r.mainloop()
+
+
 if __name__ == '__main__':
     functionFather = []
 
@@ -1339,6 +1371,7 @@ if __name__ == '__main__':
 
     tree = createTree(explorerFrame)
     tree.bind("<Double-1>", TreeviewD_Click)
+    tree.bind("<Button-3>", Treeview_right_click)
 
     mainScreen.protocol("WM_DELETE_WINDOW", on_closing)
 
