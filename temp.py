@@ -505,20 +505,26 @@ def disableTakeScreenShot(event):
 def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
-    s.configure('Treeview', rowheight=40)
+    s.configure('Treeview', rowheight=30)
     path = os.path.dirname(os.path.abspath(__file__))
-    print(path)
     # root = tree.insert('', 'end', text=path + '\Scripts', open=True, tag='T')
     # fileImg = PhotoImage(file='').subsample(3, 3)
     # tree.image = fileImg
     # SUBS(path + '\\Scripts', root, tree)
+
+    tree.pack(side='left')
+
+    vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
+    vsb.pack(side='right', fill='y')
+
+    tree.configure(yscrollcommand=vsb.set)
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
-    tree.place(x=0, y=0)
     return tree
 
 
 def moveUp():
-    index = Lb2.curselection()[0]
+    index = Lb2.curselection()[0]    # tree.place(x=0, y=0)
+
     currentScript.functions[index].id = index - 1
     currentScript.functions[index - 1].id = index
     a, b = index, index - 1
@@ -946,6 +952,10 @@ def Minimize_and_Open(event, screenToMini):
         openLinesFather(linesFatherData)
         updateLb2()
         # closeStartWindow(None,screenToMini)
+        folder_path = filePath[0:filePath.rfind('/')]
+        root = tree.insert('', 'end', text=folder_path, open=True, tag='T')
+        SUBS(folder_path, root, tree)
+
         mainScreen.deiconify()
         mainScreen.state("zoomed")
     except Exception as e:
@@ -1257,7 +1267,7 @@ if __name__ == '__main__':
     addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state=DISABLED)
     addFunc.place(x=1600, y=100)
 
-    explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=500, height=430, bg='white')
+    explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=400, height=430, bg='white')
     explorerFrame.place(x=10, y=150)
 
     mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=700, bg='white')
