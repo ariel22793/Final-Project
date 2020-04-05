@@ -518,7 +518,8 @@ def createTree(frame):
     vsb.pack(side='right', fill='y')
 
     tree.configure(yscrollcommand=vsb.set)
-    tree.column("#0", width=frame.winfo_reqwidth(), stretch=False)
+    tree.column("#0", width=frame.winfo_reqwidth(), stretch=False, anchor='c')
+    tree.heading("#0", text="Project Files View")
     return tree
 
 
