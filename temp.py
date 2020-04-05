@@ -31,6 +31,12 @@ from win32api import GetSystemMetrics
 import threading
 from datetime import datetime
 
+try:
+    from ctypes import windll
+    windll.shcore.SetProcessDpiAwareness(1)
+except:
+    pass
+
 functionList = ['Right-Click','Left-Click','Repeat','If-Exist','If-Not-Exist','Else', 'Double-Click','Insert-Input', 'Sleep']
 # currentScript = script.Script('Folder1',[],0)
 currentScript = None
@@ -427,7 +433,7 @@ def removeFunctions():
             currentScript.functions.pop(index)
             currentScript.linesFather.pop(index)
         updateCurrentScript(index,delta)
-        updateLb2()
+    updateLb2()
 
 
 
