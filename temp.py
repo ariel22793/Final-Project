@@ -38,7 +38,6 @@ except:
     pass
 
 functionList = ['Right-Click','Left-Click','Repeat','If-Exist','If-Not-Exist','Else', 'Double-Click','Insert-Input', 'Sleep']
-# currentScript = script.Script('Folder1',[],0)
 currentScript = None
 firstTime = True
 process = []
