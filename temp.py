@@ -87,22 +87,22 @@ def updateCurrentScript(index,delta):
 
 
 def updateLb2():
+    index = Lb2.curselection()
+
     Lb2.delete(0, 'end')
     for x in range(0, len(currentScript.functions)):
         name = currentScript.functions[x].name
         shift = ' ' * currentScript.functions[x].indention * 5
         if name == 'Sleep' or name == 'Repeat':
             Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
-            Lb2.pack(side="left", fill="y")
-            # Lb2.place(x=0, y=40)
         elif name == 'If-Exist' or name == 'If-Not-Exist':
             Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
-            Lb2.pack(side="left", fill="y")
-            # Lb2.place(x=0, y=40)
         else:
             Lb2.insert(x, shift + name)
-            Lb2.pack(side="left", fill="y")
-            # Lb2.place(x=0, y=40)
+    try:
+        Lb2.get(index)
+    except:
+        pass
 
 
 def addFunction():
@@ -122,7 +122,7 @@ def addFunction():
 
         if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
 
-            currentFunction = Function(functionName, '', place, '',
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, currentLineFather.fatherName), sleep,currentScript.functions[currentLineFather.fromIndex].indention +1)
 
             currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
@@ -143,13 +143,13 @@ def addFunction():
                 tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
 
         else:
-            currentFunction = Function(functionName, '', place, '',
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, functionName), sleep)
             currentLineFather = LineFather(place, place, functionName)
         currentFunction.getInputBox(currentFunction.extra, currentFunction.frame.children.get('label'), currentFunction.frame.children.get('input'), Sleep.changeSleepTime,Lb2,currentScript)
     elif functionName == 'Repeat':
         delta = 3
-        repeat = Repeat('?', [Function('', '', place +2 , '',(place, functionName), '')])
+        repeat = Repeat('?', [Function('', '', place +2 , rightSectionFrame,'',(place, functionName), '')])
         tempFunction = ['{', '', '}']
 
         if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
@@ -162,7 +162,7 @@ def addFunction():
                 else:
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
 
-            currentFunction = Function(functionName, '', place, '',(currentLineFather.fromIndex, currentLineFather.fatherName), repeat,currentScript.functions[currentLineFather.fromIndex].indention +1)
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',(currentLineFather.fromIndex, currentLineFather.fatherName), repeat,currentScript.functions[currentLineFather.fromIndex].indention +1)
 
             tempLineFather = currentLineFather
             tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
@@ -175,7 +175,7 @@ def addFunction():
                     tempFatherFunction.extra.functions.insert(
                         place - tempLineFather.fromIndex - 2, currentFunction)
                 for i in range(place + 1, place + 4):
-                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, '', (place, functionName), '',tempIndention)
+                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',tempIndention)
                     if tempFatherFunction.father[0] == tempFatherFunction.id:
                         currentScript.functions.insert(i, tempFunc)
                     tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
@@ -190,16 +190,16 @@ def addFunction():
                     currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
                 else:
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-            currentFunction = Function(functionName, '', place, '',
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, functionName), repeat)
             for i in range(place + 1, place + 4):
-                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, '',
+                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'',
                                                            (place, functionName), ''))
             currentLineFather = LineFather(place, place + 3, functionName)
         currentFunction.getInputBox(currentFunction.extra, currentFunction.frame.children.get('label'), currentFunction.frame.children.get('input'), Repeat.changeRepeatTime,Lb2,currentScript)
     elif functionName == 'If-Exist':
         delta = 3
-        ifExist = IfExist('?', [Function('', '', place +2 , '',(place, functionName), '')])
+        ifExist = IfExist('?', [Function('', '', place +2 , rightSectionFrame,'',(place, functionName), '')])
         tempFunction = ['{', '', '}']
 
         if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
@@ -211,7 +211,7 @@ def addFunction():
                                                               currentScript.linesFather[i].fatherName)
                 else:
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-            currentFunction = Function(functionName, '', place, '',(currentLineFather.fromIndex, currentLineFather.fatherName), ifExist,currentScript.functions[currentLineFather.fromIndex].indention +1)
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',(currentLineFather.fromIndex, currentLineFather.fatherName), ifExist,currentScript.functions[currentLineFather.fromIndex].indention +1)
 
             tempLineFather = currentLineFather
             tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
@@ -224,7 +224,7 @@ def addFunction():
                     tempFatherFunction.extra.functions.insert(
                         place - tempLineFather.fromIndex - 2, currentFunction)
                 for i in range(place + 1, place + 4):
-                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, '', (place, functionName), '',
+                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',
                                         tempIndention)
                     if tempFatherFunction.father[0] == tempFatherFunction.id:
                         currentScript.functions.insert(i, tempFunc)
@@ -240,16 +240,16 @@ def addFunction():
                     currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
                 else:
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-            currentFunction = Function(functionName, '', place, '',
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, functionName), ifExist)
             for i in range(place + 1, place + 4):
-                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, '',
+                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'',
                                                            (place, functionName), ''))
             currentLineFather = LineFather(place, place + 3, functionName)
 
     elif functionName == 'If-Not-Exist':
         delta = 3
-        ifNotExist = IfNotExist('?', [Function('', '', place + 2, '', (place, functionName), '')])
+        ifNotExist = IfNotExist('?', [Function('', '', place + 2, rightSectionFrame,'', (place, functionName), '')])
         tempFunction = ['{', '', '}']
 
         if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
@@ -261,7 +261,7 @@ def addFunction():
                                                               currentScript.linesFather[i].fatherName)
                 else:
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-            currentFunction = Function(functionName, '', place, '',
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, currentLineFather.fatherName), ifNotExist,
                                        currentScript.functions[currentLineFather.fromIndex].indention + 1)
 
@@ -277,7 +277,7 @@ def addFunction():
                     tempFatherFunction.extra.functions.insert(
                         place - tempLineFather.fromIndex - 2, currentFunction)
                 for i in range(place + 1, place + 4):
-                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, '', (place, functionName), '',
+                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',
                                         tempIndention)
                     if tempFatherFunction.father[0] == tempFatherFunction.id:
                         currentScript.functions.insert(i, tempFunc)
@@ -293,10 +293,10 @@ def addFunction():
                     currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
                 else:
                     currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-            currentFunction = Function(functionName, '', place, '',
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, functionName), ifNotExist)
             for i in range(place + 1, place + 4):
-                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, '',
+                currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'',
                                                            (place, functionName), ''))
             currentLineFather = LineFather(place, place + 3, functionName)
     elif functionName == 'Else':
@@ -304,7 +304,7 @@ def addFunction():
             popupmsg('cannot use Else function without ifExist or ifNotExist')
         else:
             delta = 3
-            elseObj = Else([Function('', '', place +2 , '',(place, functionName), '')])
+            elseObj = Else([Function('', '', place +2 , rightSectionFrame,'',(place, functionName), '')])
             tempFunction = ['{', '', '}']
 
             if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
@@ -316,7 +316,7 @@ def addFunction():
                                                                   currentScript.linesFather[i].fatherName)
                     else:
                         currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                currentFunction = Function(functionName, '', place, '',(currentLineFather.fromIndex, currentLineFather.fatherName), elseObj,currentScript.functions[currentLineFather.fromIndex].indention +1)
+                currentFunction = Function(functionName, '', place, rightSectionFrame,'',(currentLineFather.fromIndex, currentLineFather.fatherName), elseObj,currentScript.functions[currentLineFather.fromIndex].indention +1)
 
                 tempLineFather = currentLineFather
                 tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
@@ -329,7 +329,7 @@ def addFunction():
                         tempFatherFunction.extra.functions.insert(
                             place - tempLineFather.fromIndex - 2, currentFunction)
                     for i in range(place + 1, place + 4):
-                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, '', (place, functionName), '',
+                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',
                                             tempIndention)
                         if tempFatherFunction.father[0] == tempFatherFunction.id:
                             currentScript.functions.insert(i, tempFunc)
@@ -345,15 +345,15 @@ def addFunction():
                         currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
                     else:
                         currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                currentFunction = Function(functionName, '', place, '',
+                currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                            (currentLineFather.fromIndex, functionName), elseObj)
                 for i in range(place + 1, place + 4):
-                    currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, '',
+                    currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'',
                                                                (place, functionName), ''))
                 currentLineFather = LineFather(place, place + 3, functionName)
     else:
         if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
-            currentFunction = Function(functionName, '', place, '',
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, currentLineFather.fatherName), '',currentScript.functions[currentLineFather.fromIndex].indention +1)
             currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
                                            currentLineFather.fatherName)
@@ -372,13 +372,15 @@ def addFunction():
                 tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
                 tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
         else:
-            currentFunction = Function(functionName, '', place, '', (currentLineFather.fromIndex, functionName), '')
+            currentFunction = Function(functionName, '', place, rightSectionFrame,'', (currentLineFather.fromIndex, functionName), '')
             currentLineFather = LineFather(place, place, functionName)
 
     currentScript.functions[place] = currentFunction
     currentScript.linesFather[place] = currentLineFather
     updateCurrentScript(place,delta)
     updateLb2()
+    Lb2.select_set(place)
+    FocusOnSelectedFunc(None)
     Lb2.selection_clear(0, END)
     Lb1.selection_clear(0, END)
 
@@ -469,6 +471,7 @@ def FocusOnSelectedFunc(event):
 
     try:
         index = Lb2.curselection()[0]
+        print(index)
     except:
         return
 
@@ -477,18 +480,17 @@ def FocusOnSelectedFunc(event):
     photoName = ''
     functionName = ''    # repoFrame_and_Button[0].destroy()
 
-    for x in currentScript.functions:
-        if x.id == id:
-            try:
-                if(x.img != ''):
-                    photoName = x.img.img
-                functionName = x.name
-            except:
-                pass
-            frame = currentScript.functions[index].frame
-            break
+    x = currentScript.functions[index]
+    try:
+        if(x.img != ''):
+            photoName = x.img.img
+        functionName = x.name
+    except:
+        pass
+    frame = x.frame
+    print(frame)
     if frame != '':
-        frame.place(x=1455, y=600)
+        frame.grid(row=1,column=0)
         if photoName != '':
             for childName, childValue in frame.children.items():
                 if childName == 'fileName':
@@ -501,6 +503,10 @@ def FocusOnSelectedFunc(event):
                     canvas.pack()
 
         frame.tkraise()
+        try:
+            frame.refresh()
+        except:
+            pass
     reportFrame()
 
 def disableTakeScreenShot(event):
@@ -512,19 +518,19 @@ def createTree(frame):
     s = ttk.Style()
     s.configure('Treeview', rowheight=30)
     path = os.path.dirname(os.path.abspath(__file__))
-    # root = tree.insert('', 'end', text=path + '\Scripts', open=True, tag='T')
-    # fileImg = PhotoImage(file='').subsample(3, 3)
-    # tree.image = fileImg
-    # SUBS(path + '\\Scripts', root, tree)
-
-    tree.pack(side='left')
+    tree.grid(row = 0,column = 0,sticky = 'NW')
 
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-    vsb.pack(side='right', fill='y')
+    vsb.grid(row=0,column=1,sticky = 'NS')
+    hsb = ttk.Scrollbar(frame, orient="horizontal", command=tree.xview)
+    hsb.grid(row=1, column=0, sticky='EW')
+    tree.configure(xscrollcommand=hsb.set, yscrollcommand=vsb.set)
 
-    tree.configure(yscrollcommand=vsb.set)
+
+
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False, anchor='c')
     tree.heading("#0", text="Project Files View")
+
     return tree
 
 
@@ -691,7 +697,7 @@ def openFunctions(data):
     inputFunctions = []
     tempFunction =[0] * len(data)
     for x in data:
-        func = Function('','','','','','')
+        func = Function('','','', rightSectionFrame,'','','')
         inputFunctions.append(func.getFunction(x,Lb2,currentScript,tempFunction))
     currentScript.functions = copy.copy(inputFunctions)
 
@@ -756,7 +762,7 @@ def insert_A():
         place = Lb2.curselection()[0]
     except:
         place = 0
-    currentScript.functions.insert(place, Function('', '', place, '', '', ''))
+    currentScript.functions.insert(place, Function('', '', place, rightSectionFrame,'', '', ''))
     if place > 0 and place <= len(currentScript.functions)-1:
         previousFunction = currentScript.functions[place - 1]
     else:
@@ -771,7 +777,7 @@ def insert_A():
                                                                currentScript.linesFather[previousFunction.father[0]].toIndex, currentScript.linesFather[previousFunction.father[0]].fatherName))
             fromIndex = currentScript.linesFather[place].fromIndex
             currentScript.functions[place].father = (fromIndex, nextFunction.father[1])
-            currentScript.functions[fromIndex].extra.functions.insert(place - fromIndex - 2, Function('', '', place, '', (
+            currentScript.functions[fromIndex].extra.functions.insert(place - fromIndex - 2, Function('', '', place, rightSectionFrame,'', (
             fromIndex, nextFunction.father[1]), ''))
         else:
             if(nextFunction.name !='Repeat'):
@@ -782,7 +788,7 @@ def insert_A():
                 fromIndex = currentScript.linesFather[place].fromIndex
                 currentScript.functions[place].father = (fromIndex, nextFunction.father[1])
                 currentScript.functions[fromIndex].extra.functions.insert(place - fromIndex - 2,
-                                                                          Function('', '', place, '', (
+                                                                          Function('', '', place, rightSectionFrame,'', (
                                                                               fromIndex, nextFunction.father[1]), ''))
             else:
                 currentScript.linesFather.insert(place, LineFather(place, place, ''))
@@ -802,7 +808,7 @@ def insert_B():
         place = Lb2.curselection()[0] + 1
     except:
         place = 0
-    currentScript.functions.insert(place, Function('', '', place, '', '', ''))
+    currentScript.functions.insert(place, Function('', '', place, rightSectionFrame,'', '', ''))
     if place > 0 and place <= len(currentScript.functions) - 1:
         previousFunction = currentScript.functions[place - 1]
     else:
@@ -818,7 +824,7 @@ def insert_B():
                                                     currentScript.linesFather[nextFunction.father[0]].fatherName))
         fromIndex = currentScript.linesFather[place].fromIndex
         currentScript.functions[place].father = (fromIndex, nextFunction.father[1])
-        currentScript.functions[fromIndex].extra.functions.insert(place - fromIndex - 2, Function('', '', place, '', (
+        currentScript.functions[fromIndex].extra.functions.insert(place - fromIndex - 2, Function('', '', place, rightSectionFrame,'', (
             fromIndex, nextFunction.father[1]), ''))
 
     else:
@@ -911,7 +917,7 @@ def save_new_project_and_run_app(label,fileName, window):
         functionsblock = saveFunctions()
         linesFatherblock = saveLinesFather()
 
-        root = tree.insert('', 'end', text=label+'/'+fileName, open=True, tag='T')
+        root = tree.insert('', 'end', text=fileName, open=True, tag='T')
         SUBS(label+'/'+fileName, root, tree)
 
         insert_A()
@@ -958,8 +964,9 @@ def Minimize_and_Open(event, screenToMini):
         openLinesFather(linesFatherData)
         updateLb2()
         # closeStartWindow(None,screenToMini)
-        folder_path = filePath[0:filePath.rfind('/')]
-        root = tree.insert('', 'end', text=folder_path, open=True, tag='T')
+        folder_path = os.path.split(filePath)[0]
+        file_name = os.path.split(folder_path)[1]
+        root = tree.insert('', 'end', text=file_name, open=True, tag='T')
         SUBS(folder_path, root, tree)
 
         mainScreen.deiconify()
@@ -1306,85 +1313,99 @@ if __name__ == '__main__':
     mainScreen = Tk()
     mainScreen.state("zoomed")
     mainScreen.title("MyApp")
+    mainScreen.columnconfigure(0,weight = 1)
 
     if firstTime :
         startScreen()
+
     toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
-    toolbarFrame.place(x=0, y=0)
+    toolbarFrame.grid(sticky = 'W')
 
     openButton = Button(toolbarFrame, text="Open", command=openButton)
-    openButton.place(x=0, y=0)
+    openButton.grid(row=0,column=0,padx = 7, pady = 7)
 
-    saveButton = Button(toolbarFrame, text="Save", command=saveHundle)
-    saveButton.place(x=70, y=0)
+    saveButton = Button(toolbarFrame, text="Save", command=saveHundle,)
+    saveButton.grid(row=0, column=1,padx = 7, pady = 7)
 
     saveAsButton = Button(toolbarFrame, text="Save As", command=saveAsHundle)
-    saveAsButton.place(x=140, y=0)
+    saveAsButton.grid(row=0, column=2,padx = 7, pady = 7)
 
     photo = PhotoImage(file=r"img\start2.png")
     photoimage = photo.subsample(3, 3)
     runButton = Button(toolbarFrame, text="Run", command=runHendle, image = photoimage)
-    runButton.place(x=230, y=0)
+    runButton.grid(row=0, column=3,padx = 7, pady = 7)
 
 
     stopButton = Button(toolbarFrame, text="Stop")
-    stopButton.place(x=290, y=0)
+    stopButton.grid(row=0, column=4,padx = 7, pady = 7)
 
     addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state=DISABLED)
-    addFunc.place(x=1600, y=100)
+    addFunc.grid(row=1,column = 0,sticky='E',pady = (60,10), padx = 230)
 
-    explorerFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=400, height=430, bg='white')
-    explorerFrame.place(x=10, y=150)
+    mainSectionFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth())
+    mainSectionFrame.columnconfigure(0, weight = 1)
+    mainSectionFrame.columnconfigure(1, weight = 3)
+    mainSectionFrame.columnconfigure(2, weight = 1)
+    mainSectionFrame.grid(row = 2, column=0,sticky='N')
 
-    mainFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=900, height=700, bg='white')
-    mainFrame.place(x=535, y=200)
+    explorerFrame = Frame(mainSectionFrame, bd=3, relief=SUNKEN, width=360, height=430, bg='white')
+    explorerFrame.grid(row=0,column=0,sticky='NW',padx = (50,25))
+    # explorerFrame.place(x=10, y=150)
+    centerSectionFrame = Frame(mainSectionFrame, relief=SUNKEN, width=900, height=50)
+    centerSectionFrame.columnconfigure(0,weight=1)
+    centerSectionFrame.grid(row=0,column=1,sticky='N',padx = 25)
 
-    mainFrame2 = Frame(mainScreen, bd=3, relief=SUNKEN, width=899, height=50, bg='white')
-    mainFrame2.place(x=535, y=150)
+    mainFrame1 = Frame(centerSectionFrame,bd = 3, relief=SUNKEN, width=950, height=50, bg='white')
+    mainFrame1.grid(row=0, column=0,sticky='N',pady=(0,10))
+    # mainFrame2.place(x=535, y=150)
 
 
-    moveDownButton = Button(mainFrame2, text="Move down", command=moveDown)
-    moveDownButton.place(x=20, y=0)
+    Lb2Fframe = Frame(centerSectionFrame, relief=SUNKEN, width=900, height=50)
+    Lb2Fframe.grid(row=1, column=0, sticky='N')
 
-    moveUpButton = Button(mainFrame2, text="Move up", command=moveUp)
-    moveUpButton.place(x=140, y=0)
+    yScroll = Scrollbar(Lb2Fframe, orient=VERTICAL)
+    yScroll.grid(row=0, column=1, sticky=N + S)
 
-    removeFunc = Button(mainFrame2, text="Remove Function", command=removeFunctions)
-    removeFunc.place(x=240, y=0)
+    xScroll = Scrollbar(Lb2Fframe, orient=HORIZONTAL)
+    xScroll.grid(row=1, column=0, sticky=E + W)
 
-    insertB = Button(mainFrame2, text="Insert Below", command=insert_B)
-    insertB.place(x=410, y=0)
+    Lb2 = Listbox(Lb2Fframe, width=100, height=33,
+                              xscrollcommand=xScroll.set,
+                              yscrollcommand=yScroll.set)
+    Lb2.grid(row=0, column=0, sticky=N + S + E + W)
+    xScroll['command'] = Lb2.xview
+    yScroll['command'] = Lb2.yview
 
-    insertA = Button(mainFrame2, text="Insert Above", command=insert_A)
-    insertA.place(x=550, y=0)
+    rightSectionFrame = Frame(mainSectionFrame, relief=SUNKEN, width=450, height=350)
+    rightSectionFrame.grid(row=0,column=2,sticky='NE',padx = (25,50))
 
-    takeScreenShot = Button(mainFrame2, text="Take Screen Shot", command=window2, state=DISABLED)
-    takeScreenShot.place(x=690, y=0)
-
-    # funFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
-    # funFrame.place(x=1455, y=150)
-
-    photoViewFrame = Frame(mainScreen, bd=3, relief=SUNKEN, width=450, height=350, bg='white', name='photoViewFrame')
-    photoViewFrame.place(x=1455, y=600)
-
-    Lb1 = Listbox(mainScreen, width=45, height=11, exportselection=0)
+    Lb1 = Listbox(rightSectionFrame, width=55, height=11, exportselection=0)
+    Lb1.grid(row=0, column=0, sticky='N',pady=(0, 135))
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
-
-    Lb1.place(x=1450, y=150)
     Lb1.config(state=DISABLED)
 
+    photoViewFrame = Frame(rightSectionFrame, bd=3, relief=SUNKEN, width=450, height=400, bg='white',
+                           name='photoViewFrame')
+    photoViewFrame.grid(row=1, column=0)
 
+    moveDownButton = Button(mainFrame1, text="Move down", command=moveDown)
+    moveDownButton.grid(row=0, column=0, padx=18)
 
+    moveUpButton = Button(mainFrame1, text="Move up", command=moveUp)
+    moveUpButton.grid(row=0, column=1, padx=18)
 
-    Lb2 = Listbox(mainFrame, width=78, height=25, font=("Ariel", 10), exportselection=0, selectmode=EXTENDED)
-    Lb2.pack(side="left", fill="y" )
+    removeFunc = Button(mainFrame1, text="Remove Function", command=removeFunctions)
+    removeFunc.grid(row=0, column=2, padx=18)
 
-    scrollbar = Scrollbar(mainFrame, orient="vertical")
-    scrollbar.config(command=Lb2.yview)
-    scrollbar.pack(side="right", fill="y")
+    insertB = Button(mainFrame1, text="Insert Below", command=insert_B)
+    insertB.grid(row=0, column=3, padx=18)
 
-    Lb2.config(yscrollcommand=scrollbar.set)
+    insertA = Button(mainFrame1, text="Insert Above", command=insert_A)
+    insertA.grid(row=0, column=4, padx=18)
+
+    takeScreenShot = Button(mainFrame1, text="Take Screen Shot", command=window2, state=DISABLED)
+    takeScreenShot.grid(row=0, column=5, padx=18)
 
     AutoSave = ttk.Combobox(toolbarFrame,values=[
                                                 "No AutoSave",
@@ -1393,7 +1414,8 @@ if __name__ == '__main__':
                                                 state="readonly"
                             )
     AutoSave.bind('<<ComboboxSelected>>', lambda event: comboBoxSelect(event))
-    AutoSave.place(x=mainScreen.winfo_width()-300,y=0)
+    # AutoSave.place(x=mainScreen.winfo_width()-300,y=0)
+    AutoSave.grid(row=0, column=5,sticky='W', padx=7, pady=7)
     AutoSave.current(0)
 
     reportFrame()

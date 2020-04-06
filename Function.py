@@ -13,11 +13,12 @@ from tkinter import *
 
 
 class Function():
-    def __init__(self, name, img, id, frame, father,extra,indention=0):
+    def __init__(self, name, img, id,frameFather, frame, father,extra,indention=0):
         self.name = name
         self.img = img
         self.id = id
-        self.frame = self.getFrame(name,frame)
+        self.frameFather = frameFather
+        self.frame = self.getFrame(name,frame,frameFather)
         self.father = father
         self.extra = extra
         self.indention = indention
@@ -68,12 +69,13 @@ class Function():
         else:
             return False
 
-    def getFrame(self,functionName,frame):
+    def getFrame(self,functionName,frame,fatherFrame):
         if(frame != ''):
             return frame
         if(functionName == ''):
             return ''
-        frame1 = Frame(bd=3, relief=SUNKEN, width=450, height=350, bg='white')
+        frame1 = Frame(fatherFrame, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
+        frame1.grid(row=1, column=0)
         functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
         if functionName == 'Sleep' or functionName == 'Repeat':
             functionNameLabel.place(x=50, y=50)
