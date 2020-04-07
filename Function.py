@@ -74,8 +74,8 @@ class Function():
             return frame
         if(functionName == ''):
             return ''
-        frame1 = Frame(fatherFrame, bd=3, relief=SUNKEN, width=450, height=400, bg='white')
-        frame1.grid(row=1, column=0)
+        frame1 = Frame(fatherFrame, bd=3, relief=SUNKEN, bg='white')
+        frame1.grid(row=1, column=0, sticky='NEWS')
         functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
         if functionName == 'Sleep' or functionName == 'Repeat':
             functionNameLabel.place(x=50, y=50)
