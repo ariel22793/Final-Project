@@ -490,7 +490,7 @@ def FocusOnSelectedFunc(event):
     frame = x.frame
     print(frame)
     if frame != '':
-        frame.grid(row=1,column=0)
+        frame.grid(row=1, column=0, sticky='NEWS')
         if photoName != '':
             for childName, childValue in frame.children.items():
                 if childName == 'fileName':
@@ -516,9 +516,9 @@ def disableTakeScreenShot(event):
 def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
-    s.configure('Treeview', rowheight=30)
-    path = os.path.dirname(os.path.abspath(__file__))
-    tree.grid(row = 0,column = 0,sticky = 'NW')
+    s.configure('Treeview', rowheight=30, font=(None, 9))
+
+    tree.grid(row = 0,column = 0,sticky = 'WE')
 
     vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
     vsb.grid(row=0,column=1,sticky = 'NS')
@@ -526,8 +526,7 @@ def createTree(frame):
     hsb.grid(row=1, column=0, sticky='EW')
     tree.configure(xscrollcommand=hsb.set, yscrollcommand=vsb.set)
 
-
-
+    frame.update_idletasks()
     tree.column("#0", width=frame.winfo_reqwidth(), stretch=False, anchor='c')
     tree.heading("#0", text="Project Files View")
 
@@ -729,7 +728,8 @@ def openButton():
 def TreeviewD_Click(event):
     item_id = tree.selection()[0]
     parent_id = tree.parent(item_id)
-    fullPath = ''
+    scriptPath = os.path.split(os.path.split(currentScript.path)[0])[0]
+    fullPath =''
     while item_id != '':
         temp = tree.item(item_id)['text']
         if fullPath == '':
@@ -746,8 +746,10 @@ def TreeviewD_Click(event):
         elif (msgbox == None):
             return
     currentScript.functions.clear()
-
-    with open(fullPath) as json_file:
+    path = scriptPath + '\\' + fullPath
+    if(os.path.isdir(path)):
+        path += '\\'
+    with open(path) as json_file:
         data = json_file.read()
         functionsData = json.loads(data[:data.index('\n')])
         linesFatherData = json.loads(data[data.index('\n')+1:])
@@ -1314,6 +1316,9 @@ if __name__ == '__main__':
     mainScreen.state("zoomed")
     mainScreen.title("MyApp")
     mainScreen.columnconfigure(0,weight = 1)
+    mainScreen.rowconfigure(0,weight = 1)
+    mainScreen.rowconfigure(1,weight = 1)
+    mainScreen.rowconfigure(2,weight = 30)
 
     if firstTime :
         startScreen()
@@ -1342,68 +1347,81 @@ if __name__ == '__main__':
     addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state=DISABLED)
     addFunc.grid(row=1,column = 0,sticky='E',pady = (60,10), padx = 230)
 
-    mainSectionFrame = Frame(mainScreen, bd=3)
-    mainSectionFrame.columnconfigure(0, weight = 1)
-    mainSectionFrame.columnconfigure(1, weight = 9)
-    mainSectionFrame.columnconfigure(2, weight = 1)
-    mainSectionFrame.grid(row = 2, column=0,sticky='N')
+    mainSectionFrame = Frame(mainScreen)
+    mainSectionFrame.columnconfigure(0, weight = 2)
+    mainSectionFrame.columnconfigure(1, weight = 1)
+    mainSectionFrame.columnconfigure(2, weight = 2)
+    mainSectionFrame.rowconfigure(0, weight = 1)
+    mainSectionFrame.grid(row = 2, column=0,sticky = 'WESN')
 
-    explorerFrame = Frame(mainSectionFrame, bd=3, relief=SUNKEN, bg='white')
-    explorerFrame.grid(row=0,column=0,sticky='NWE',padx = (50,25))
-    # explorerFrame.place(x=10, y=150)
-    centerSectionFrame = Frame(mainSectionFrame, relief=SUNKEN,bg='red')
-    centerSectionFrame.columnconfigure(0,weight=1)
-    centerSectionFrame.grid(row=0,column=1,sticky='NEW',padx = 25)
+    leftSectionFrame = Frame(mainSectionFrame)
+    leftSectionFrame.columnconfigure(0, weight=1)
+    leftSectionFrame.rowconfigure(0, weight=1)
+    leftSectionFrame.grid(row=0, column=0,sticky='NWE',padx = 10,pady=(0,55))
+
+    explorerFrame = Frame(leftSectionFrame, bd=3, relief=SUNKEN)
+    explorerFrame.columnconfigure(0,weight=1)
+    explorerFrame.rowconfigure(0,weight=1)
+    explorerFrame.grid(row=0,column=0,sticky='NWE')
+
+    centerSectionFrame = Frame(mainSectionFrame)
+    centerSectionFrame.columnconfigure(0, weight=1)
+    centerSectionFrame.rowconfigure(0, weight=1)
+    centerSectionFrame.rowconfigure(1, weight=30)
+    centerSectionFrame.grid(row=0,column=1,sticky='NWES',padx = 10)
 
     mainFrame1 = Frame(centerSectionFrame,bd = 3, relief=SUNKEN, bg='white')
-    mainFrame1.grid(row=0, column=0,sticky='N',pady=(0,10))
-    # mainFrame2.place(x=535, y=150)
+    mainFrame1.grid(row=0, column=0,sticky='N')
 
-
-    Lb2Fframe = Frame(centerSectionFrame, relief=SUNKEN, bg='yellow')
-    Lb2Fframe.grid(row=1, column=0, sticky=N+E+W)
+    Lb2Fframe = Frame(centerSectionFrame, relief=SUNKEN)
+    Lb2Fframe.columnconfigure(0,weight=1)
+    Lb2Fframe.rowconfigure(0,weight=1)
+    Lb2Fframe.grid(row=1, column=0, sticky='NSWE',pady=(0,55))
 
     yScroll = Scrollbar(Lb2Fframe, orient=VERTICAL)
-    yScroll.grid(row=0, column=1, sticky=N+S)
+    yScroll.grid(row=0, column=1, sticky='NS')
 
     xScroll = Scrollbar(Lb2Fframe, orient=HORIZONTAL)
-    xScroll.grid(row=1, column=0,sticky=W+E,columnspan=2)
+    xScroll.grid(row=1, column=0, sticky='EW')
 
-    Lb2 = Listbox(Lb2Fframe,xscrollcommand=xScroll.set, yscrollcommand=yScroll.set)
-    Lb2.grid(row=0, column=0, sticky=N + S + E + W)
+    Lb2 = Listbox(Lb2Fframe,xscrollcommand=xScroll.set,yscrollcommand=yScroll.set)
+    Lb2.grid(row=0, column=0, sticky='NSWE')
     xScroll['command'] = Lb2.xview
     yScroll['command'] = Lb2.yview
 
     rightSectionFrame = Frame(mainSectionFrame, relief=SUNKEN)
-    rightSectionFrame.grid(row=0,column=2,sticky='NE',padx = (25,50))
+    rightSectionFrame.columnconfigure(0,weight=1)
+    rightSectionFrame.rowconfigure(0,weight=1)
+    rightSectionFrame.rowconfigure(1,weight=4)
+    rightSectionFrame.grid(row=0,column=2,sticky='NWES',padx =10,pady=(0,55))
 
-    Lb1 = Listbox(rightSectionFrame, exportselection=0)
-    Lb1.grid(row=0, column=0, sticky='N',pady=(0, 135))
+    Lb1 = Listbox(rightSectionFrame, exportselection=0,bd=3)
+    Lb1.grid(row=0, column=0, sticky='NEW')
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
     Lb1.config(state=DISABLED)
 
     photoViewFrame = Frame(rightSectionFrame, bd=3, relief=SUNKEN, bg='white',
                            name='photoViewFrame')
-    photoViewFrame.grid(row=1, column=0)
+    photoViewFrame.grid(row=1, column=0,sticky='NEWS')
 
     moveDownButton = Button(mainFrame1, text="Move down", command=moveDown)
-    moveDownButton.grid(row=0, column=0, padx=18)
+    moveDownButton.grid(row=0, column=0, padx=10)
 
     moveUpButton = Button(mainFrame1, text="Move up", command=moveUp)
-    moveUpButton.grid(row=0, column=1, padx=18)
+    moveUpButton.grid(row=0, column=1, padx=10)
 
     removeFunc = Button(mainFrame1, text="Remove Function", command=removeFunctions)
-    removeFunc.grid(row=0, column=2, padx=18)
+    removeFunc.grid(row=0, column=2, padx=10)
 
     insertB = Button(mainFrame1, text="Insert Below", command=insert_B)
-    insertB.grid(row=0, column=3, padx=18)
+    insertB.grid(row=0, column=3, padx=10)
 
     insertA = Button(mainFrame1, text="Insert Above", command=insert_A)
-    insertA.grid(row=0, column=4, padx=18)
+    insertA.grid(row=0, column=4, padx=10)
 
     takeScreenShot = Button(mainFrame1, text="Take Screen Shot", command=window2, state=DISABLED)
-    takeScreenShot.grid(row=0, column=5, padx=18)
+    takeScreenShot.grid(row=0, column=5, padx=10)
 
     AutoSave = ttk.Combobox(toolbarFrame,values=[
                                                 "No AutoSave",
@@ -1412,7 +1430,6 @@ if __name__ == '__main__':
                                                 state="readonly"
                             )
     AutoSave.bind('<<ComboboxSelected>>', lambda event: comboBoxSelect(event))
-    # AutoSave.place(x=mainScreen.winfo_width()-300,y=0)
     AutoSave.grid(row=0, column=5,sticky='W', padx=7, pady=7)
     AutoSave.current(0)
 
