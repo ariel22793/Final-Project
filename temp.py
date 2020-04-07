@@ -1318,7 +1318,7 @@ if __name__ == '__main__':
     if firstTime :
         startScreen()
 
-    toolbarFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth(), height=50)
+    toolbarFrame = Frame(mainScreen, bd=3)
     toolbarFrame.grid(sticky = 'W')
 
     openButton = Button(toolbarFrame, text="Open", command=openButton)
@@ -1342,50 +1342,48 @@ if __name__ == '__main__':
     addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state=DISABLED)
     addFunc.grid(row=1,column = 0,sticky='E',pady = (60,10), padx = 230)
 
-    mainSectionFrame = Frame(mainScreen, bd=3, width=mainScreen.winfo_screenwidth())
+    mainSectionFrame = Frame(mainScreen, bd=3)
     mainSectionFrame.columnconfigure(0, weight = 1)
-    mainSectionFrame.columnconfigure(1, weight = 3)
+    mainSectionFrame.columnconfigure(1, weight = 9)
     mainSectionFrame.columnconfigure(2, weight = 1)
     mainSectionFrame.grid(row = 2, column=0,sticky='N')
 
-    explorerFrame = Frame(mainSectionFrame, bd=3, relief=SUNKEN, width=360, height=430, bg='white')
-    explorerFrame.grid(row=0,column=0,sticky='NW',padx = (50,25))
+    explorerFrame = Frame(mainSectionFrame, bd=3, relief=SUNKEN, bg='white')
+    explorerFrame.grid(row=0,column=0,sticky='NWE',padx = (50,25))
     # explorerFrame.place(x=10, y=150)
-    centerSectionFrame = Frame(mainSectionFrame, relief=SUNKEN, width=900, height=50)
+    centerSectionFrame = Frame(mainSectionFrame, relief=SUNKEN,bg='red')
     centerSectionFrame.columnconfigure(0,weight=1)
-    centerSectionFrame.grid(row=0,column=1,sticky='N',padx = 25)
+    centerSectionFrame.grid(row=0,column=1,sticky='NEW',padx = 25)
 
-    mainFrame1 = Frame(centerSectionFrame,bd = 3, relief=SUNKEN, width=950, height=50, bg='white')
+    mainFrame1 = Frame(centerSectionFrame,bd = 3, relief=SUNKEN, bg='white')
     mainFrame1.grid(row=0, column=0,sticky='N',pady=(0,10))
     # mainFrame2.place(x=535, y=150)
 
 
-    Lb2Fframe = Frame(centerSectionFrame, relief=SUNKEN, width=900, height=50)
-    Lb2Fframe.grid(row=1, column=0, sticky='N')
+    Lb2Fframe = Frame(centerSectionFrame, relief=SUNKEN, bg='yellow')
+    Lb2Fframe.grid(row=1, column=0, sticky=N+E+W)
 
     yScroll = Scrollbar(Lb2Fframe, orient=VERTICAL)
-    yScroll.grid(row=0, column=1, sticky=N + S)
+    yScroll.grid(row=0, column=1, sticky=N+S)
 
     xScroll = Scrollbar(Lb2Fframe, orient=HORIZONTAL)
-    xScroll.grid(row=1, column=0, sticky=E + W)
+    xScroll.grid(row=1, column=0,sticky=W+E,columnspan=2)
 
-    Lb2 = Listbox(Lb2Fframe, width=100, height=33,
-                              xscrollcommand=xScroll.set,
-                              yscrollcommand=yScroll.set)
+    Lb2 = Listbox(Lb2Fframe,xscrollcommand=xScroll.set, yscrollcommand=yScroll.set)
     Lb2.grid(row=0, column=0, sticky=N + S + E + W)
     xScroll['command'] = Lb2.xview
     yScroll['command'] = Lb2.yview
 
-    rightSectionFrame = Frame(mainSectionFrame, relief=SUNKEN, width=450, height=350)
+    rightSectionFrame = Frame(mainSectionFrame, relief=SUNKEN)
     rightSectionFrame.grid(row=0,column=2,sticky='NE',padx = (25,50))
 
-    Lb1 = Listbox(rightSectionFrame, width=55, height=11, exportselection=0)
+    Lb1 = Listbox(rightSectionFrame, exportselection=0)
     Lb1.grid(row=0, column=0, sticky='N',pady=(0, 135))
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
     Lb1.config(state=DISABLED)
 
-    photoViewFrame = Frame(rightSectionFrame, bd=3, relief=SUNKEN, width=450, height=400, bg='white',
+    photoViewFrame = Frame(rightSectionFrame, bd=3, relief=SUNKEN, bg='white',
                            name='photoViewFrame')
     photoViewFrame.grid(row=1, column=0)
 
