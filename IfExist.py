@@ -88,9 +88,6 @@ class IfExist():
                                                             currentScript.linesFather[
                                                                 removeFuncFatherIndex].fatherName))
                 currentScript.linesFather[removeFuncFatherIndex].toIndex += 1
-
-
-
         return fromIndex-1
 
     def changeIfExistImage(sv,Lb2,currentScript):

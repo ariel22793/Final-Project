@@ -199,7 +199,11 @@ def addFunction():
                     tempFatherFunction.extra.functions.insert(
                         place - tempLineFather.fromIndex - 2, currentFunction)
                 for i in range(place + 1, place + 4):
-                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',tempIndention)
+                    if(tempFunction[i - (place + 1)] == ''):
+                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',tempIndention+1)
+                    else:
+                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                            (place, functionName), '', tempIndention)
                     if tempFatherFunction.father[0] == tempFatherFunction.id:
                         currentScript.functions.insert(i, tempFunc)
                     tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
@@ -248,8 +252,12 @@ def addFunction():
                     tempFatherFunction.extra.functions.insert(
                         place - tempLineFather.fromIndex - 2, currentFunction)
                 for i in range(place + 1, place + 4):
-                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',
-                                        tempIndention)
+                    if (tempFunction[i - (place + 1)] == ''):
+                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                            (place, functionName), '', tempIndention + 1)
+                    else:
+                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                            (place, functionName), '', tempIndention)
                     if tempFatherFunction.father[0] == tempFatherFunction.id:
                         currentScript.functions.insert(i, tempFunc)
                     tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
@@ -301,8 +309,12 @@ def addFunction():
                     tempFatherFunction.extra.functions.insert(
                         place - tempLineFather.fromIndex - 2, currentFunction)
                 for i in range(place + 1, place + 4):
-                    tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',
-                                        tempIndention)
+                    if (tempFunction[i - (place + 1)] == ''):
+                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                            (place, functionName), '', tempIndention + 1)
+                    else:
+                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                            (place, functionName), '', tempIndention)
                     if tempFatherFunction.father[0] == tempFatherFunction.id:
                         currentScript.functions.insert(i, tempFunc)
                     tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
@@ -353,8 +365,12 @@ def addFunction():
                         tempFatherFunction.extra.functions.insert(
                             place - tempLineFather.fromIndex - 2, currentFunction)
                     for i in range(place + 1, place + 4):
-                        tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',
-                                            tempIndention)
+                        if (tempFunction[i - (place + 1)] == ''):
+                            tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                                (place, functionName), '', tempIndention + 1)
+                        else:
+                            tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                                (place, functionName), '', tempIndention)
                         if tempFatherFunction.father[0] == tempFatherFunction.id:
                             currentScript.functions.insert(i, tempFunc)
                         tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
@@ -425,41 +441,66 @@ def removeFunction(function,functionIndex):
     return listOfIndexToPop
 
 
+def checkMarkArea(indexes):
+    firstIndex = indexes[0]
+    lastIndex = indexes[len(indexes)-1]
+    markFlag = True
+    message = ''
+
+    if(currentScript.functions[firstIndex].name == '{' or currentScript.functions[firstIndex].name == '}'):
+        message += "cannot start the mark from { or }"
+        markFlag = False
+    if(currentScript.functions[firstIndex].indention != currentScript.functions[lastIndex].indention):
+        message += "functions are not complete"
+        markFlag = False
+    if (currentScript.functions[lastIndex].name == 'Repeat' or currentScript.functions[lastIndex].name == 'If-Exist' or
+                        currentScript.functions[lastIndex].name == 'If-Not-Exist' or currentScript.functions[lastIndex].name == 'Else'):
+        message += "cannot End the mark with complex function"
+        markFlag = False
+    if(markFlag == False):
+        popupmsg(message)
+    return markFlag
+
+
 def removeFunctions():
     delta = 0
+    indexes = []
+    currentIndex = -1
     for x in Lb2.curselection():
-        if len(Lb2.curselection())>1:
-            if(x!=0):
-                x-=1
-        index = x
-        removeFuncFatherIndex = index
-        haveFather = False
+        indexes.append(x)
+    flag = checkMarkArea(indexes)
+    if(flag == True):
+        for index in indexes[::-1]:
+            if(currentScript.functions[index].indention == currentScript.functions[0].indention and currentScript.functions[index].name != '}' and currentScript.functions[index].name != '{'):
+                removeFuncFatherIndex = index
+                haveFather = False
 
-        if currentScript.functions[index].father != (index,currentScript.functions[index].name):
-            haveFather = True
-            removeFuncFatherIndex = currentScript.linesFather[currentScript.functions[index].father[0]].fromIndex
+                if currentScript.functions[index].father != (index,currentScript.functions[index].name):
+                    haveFather = True
+                    removeFuncFatherIndex = currentScript.linesFather[currentScript.functions[index].father[0]].fromIndex
 
-        if(currentScript.functions[index].name =='{' or currentScript.functions[index].name =='}' ):
-            msgbox = tkinter.messagebox.showerror('Notic!', 'You cant remove this, this is not a function.')
+                # if(currentScript.functions[index].name =='{' or currentScript.functions[index].name =='}' ):
+                #     msgbox = tkinter.messagebox.showerror('Notic!', 'You cant remove this, this is not a function.')
 
-        popedFunc = currentScript.functions[index]
-        popedFuncName =popedFunc.name
-        if(popedFuncName == 'Repeat'):
-            delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
-            Repeat.removeRepeat(removeFuncFatherIndex,index,currentScript,haveFather)
-        elif (popedFuncName == 'If-Exist'):
-            delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
-            IfExist.removeIfExist(removeFuncFatherIndex,index, currentScript,haveFather)
-        elif (popedFuncName == 'If-Not-Exist'):
-            delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
-            IfNotExist.removeIfNotExist(removeFuncFatherIndex,index, currentScript,haveFather)
-        elif (popedFuncName == 'Else'):
-            delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
-            Else.removeElse(removeFuncFatherIndex,index, currentScript,haveFather)
-        else:
-            delta = -1
-            currentScript.functions.pop(index)
-            currentScript.linesFather.pop(index)
+                popedFunc = currentScript.functions[index]
+                popedFuncName =popedFunc.name
+                if(popedFuncName == 'Repeat'):
+                    delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+                    Repeat.removeRepeat(removeFuncFatherIndex,index,currentScript,haveFather)
+                elif (popedFuncName == 'If-Exist'):
+                    delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+                    IfExist.removeIfExist(removeFuncFatherIndex,index, currentScript,haveFather)
+
+                elif (popedFuncName == 'If-Not-Exist'):
+                    delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+                    IfNotExist.removeIfNotExist(removeFuncFatherIndex,index, currentScript,haveFather)
+                elif (popedFuncName == 'Else'):
+                    delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+                    Else.removeElse(removeFuncFatherIndex,index, currentScript,haveFather)
+                else:
+                    delta = -1
+                    currentScript.functions.pop(index)
+                    currentScript.linesFather.pop(index)
         updateCurrentScript(index,delta)
     updateLb2()
 
@@ -951,7 +992,7 @@ def insert_A():
         place = Lb2.curselection()[0]
     except:
         place = 0
-    currentScript.functions.insert(place, Function('', '', place, rightSectionFrame,'', '', ''))
+    currentScript.functions.insert(place, Function('', '', place, rightSectionFrame,'', '', '',currentScript.functions[place+1].indention))
     if place > 0 and place <= len(currentScript.functions)-1:
         previousFunction = currentScript.functions[place - 1]
     else:
@@ -997,7 +1038,7 @@ def insert_B():
         place = Lb2.curselection()[0] + 1
     except:
         place = 0
-    currentScript.functions.insert(place, Function('', '', place, rightSectionFrame,'', '', ''))
+    currentScript.functions.insert(place, Function('', '', place, rightSectionFrame,'', '', '',currentScript.functions[place-1].indention))
     if place > 0 and place <= len(currentScript.functions) - 1:
         previousFunction = currentScript.functions[place - 1]
     else:
@@ -1571,7 +1612,7 @@ if __name__ == '__main__':
     xScroll = Scrollbar(Lb2Fframe, orient=HORIZONTAL)
     xScroll.grid(row=1, column=0, sticky='EW')
 
-    Lb2 = Listbox(Lb2Fframe,xscrollcommand=xScroll.set,yscrollcommand=yScroll.set)
+    Lb2 = Listbox(Lb2Fframe,xscrollcommand=xScroll.set,yscrollcommand=yScroll.set,selectmode=EXTENDED)
     Lb2.grid(row=0, column=0, sticky='NSWE')
     xScroll['command'] = Lb2.xview
     yScroll['command'] = Lb2.yview
