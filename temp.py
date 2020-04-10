@@ -1608,7 +1608,7 @@ if __name__ == '__main__':
     xScroll = Scrollbar(Lb2Fframe, orient=HORIZONTAL)
     xScroll.grid(row=1, column=0, sticky='EW')
 
-    Lb2 = Listbox(Lb2Fframe,xscrollcommand=xScroll.set,yscrollcommand=yScroll.set)
+    Lb2 = Listbox(Lb2Fframe,xscrollcommand=xScroll.set,yscrollcommand=yScroll.set, selectmode=EXTENDED)
     Lb2.grid(row=0, column=0, sticky='NSWE')
     xScroll['command'] = Lb2.xview
     yScroll['command'] = Lb2.yview
