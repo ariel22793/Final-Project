@@ -80,7 +80,7 @@ def updateCurrentScript(index,delta):
 
         else:
             currentScript.functions[i].id = i
-            currentScript.functions[i].father= (i,currentScript.functions[i].father[1])
+            currentScript.functions[i].father = (i,currentScript.functions[i].father[1])
             currentScript.linesFather[i].fromIndex = i
             currentScript.linesFather[i].toIndex = i
 
@@ -438,13 +438,17 @@ def removeFunctions():
             currentScript.linesFather.pop(index)
         updateCurrentScript(index,delta)
     updateLb2()
+    if(len(currentScript.functions) == 0):
+        insert_B()
+        Lb2.select_set(0)
 
 
 
 
 
 def window2():
-    window2 = ScreenShotWindow(mainScreen,Lb2,currentScript,explorerFrame)
+
+    window2 = ScreenShotWindow(mainScreen,Lb2,currentScript,explorerFrame,rightSectionFrame)
 
 
 def SUBS(path, parent, tree):
@@ -471,7 +475,6 @@ def FocusOnSelectedFunc(event):
 
     try:
         index = Lb2.curselection()[0]
-        print(index)
     except:
         return
 
@@ -516,7 +519,7 @@ def disableTakeScreenShot(event):
 def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
-    s.configure('Treeview', rowheight=30, font=(None, 9))
+    s.configure('Treeview', rowheight=30, font=('Ariel', 8))
 
     tree.grid(row = 0,column = 0,sticky = 'WE')
 
@@ -527,7 +530,7 @@ def createTree(frame):
     tree.configure(xscrollcommand=hsb.set, yscrollcommand=vsb.set)
 
     frame.update_idletasks()
-    tree.column("#0", width=frame.winfo_reqwidth(), stretch=False, anchor='c')
+    tree.column("#0", width=frame.winfo_reqwidth(), stretch=True, anchor='c')
     tree.heading("#0", text="Project Files View")
 
     return tree
@@ -922,16 +925,12 @@ def save_new_project_and_run_app(label,fileName, window):
         root = tree.insert('', 'end', text=fileName, open=True, tag='T')
         SUBS(label+'/'+fileName, root, tree)
 
-        insert_A()
-        Lb2.select_set(0)
-        Lb2.focus_force()
-        FocusOnSelectedFunc(None)
 
-        updateLb2()
         with open(functionPath, 'w+') as outfile:
             outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
 
-
+    insert_A()
+    Lb2.select_set(0)
     window.destroy()
     mainScreen.deiconify()
     mainScreen.state("zoomed")
@@ -973,6 +972,10 @@ def Minimize_and_Open(event, screenToMini):
 
         mainScreen.deiconify()
         mainScreen.state("zoomed")
+        print(len(currentScript.functions) == 0)
+        if(len(currentScript.functions) == 0):
+            insert_B()
+            Lb2.select_set(0)
     except Exception as e:
         print(e)
         startScreen()
@@ -1440,7 +1443,7 @@ if __name__ == '__main__':
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
     tree = createTree(explorerFrame)
-    tree.bind("<Double-1>", TreeviewD_Click)
+    # tree.bind("<Double-1>", TreeviewD_Click)
     tree.bind("<Button-3>", Treeview_right_click)
 
     mainScreen.protocol("WM_DELETE_WINDOW", on_closing)

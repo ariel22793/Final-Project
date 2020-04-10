@@ -30,7 +30,7 @@ class Repeat():
         functions = []
         if(len(extra['functions'])>0):
             for x in extra['functions']:
-                func = Function.Function('','','','','','')
+                func = Function.Function('','','','','','','')
                 func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction)
                 functions.append(func)
         if(extra['time'] == '?'):
@@ -79,8 +79,8 @@ class Repeat():
                 fromIndex - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
             currentScript.linesFather[removeFuncFatherIndex].toIndex -= 3
             if len(currentScript.functions[removeFuncFatherIndex].extra.functions) == 0:
-                currentScript.functions.insert(removeFuncFatherIndex+2, Function.Function('','',removeFuncFatherIndex+2,'',currentScript.functions[removeFuncFatherIndex].father,'',currentScript.functions[removeFuncFatherIndex].indention))
-                currentScript.functions[removeFuncFatherIndex].extra.functions.append(Function.Function('','',removeFuncFatherIndex+2,'',currentScript.functions[removeFuncFatherIndex].father,'',currentScript.functions[removeFuncFatherIndex].indention))
+                currentScript.functions.insert(removeFuncFatherIndex+2, Function.Function('','',removeFuncFatherIndex+2,'','',currentScript.functions[removeFuncFatherIndex].father,'',currentScript.functions[removeFuncFatherIndex].indention))
+                currentScript.functions[removeFuncFatherIndex].extra.functions.append(Function.Function('','',removeFuncFatherIndex+2,'','',currentScript.functions[removeFuncFatherIndex].father,'',currentScript.functions[removeFuncFatherIndex].indention))
                 currentScript.linesFather.insert(removeFuncFatherIndex+2,LineFather(currentScript.linesFather[removeFuncFatherIndex].fromIndex,currentScript.linesFather[removeFuncFatherIndex].toIndex,currentScript.linesFather[removeFuncFatherIndex].fatherName))
                 currentScript.linesFather[removeFuncFatherIndex].toIndex +=1
 

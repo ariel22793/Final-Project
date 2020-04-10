@@ -4,10 +4,16 @@ from PIL import Image
 import pyautogui
 import Photo
 from Photo import Photo
+from tkinter import *
+import tkinter.filedialog
+import tkinter.messagebox
+import pyautogui
+from PIL import Image
+import tkinter.ttk as ttk
 
 
 class ScreenShotWindow():
-    def __init__(self,mainScreen,Lb2,currentScript,explorerFrame):
+    def __init__(self,mainScreen,Lb2,currentScript,explorerFrame,rightSectionFrame):
         mainScreen.iconify()
         window2 = Tk()
         window2.title("window2")
@@ -25,21 +31,21 @@ class ScreenShotWindow():
         self.click = 0
         self.window = window2
         window2.bind('<Button-1>', self.getMaousePosition)
-        window2.bind('<Key>', lambda event :self.keyPress(event,mainScreen,Lb2,currentScript,explorerFrame))
+        window2.bind('<Key>', lambda event :self.keyPress(event,mainScreen,Lb2,currentScript,explorerFrame,rightSectionFrame))
         window2.bind('<Motion>', self.paint)
         window2.bind('<ButtonRelease-1>', self.getMaousePosition)
 
 
 
-    def keyPress(self, event,mainScreen,Lb2,currentScript,explorerFrame):
+    def keyPress(self, event,mainScreen,Lb2,currentScript,explorerFrame,rightSectionFrame):
         if str(event.keysym) == 'Return':
             if self.x0 != self.x1 and self.y0 != self.y1:
                 myScreenshot = pyautogui.screenshot()
                 myScreenshot.save('Screen.png')
                 img = Image.open("Screen.png")
                 img = img.crop((self.x0, self.y0, self.x1, self.y1))
-
-                currentFunction = currentScript.functions[Lb2.curselection()[0]]
+                index = Lb2.curselection()[0]
+                currentFunction = currentScript.functions[index]
 
                 numberOfImages = len([name for name in os.listdir(currentScript.path + 'ScreenShots\\')])
                 imgName = "Screen" + str(numberOfImages) + ".png"
@@ -67,6 +73,7 @@ class ScreenShotWindow():
                                 func - currentScript.functions[func].father[0] - 2].img = img
                 Lb2.select_clear(0, END)
                 self.updateLb2(Lb2,currentScript)
+
 
 
         if str(event.keysym) == 'Escape':
