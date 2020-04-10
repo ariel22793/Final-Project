@@ -482,6 +482,7 @@ def removeFunctions():
                 # if(currentScript.functions[index].name =='{' or currentScript.functions[index].name =='}' ):
                 #     msgbox = tkinter.messagebox.showerror('Notic!', 'You cant remove this, this is not a function.')
 
+
                 popedFunc = currentScript.functions[index]
                 popedFuncName =popedFunc.name
                 if(popedFuncName == 'Repeat'):
@@ -1675,3 +1676,6 @@ if __name__ == '__main__':
 
 
 mainScreen.mainloop()
+
+
+######kakakakaka############
