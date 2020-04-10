@@ -24,7 +24,7 @@ class Function():
         self.indention = indention
 
 
-    def getFunction(self,func,Lb2,currentScript,tempFunction):
+    def getFunction(self,func,Lb2,currentScript,tempFunction,rightSectionFrame):
         extra = ''
         img = ''
         frame = ''
@@ -33,17 +33,17 @@ class Function():
             img = Photo.getImg(func['img'])
         if (func['extra'] != ''):
             if(func['name'] == 'Repeat'):
-                extra = Repeat.Repeat.getExtra(func['extra'],Lb2,currentScript,tempFunction)
+                extra = Repeat.Repeat.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
             elif (func['name'] == 'Sleep'):
                 extra = Sleep.getExtra(func['extra'])
             elif (func['name'] == 'If-Exist'):
-                extra = IfExist.getExtra(func['extra'],Lb2,currentScript,tempFunction)
+                extra = IfExist.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
             elif (func['name'] == 'If-Not-Exist'):
-                extra = IfNotExist.getExtra(func['extra'],Lb2,currentScript,tempFunction)
+                extra = IfNotExist.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
             elif (func['name'] == 'Else'):
-                extra = Else.getExtra(func['extra'],Lb2,currentScript,tempFunction)
+                extra = Else.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
         if (func['name'] != '{' and func['name'] != '}'):
-            frame = self.getFrame(func['name'],'')
+            frame = self.getFrame(func['name'],'',rightSectionFrame)
             if (func['name'] == 'Repeat'):
                 self.getInputBox(extra, frame.children.get('label'), frame.children.get('input'),
                             Repeat.Repeat.changeRepeatTime,Lb2,currentScript)
@@ -51,7 +51,7 @@ class Function():
                 self.getInputBox(extra, frame.children.get('label'), frame.children.get('input'),
                             Sleep.changeSleepTime,Lb2,currentScript)
         if(tempFunction[int(func['id'])] == 0):
-            function = Function(func['name'], img, int(func['id']), frame,
+            function = Function(func['name'], img, int(func['id']),rightSectionFrame, frame,
                                 (int(func['fatherIndex']), func['fatherName']), extra,int(func['indention']))
             tempFunction[int(func['id'])] = function
             return function

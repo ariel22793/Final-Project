@@ -30,6 +30,7 @@ from Function import Function
 from win32api import GetSystemMetrics
 import threading
 from datetime import datetime
+import numpy as np
 
 try:
     from ctypes import windll
@@ -42,47 +43,70 @@ currentScript = None
 firstTime = True
 process = []
 
+# def updateCurrentScript(index,delta):
+#     fromIndex = 0
+#     toIndex = 0
+#
+#     for i in range(len(currentScript.functions)): #run on all the functions
+#         if(i>toIndex):
+#             if(currentScript.functions[i].father[0] > index):
+#                 fromIndex = currentScript.linesFather[currentScript.functions[i].father[0] + delta].fromIndex
+#                 toIndex = currentScript.linesFather[currentScript.functions[i].father[0] + delta].toIndex
+#             else:
+#                 fromIndex = currentScript.linesFather[currentScript.functions[i].father[0]].fromIndex
+#                 toIndex = currentScript.linesFather[currentScript.functions[i].father[0]].toIndex
+#
+#         # change fromIndex and toIndex for complex function
+#         if (currentScript.functions[i].name == 'Repeat' or currentScript.functions[i].name == 'If-Exist' or currentScript.functions[i].name == 'If-Not-Exist' or currentScript.functions[i].name == 'Else' ):
+#             fromIndex = i
+#             toIndex = i + len(currentScript.functions[i].extra.functions) + 2
+#
+#         #if the function have father
+#         if currentScript.functions[i].father != '' and (currentScript.functions[i].father[1] == 'Repeat' or currentScript.functions[i].father[1] == 'If-Exist' or currentScript.functions[i].father[1] == 'If-Not-Exist' or currentScript.functions[i].father[1] == 'Else'):
+#             if(i != fromIndex and currentScript.functions[i].name != '{' and currentScript.functions[i].name != '}'): #if is not the head function
+#                 try:
+#                     if (currentScript.functions[i].father[0] > index ):
+#                         currentScript.functions[currentScript.functions[i].father[0] + delta].extra.functions[i - fromIndex - 2].id = i
+#                     else:
+#                         currentScript.functions[currentScript.functions[i].father[0]].extra.functions[i - fromIndex - 2].id = i
+#                 except:
+#                     print('index:{} , extra:{} , extra index:{}'.format(currentScript.functions[i].father[0],currentScript.functions[currentScript.functions[i].father[0]].extra,i - fromIndex - 2))
+#
+#             currentScript.functions[i].id = i
+#             currentScript.linesFather[i].fromIndex = fromIndex
+#             currentScript.linesFather[i].toIndex = toIndex
+#             if (currentScript.functions[i].father[0] > index): # if the father of the function is after the insert function the so the father increase in delta times
+#                 currentScript.functions[i].father = (currentScript.functions[i].father[0] + delta, currentScript.functions[i].father[1])
+#             else:
+#                 currentScript.functions[i].father = (
+#                     currentScript.functions[i].father[0], currentScript.functions[i].father[1])
+#
+#         else: #if the function dont have father
+#             currentScript.functions[i].id = i
+#             currentScript.functions[i].father= (i,currentScript.functions[i].father[1])
+#             currentScript.linesFather[i].fromIndex = i
+#             currentScript.linesFather[i].toIndex = i
+
 def updateCurrentScript(index,delta):
     fromIndex = 0
     toIndex = 0
-    for i in range(len(currentScript.functions)): #run on all the functions
-        if(i>toIndex):
-            if(currentScript.functions[i].father[0] > index):
-                fromIndex = currentScript.linesFather[currentScript.functions[i].father[0] + delta].fromIndex
-                toIndex = currentScript.linesFather[currentScript.functions[i].father[0] + delta].toIndex
-            else:
-                fromIndex = currentScript.linesFather[currentScript.functions[i].father[0]].fromIndex
-                toIndex = currentScript.linesFather[currentScript.functions[i].father[0]].toIndex
+    currentIndex = -1
+    for i in range(len(currentScript.functions)):#run on all the functions
 
-        if (currentScript.functions[i].name == 'Repeat' or currentScript.functions[i].name == 'If-Exist' or currentScript.functions[i].name == 'If-Not-Exist' or currentScript.functions[i].name == 'Else' ):
-            fromIndex = i
-            toIndex = i + len(currentScript.functions[i].extra.functions) + 2
-
-        if currentScript.functions[i].father != '' and (currentScript.functions[i].father[1] == 'Repeat' or currentScript.functions[i].father[1] == 'If-Exist' or currentScript.functions[i].father[1] == 'If-Not-Exist' or currentScript.functions[i].father[1] == 'Else'):
-            if(i != fromIndex and currentScript.functions[i].name != '{' and currentScript.functions[i].name != '}'):
-                try:
-                    if (currentScript.functions[i].father[0] > index ):
-                        currentScript.functions[currentScript.functions[i].father[0] + delta].extra.functions[i - fromIndex - 2].id = i
-                    else:
-                        currentScript.functions[currentScript.functions[i].father[0]].extra.functions[i - fromIndex - 2].id = i
-                except:
-                    print('index:{} , extra:{} , extra index:{}'.format(currentScript.functions[i].father[0],currentScript.functions[currentScript.functions[i].father[0]].extra,i - fromIndex - 2))
-
-            currentScript.functions[i].id = i
-            currentScript.linesFather[i].fromIndex = fromIndex
-            currentScript.linesFather[i].toIndex = toIndex
-            if (currentScript.functions[i].father[0] > index):
-                currentScript.functions[i].father = (
-                currentScript.functions[i].father[0] + delta, currentScript.functions[i].father[1])
-            else:
-                currentScript.functions[i].father = (
-                    currentScript.functions[i].father[0], currentScript.functions[i].father[1])
-
-        else:
+        if(i > currentIndex and currentScript.functions[i].indention == 0 and currentScript.functions[i].name != '{' and currentScript.functions[i].name != '}'):
             currentScript.functions[i].id = i
             currentScript.functions[i].father = (i,currentScript.functions[i].father[1])
-            currentScript.linesFather[i].fromIndex = i
-            currentScript.linesFather[i].toIndex = i
+
+            if (currentScript.functions[i].name == 'Repeat' or currentScript.functions[i].name == 'If-Exist' or
+                    currentScript.functions[i].name == 'If-Not-Exist' or currentScript.functions[i].name == 'Else'):
+                currentScript.linesFather[i].fromIndex = i
+                currentScript.linesFather[i].toIndex = i + len(currentScript.functions[i].extra.functions) + 2
+                currentIndex = currentScript.functions[i].extra.updateFunction(index, delta, currentScript, i)
+            else:
+                currentScript.linesFather[i].fromIndex = i
+                currentScript.linesFather[i].toIndex = i
+
+
 
 
 
@@ -122,7 +146,7 @@ def addFunction():
 
         if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
 
-            currentFunction = Function(functionName, '', place, rightSectionFrame,'',
+            currentFunction = Function(functionName, '', place, rightSectionFrame, '',
                                        (currentLineFather.fromIndex, currentLineFather.fatherName), sleep,currentScript.functions[currentLineFather.fromIndex].indention +1)
 
             currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
@@ -381,8 +405,8 @@ def addFunction():
     updateLb2()
     Lb2.select_set(place)
     FocusOnSelectedFunc(None)
-    Lb2.selection_clear(0, END)
-    Lb1.selection_clear(0, END)
+    # Lb2.selection_clear(0, END)
+    # Lb1.selection_clear(0, END)
 
 
 def removeFunction(function,functionIndex):
@@ -438,17 +462,13 @@ def removeFunctions():
             currentScript.linesFather.pop(index)
         updateCurrentScript(index,delta)
     updateLb2()
-    if(len(currentScript.functions) == 0):
-        insert_B()
-        Lb2.select_set(0)
 
 
 
 
 
 def window2():
-
-    window2 = ScreenShotWindow(mainScreen,Lb2,currentScript,explorerFrame,rightSectionFrame)
+    window2 = ScreenShotWindow(mainScreen,Lb2,currentScript,tree,photoViewFrame)
 
 
 def SUBS(path, parent, tree):
@@ -461,6 +481,106 @@ def SUBS(path, parent, tree):
             SUBS(abspath, parent_element, tree)
         else:
             parent_element = tree.insert(parent, 'end', text=p, open=True, tag="T")
+
+
+def disableMoveDown(index,functionsLen,functionName):
+    if (currentScript.functions[index].indention > 0):  # if the function is a child
+
+        fatherLinesFather = currentScript.linesFather[currentScript.functions[index].father[0]]
+        fatherFuncLen = len(currentScript.functions[currentScript.functions[index].father[0]].extra.functions)
+
+        if (functionName == 'Repeat' or functionName == 'If-Exist' or functionName == 'If-Not-Exist' or functionName == 'Else'):
+            if (currentScript.linesFather[index].toIndex + 1 == currentScript.linesFather[currentScript.functions[index].father[0]].toIndex):
+                moveDownButton.config(state=DISABLED)
+            else:
+                moveDownButton.config(state=NORMAL)
+        else:
+            if (fatherFuncLen == index - fatherLinesFather.fromIndex-1):
+                moveDownButton.config(state=DISABLED)
+            else:
+                moveDownButton.config(state=NORMAL)
+    else:
+        if (currentScript.linesFather[index].toIndex == functionsLen - 1):
+            moveDownButton.config(state=DISABLED)
+        else:
+            moveDownButton.config(state=NORMAL)
+
+
+
+
+
+def disableMoveUp(index,functionsLen,functionName):
+    if (currentScript.functions[index].indention > 0):  # if the function is a child
+
+        fatherLinesFather = currentScript.linesFather[currentScript.functions[index].father[0]]
+        fatherFuncLen = len(currentScript.functions[currentScript.functions[index].father[0]].extra.functions)
+
+        if (index - fatherLinesFather.fromIndex - 2 == 0):
+            moveUpButton.config(state=DISABLED)
+        else:
+            moveUpButton.config(state=NORMAL)
+    else:
+        if (index == 0):
+            moveUpButton.config(state=DISABLED)
+        else:
+            moveUpButton.config(state=NORMAL)
+
+
+
+def disableMoveUpAndDown(index):
+    functionsLen = len(currentScript.functions)
+    functionName = currentScript.functions[index].name
+
+    if(functionsLen <= 1 or functionName == '{' or functionName == '}' or functionName == ''): #if the number of functions is less then 2
+        moveDownButton.config(state=DISABLED)
+        moveUpButton.config(state=DISABLED)
+    else:
+        disableMoveDown(index,functionsLen,functionName)
+        disableMoveUp(index,functionsLen,functionName)
+
+
+def disableRemoveFunction(index):
+    functionName = currentScript.functions[index].name
+    if(functionName == '{' or functionName == '}' or functionName == '' ):
+        removeFunc.config(state=DISABLED)
+    else:
+        removeFunc.config(state=NORMAL)
+
+
+def disableInsertAboveAndBelow(index):
+    functionName = currentScript.functions[index].name
+    if(functionName == '{'):
+        insertA.config(state=DISABLED)
+    else:
+        insertA.config(state=NORMAL)
+    if(functionName == 'Repeat' or functionName == 'If-Exist' or functionName == 'If-Not-Exist' or functionName == 'Else'):
+        insertB.config(state=DISABLED)
+    else:
+        insertB.config(state=NORMAL)
+
+
+def disableScreeShot(index):
+    functionName = currentScript.functions[index].name
+    if (functionName == '{' or functionName == '}' or functionName == '' or functionName == 'Repeat' or functionName == 'Sleep' or functionName == 'Else'):
+        takeScreenShot.config(state=DISABLED)
+    else:
+        takeScreenShot.config(state=NORMAL)
+
+
+def disableAddFunction(index):
+    functionName = currentScript.functions[index].name
+    if(functionName == ''):
+        addFunc.config(state=NORMAL)
+    else:
+        addFunc.config(state=DISABLED)
+
+
+def disableButtons(index):
+    disableMoveUpAndDown(index)
+    disableRemoveFunction(index)
+    disableInsertAboveAndBelow(index)
+    disableScreeShot(index)
+    disableAddFunction(index)
 
 
 def FocusOnSelectedFunc(event):
@@ -478,6 +598,8 @@ def FocusOnSelectedFunc(event):
     except:
         return
 
+    disableButtons(index)
+
     frame = ''
     id = index
     photoName = ''
@@ -491,7 +613,6 @@ def FocusOnSelectedFunc(event):
     except:
         pass
     frame = x.frame
-    print(frame)
     if frame != '':
         frame.grid(row=1, column=0, sticky='NEWS')
         if photoName != '':
@@ -519,7 +640,7 @@ def disableTakeScreenShot(event):
 def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
-    s.configure('Treeview', rowheight=30, font=('Ariel', 8))
+    s.configure('Treeview', rowheight=30, font=(None, 9))
 
     tree.grid(row = 0,column = 0,sticky = 'WE')
 
@@ -537,32 +658,96 @@ def createTree(frame):
 
 
 def moveUp():
-    index = Lb2.curselection()[0]    # tree.place(x=0, y=0)
+    index = Lb2.curselection()[0]
+    tempFunctions = []
+    tempLineFather = []
 
-    currentScript.functions[index].id = index - 1
-    currentScript.functions[index - 1].id = index
-    a, b = index, index - 1
-    currentScript.functions[b], currentScript.functions[a] = currentScript.functions[a], currentScript.functions[b]
-    listReload(Lb2)
-    Lb2.selection_set(index - 1)
+#################### get move function range################################
+    if (currentScript.functions[index].name == 'Repeat' or currentScript.functions[index].name == 'If-Exist' or
+            currentScript.functions[index].name == 'If-Not-Exist' or currentScript.functions[
+                index].name == 'Else'):
+        fromIndexToMove = index
+        toIndexToMove = index + len(currentScript.functions[index].extra.functions) + 2
+    else:
+        fromIndexToMove = index
+        toIndexToMove = index
+#############################################################################
+
+#################### get Upper function top function#########################
+    if (currentScript.functions[index-1].name == '}'):
+        fromIndexUpperFunc = currentScript.functions[index-1].father[0]
+    else:
+        fromIndexUpperFunc = index-1
+#############################################################################
+
+    numberOfFunctionToMove = toIndexToMove - fromIndexToMove +1
+
+    for funcIndex in range(toIndexToMove,fromIndexToMove-1,-1): # save and remove the function that we want to move in tempFunction
+        tempFunctions.insert(0,currentScript.functions[funcIndex])
+        tempLineFather.insert(0,currentScript.linesFather[funcIndex])
+        currentScript.functions.pop(funcIndex)
+        currentScript.linesFather.pop(funcIndex)
+
+    tempFuncIndex = 0
+    for funcIndex in range(fromIndexUpperFunc,fromIndexUpperFunc + numberOfFunctionToMove):
+        currentScript.functions.insert(funcIndex,tempFunctions[tempFuncIndex])
+        currentScript.linesFather.insert(funcIndex,tempLineFather[tempFuncIndex])
+        tempFuncIndex += 1
+
+    updateCurrentScript(index,0)
+    updateLb2()
+    Lb2.select_set(fromIndexUpperFunc)
 
 
 def moveDown():
     index = Lb2.curselection()[0]
-    currentScript.functions[index].id = index + 1
-    currentScript.functions[index + 1].id = index
-    a, b = index + 1, index
-    currentScript.functions[b], currentScript.functions[a] = currentScript.functions[a], currentScript.functions[b]
-    listReload(Lb2)
-    Lb2.selection_set(index + 1)
+    tempFunctions = []
+    tempLineFather = []
+
+    #################### get move function range################################
+    if (currentScript.functions[index].name == 'Repeat' or currentScript.functions[index].name == 'If-Exist' or
+            currentScript.functions[index].name == 'If-Not-Exist' or currentScript.functions[
+                index].name == 'Else'):
+        fromIndexToMove = index
+        toIndexToMove = index + len(currentScript.functions[index].extra.functions) + 2
+    else:
+        fromIndexToMove = index
+        toIndexToMove = index
+    #############################################################################
+
+    #################### get bottom function top function#########################
+    if (currentScript.functions[toIndexToMove+1].name == 'Repeat' or currentScript.functions[toIndexToMove+1].name == 'If-Exist' or
+                        currentScript.functions[toIndexToMove+1].name == 'If-Not-Exist' or currentScript.functions[toIndexToMove+1].name == 'Else'):
+        toIndexBottomFunc = currentScript.linesFather[toIndexToMove +1].toIndex
+    else:
+        toIndexBottomFunc = toIndexToMove + 1
+    #############################################################################
+
+    numberOfFunctionToMove = toIndexToMove - fromIndexToMove + 1
+
+    for funcIndex in range(toIndexToMove, fromIndexToMove - 1,-1):  # save and remove the function that we want to move in tempFunction
+        tempFunctions.insert(0, currentScript.functions[funcIndex])
+        tempLineFather.insert(0, currentScript.linesFather[funcIndex])
+        currentScript.functions.pop(funcIndex)
+        currentScript.linesFather.pop(funcIndex)
+
+    tempFuncIndex = 0
+    for funcIndex in range(toIndexBottomFunc, toIndexBottomFunc + numberOfFunctionToMove):
+        currentScript.functions.insert(funcIndex, tempFunctions[tempFuncIndex])
+        currentScript.linesFather.insert(funcIndex, tempLineFather[tempFuncIndex])
+        tempFuncIndex += 1
+
+    updateCurrentScript(index, 0)
+    updateLb2()
+    Lb2.select_set(toIndexBottomFunc)
 
 
-def listReload(list):
-    list.delete(0, 'end')
-    for x in range(0, len(currentScript.functions)):
-        Lb2.insert(x, currentScript.functions[x].name)
-        Lb2.pack(side="left", fill="y")
-        # Lb2.place(x=0, y=40)
+# def listReload(list):
+#     list.delete(0, 'end')
+#     for x in range(0, len(currentScript.functions)):
+#         Lb2.insert(x, currentScript.functions[x].name)
+#         Lb2.pack(side="left", fill="y")
+#         # Lb2.place(x=0, y=40)
 
 
 def popupmsg(msg):
@@ -647,10 +832,10 @@ def saveFunctions():
         else:
             imgdict = ''
         if (x.extra != ''):
-            block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'fatherIndex': str(x.father[0]),'fatherName':x.father[1],
+            block.append({'name': x.name, 'img': imgdict, 'id': str(x.id),'frameFather':'', 'frame': '', 'fatherIndex': str(x.father[0]),'fatherName':x.father[1],
                           'extra': x.extra.getDict(),'indention':x.indention})
         else:
-            block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '', 'fatherIndex': str(x.father[0]),'fatherName':x.father[1],
+            block.append({'name': x.name, 'img': imgdict, 'id': str(x.id),'frameFather':'', 'frame': '', 'fatherIndex': str(x.father[0]),'fatherName':x.father[1],
                           'extra': '','indention':x.indention})
     return block
 
@@ -664,7 +849,6 @@ def saveLinesFather():
 
 def saveHundle():
     functionPath = currentScript.path + "/functions.json"
-    print(functionPath)
     try:
         os.remove(functionPath)
     except:
@@ -700,7 +884,7 @@ def openFunctions(data):
     tempFunction =[0] * len(data)
     for x in data:
         func = Function('','','', rightSectionFrame,'','','')
-        inputFunctions.append(func.getFunction(x,Lb2,currentScript,tempFunction))
+        inputFunctions.append(func.getFunction(x,Lb2,currentScript,tempFunction,rightSectionFrame))
     currentScript.functions = copy.copy(inputFunctions)
 
 
@@ -919,21 +1103,28 @@ def save_new_project_and_run_app(label,fileName, window):
         #********************************************************************************
 
 
-        functionsblock = saveFunctions()
-        linesFatherblock = saveLinesFather()
+        # functionsblock = saveFunctions()
+        # linesFatherblock = saveLinesFather()
 
         root = tree.insert('', 'end', text=fileName, open=True, tag='T')
         SUBS(label+'/'+fileName, root, tree)
 
 
-        with open(functionPath, 'w+') as outfile:
-            outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
+        FocusOnSelectedFunc(None)
+
+        updateLb2()
+
 
     insert_A()
+    functionsblock = saveFunctions()
+    linesFatherblock = saveLinesFather()
+    with open(functionPath, 'w+') as outfile:
+        outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
     Lb2.select_set(0)
     window.destroy()
     mainScreen.deiconify()
     mainScreen.state("zoomed")
+
 
 def getCenterOfScreen(screen):
     h = screen.winfo_height()
@@ -972,9 +1163,8 @@ def Minimize_and_Open(event, screenToMini):
 
         mainScreen.deiconify()
         mainScreen.state("zoomed")
-        print(len(currentScript.functions) == 0)
-        if(len(currentScript.functions) == 0):
-            insert_B()
+
+        if(len(currentScript.functions)<=1):
             Lb2.select_set(0)
     except Exception as e:
         print(e)
@@ -1117,8 +1307,6 @@ def reportFrame():
     clearReport.place(x=mainScreen.winfo_width() - 150)
     clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex ))
 
-
-
 def clearRe(event, data, frame):
     data.clear()
     for i in frame.winfo_children():
@@ -1143,12 +1331,8 @@ def getReport(event, frameToWrite, data, size):
                     'id_number': str(x.id),
                     'more_vars': extra
                 }
-
-
-
             })
             counter+=1
-
 
     scrollbar = Scrollbar(frameToWrite)
     scrollbar.pack(side=RIGHT, fill=Y)
@@ -1443,7 +1627,7 @@ if __name__ == '__main__':
     Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
     tree = createTree(explorerFrame)
-    # tree.bind("<Double-1>", TreeviewD_Click)
+    tree.bind("<Double-1>", TreeviewD_Click)
     tree.bind("<Button-3>", Treeview_right_click)
 
     mainScreen.protocol("WM_DELETE_WINDOW", on_closing)

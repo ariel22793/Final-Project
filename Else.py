@@ -1,5 +1,5 @@
 import os
-
+import numpy as np
 import Function
 # from Function import Function
 import LineFather
@@ -18,19 +18,19 @@ class Else():
                 else:
                     imgdict = ''
                 if(x.extra != ''):
-                    block.append({'name':x.name, 'img':imgdict, 'id':str(x.id),'frame':'','fatherIndex': str(x.father[0]),'fatherName':x.father[1], 'extra':x.extra.getDict(),'indention':x.indention})
+                    block.append({'name':x.name, 'img':imgdict, 'id':str(x.id),'frameFather':'','frame':'','fatherIndex': str(x.father[0]),'fatherName':x.father[1], 'extra':x.extra.getDict(),'indention':x.indention})
                 else:
-                    block.append({'name': x.name, 'img': imgdict, 'id': str(x.id), 'frame': '','fatherIndex': str(x.father[0]),'fatherName':x.father[1],
+                    block.append({'name': x.name, 'img': imgdict, 'id': str(x.id),'frameFather':'', 'frame': '','fatherIndex': str(x.father[0]),'fatherName':x.father[1],
                                   'extra':'','indention':x.indention})
         return {'functions':block}
 
     @classmethod
-    def getExtra(cls, extra,Lb2,currentScript,tempFunction):
+    def getExtra(cls, extra,Lb2,currentScript,tempFunction,rightSectionFrame):
         functions = []
         if(len(extra['functions'])>0):
             for x in extra['functions']:
                 func = Function.Function('','','','','','','')
-                func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction)
+                func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction,rightSectionFrame)
                 functions.append(func)
         return Else(functions)
 
@@ -75,12 +75,12 @@ class Else():
             currentScript.linesFather[removeFuncFatherIndex].toIndex -= 3
             if len(currentScript.functions[removeFuncFatherIndex].extra.functions) == 0:
                 currentScript.functions.insert(removeFuncFatherIndex + 2,
-                                               Function.Function('', '', removeFuncFatherIndex + 2,'', '',
+                                               Function.Function('', '', removeFuncFatherIndex + 2, '',
                                                                  currentScript.functions[removeFuncFatherIndex].father,
                                                                  '', currentScript.functions[
                                                                      removeFuncFatherIndex].indention))
                 currentScript.functions[removeFuncFatherIndex].extra.functions.append(
-                    Function.Function('', '', removeFuncFatherIndex + 2,'', '',
+                    Function.Function('', '', removeFuncFatherIndex + 2, '',
                                       currentScript.functions[removeFuncFatherIndex].father, '',
                                       currentScript.functions[removeFuncFatherIndex].indention))
                 currentScript.linesFather.insert(removeFuncFatherIndex + 2,
@@ -102,3 +102,36 @@ class Else():
                    shift + currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
         Lb2.selection_set(index)
         return True
+
+    def updateFunction(self, index, delta, currentScript, fatherIndex):
+        fatherLinesFather = currentScript.linesFather[fatherIndex]
+        currentIndex = -1
+        for func in range(fatherLinesFather.fromIndex + 1, fatherLinesFather.toIndex + 1):
+            tempIndex = func
+            if (func > currentIndex):
+                currentScript.functions[func].id = func
+                currentScript.functions[func].father = (fatherIndex, currentScript.functions[func].father[1])
+                if (currentScript.functions[func].name == 'Repeat' or currentScript.functions[
+                    func].name == 'If-Exist' or
+                        currentScript.functions[func].name == 'If-Not-Exist' or currentScript.functions[
+                            func].name == 'Else'):
+                    currentScript.linesFather[func].fromIndex = func
+                    currentScript.linesFather[func].toIndex = func + len(
+                        currentScript.functions[func].extra.functions) + 2
+                else:
+                    currentScript.linesFather[func].fromIndex = fatherIndex
+                    currentScript.linesFather[func].toIndex = fatherIndex + len(
+                        currentScript.functions[fatherIndex].extra.functions) + 2
+
+                if (currentScript.functions[func].name != '{' and currentScript.functions[
+                    func].name != '}'):  # if is one of the father function not '{' or '}'
+                    currentScript.functions[fatherIndex].extra.functions[func - fatherIndex - 2].id = func
+                    currentScript.functions[fatherIndex].extra.functions[func - fatherIndex - 2].father = (
+                    fatherIndex, currentScript.functions[func].father[1])
+
+                if (currentScript.functions[func].name == 'Repeat' or currentScript.functions[
+                    func].name == 'If-Exist' or
+                        currentScript.functions[func].name == 'If-Not-Exist' or currentScript.functions[
+                            func].name == 'Else'):
+                    currentIndex = currentScript.functions[func].extra.updateFunction(index, delta, currentScript, func)
+        return func
