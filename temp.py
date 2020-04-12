@@ -1861,6 +1861,43 @@ def else_handle(fatherFunction,path):
 
 
 
+
+def drag_and_drop(event,pointers,selection_index, canvasGoust, flag):
+    selection = Lb1.get(selection_index)
+    for child in canvasGoust.winfo_children():
+        child.destroy()
+
+    if flag[0]=='empty':
+        flag[0] = selection
+        flag[1] = selection_index
+        name_of_fun = Label(canvasGoust, text=selection, fg='white', bg='black')
+        print(selection_index)
+        Lb1.select_set(selection_index)
+    else:
+        name_of_fun = Label(canvasGoust, text=flag[0], fg='white', bg='black' )
+        Lb1.select_set(flag[1])
+
+    name_of_fun.pack()
+
+    canvasGoust.place(x=pointers[0]-30, y=pointers[1]-50)
+
+
+def drop(event, canvasGoust, flag ):
+
+    for child in canvasGoust.winfo_children():
+        child.destroy()
+    background = PhotoImage(file=r"img\transparent.png")
+    canvasGoust.bg = background
+    canvasGoust.create_image(0, 0, image=background)
+    # canvasGoust.pack()
+    canvasGoust.place(x=10000000, y=1000000000)
+    flag[0]='empty'
+
+    pointerX, pointerY = event.x_root,event.y_root
+    if(pointerX>= Lb2.winfo_rootx() and pointerX<= Lb2.winfo_rootx()+ Lb2.winfo_width() and pointerY>=Lb2.winfo_rooty() and pointerY<= Lb2.winfo_rooty()+ Lb2.winfo_height()) :
+        addFunction()
+
+
 if __name__ == '__main__':
     functionFather = []
 
@@ -1949,11 +1986,16 @@ if __name__ == '__main__':
     rightSectionFrame.rowconfigure(1,weight=4)
     rightSectionFrame.grid(row=0,column=2,sticky='NWES',padx =10,pady=(0,55))
 
-    Lb1 = Listbox(rightSectionFrame, exportselection=0,bd=3)
+    Lb1 = Listbox(rightSectionFrame, exportselection=0, selectmode = SINGLE, bd=3)
     Lb1.grid(row=0, column=0, sticky='NEW')
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
     Lb1.config(state=DISABLED)
+    flag_for_drag_and_drop = ["empty", 0]
+
+    canvasGoust = Canvas(mainScreen)
+    Lb1.bind('<B1-Motion>', lambda event: drag_and_drop(event,mainScreen.winfo_pointerxy(), Lb1.curselection()[0], canvasGoust, flag_for_drag_and_drop))
+    Lb1.bind('<ButtonRelease-1>', lambda event:drop(event, canvasGoust, flag_for_drag_and_drop))
 
     photoViewFrame = Frame(rightSectionFrame, bd=3, relief=SUNKEN, bg='white',
                            name='photoViewFrame')
@@ -2006,4 +2048,4 @@ if __name__ == '__main__':
     hotKeys.start()
 
 mainScreen.mainloop()
-#######kakaka##########
+
