@@ -162,10 +162,10 @@ class ScreenShotWindow():
             shift = ' ' * currentScript.functions[x].indention * 5
             if name == 'Sleep' or name == 'Repeat':
                 Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
-
             elif name == 'If-Exist' or name == 'If-Not-Exist':
                 Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
-
+            elif name == 'Insert-Input':
+                Lb2.insert(x, shift + name + '("{}")'.format(currentScript.functions[x].extra.text))
             else:
                 Lb2.insert(x, shift + name)
 

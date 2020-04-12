@@ -10,7 +10,10 @@ class Sleep():
         return Sleep(extra['time'])
 
     def changeSleepTime(sv,Lb2,currentScript):
-        index = Lb2.curselection()[0]
+        try:
+            index = Lb2.curselection()[0]
+        except:
+            print('need to mark the function that you want to change')
         currentScript.functions[index].extra.time = int(sv.get())
         currentScript.functions[index].name = "Sleep"
         Lb2.delete(index)

@@ -9,6 +9,8 @@ import IfNotExist
 from IfNotExist import IfNotExist
 import Else
 from Else import Else
+import InsertInput
+from InsertInput import InsertInput
 from tkinter import *
 
 
@@ -42,14 +44,19 @@ class Function():
                 extra = IfNotExist.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
             elif (func['name'] == 'Else'):
                 extra = Else.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
+            elif (func['name'] == 'Insert-Input'):
+                extra = InsertInput.getExtra(func['extra'])
         if (func['name'] != '{' and func['name'] != '}'):
             frame = self.getFrame(func['name'],'',rightSectionFrame)
             if (func['name'] == 'Repeat'):
-                self.getInputBox(extra, frame.children.get('label'), frame.children.get('input'),
+                self.getInputBox(func['name'],extra, frame.children.get('label'), frame.children.get('input'),
                             Repeat.Repeat.changeRepeatTime,Lb2,currentScript)
             elif(func['name'] == 'Sleep'):
-                self.getInputBox(extra, frame.children.get('label'), frame.children.get('input'),
+                self.getInputBox(func['name'],extra, frame.children.get('label'), frame.children.get('input'),
                             Sleep.changeSleepTime,Lb2,currentScript)
+            elif (func['name'] == 'Insert-Input'):
+                self.getInputBox(func['name'], extra, frame.children.get('label'), frame.children.get('input'),
+                                 InsertInput.changeInsertInputText, Lb2, currentScript)
         if(tempFunction[int(func['id'])] == 0):
             function = Function(func['name'], img, int(func['id']),rightSectionFrame, frame,
                                 (int(func['fatherIndex']), func['fatherName']), extra,int(func['indention']))
@@ -81,6 +88,12 @@ class Function():
             functionNameLabel.place(x=50, y=50)
             Frame(frame1, width=200, height=30, bg='white', name='label')
             Frame(frame1, width=200, height=30, bg='white', name='input')
+        elif(functionName == 'Insert-Input'):
+            littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, width=437, height=150, bg='white', name='canvasFrame')
+            littlePhoto.place(x=0, y=0)
+            functionNameLabel.place(x=50, y=200)
+            Frame(frame1, width=200, height=30, bg='white', name='label')
+            Frame(frame1, width=200, height=30, bg='white', name='input')
         else:
             fileNameLabel = Label(frame1, text='File Name : ', name='fileName')
             functionNameLabel.place(x=50, y=200)
@@ -89,21 +102,33 @@ class Function():
             littlePhoto.place(x=0, y=0)
         return frame1
 
-    def getInputBox(self,function, frameLabel, frameInput, eventFunction,Lb2,currentScript):
+    def getInputBox(self,functionName,function, frameLabel, frameInput, eventFunction,Lb2,currentScript):
         count = 0
         for attr in dir(function):
             if not callable(getattr(function, attr)) and not attr.startswith("__") and attr != 'functions':
                 count += 1
 
-                y = 50 + count * 50
-                frameLabel.place(x=50, y=y)
-                label = Label(frameLabel, text=attr)
-                label.place(x=0, y=0)
+                if(functionName == 'Insert-Input'):
+                    y = 200 + count * 50
+                    frameLabel.place(x=50, y=y)
+                    label = Label(frameLabel, text=attr)
+                    label.place(x=0, y=0)
 
-                frameInput.place(x=150, y=y)
+                    frameInput.place(x=150, y=y)
+                    sv = StringVar(value=function.text)
+                    entry = Entry(frameInput, textvariable=sv)
+                    entry.bind('<Return>', (lambda _: eventFunction(entry,Lb2,currentScript)))
+                    entry.pack()
+                    entry.place(x=0, y=0)
+                else:
+                    y = 50 + count * 50
+                    frameLabel.place(x=50, y=y)
+                    label = Label(frameLabel, text=attr)
+                    label.place(x=0, y=0)
 
-                sv = StringVar(value=function.time)
-                entry = Entry(frameInput, textvariable=sv)
-                entry.bind('<Return>', (lambda _: eventFunction(entry,Lb2,currentScript)))
-                entry.pack()
-                entry.place(x=0, y=0)
+                    frameInput.place(x=150, y=y)
+                    sv = StringVar(value=function.time)
+                    entry = Entry(frameInput, textvariable=sv)
+                    entry.bind('<Return>', (lambda _: eventFunction(entry, Lb2, currentScript)))
+                    entry.pack()
+                    entry.place(x=0, y=0)

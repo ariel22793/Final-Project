@@ -103,7 +103,7 @@ class Else():
         Lb2.selection_set(index)
         return True
 
-    def updateFunction(self, index, delta, currentScript, fatherIndex):
+    def updateFunction(self,currentScript, fatherIndex):
         fatherLinesFather = currentScript.linesFather[fatherIndex]
         currentIndex = -1
         for func in range(fatherLinesFather.fromIndex + 1, fatherLinesFather.toIndex + 1):
@@ -133,5 +133,5 @@ class Else():
                     func].name == 'If-Exist' or
                         currentScript.functions[func].name == 'If-Not-Exist' or currentScript.functions[
                             func].name == 'Else'):
-                    currentIndex = currentScript.functions[func].extra.updateFunction(index, delta, currentScript, func)
+                    currentIndex = currentScript.functions[func].extra.updateFunction(currentScript, func)
         return func

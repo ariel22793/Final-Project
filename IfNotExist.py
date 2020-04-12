@@ -106,7 +106,7 @@ class IfNotExist():
         Lb2.selection_set(index)
         return True
 
-    def updateFunction(self, index, delta, currentScript, fatherIndex):
+    def updateFunction(self,currentScript, fatherIndex):
         fatherLinesFather = currentScript.linesFather[fatherIndex]
         currentIndex = -1
         for func in range(fatherLinesFather.fromIndex + 1, fatherLinesFather.toIndex + 1):
@@ -114,17 +114,17 @@ class IfNotExist():
             if (func > currentIndex):
                 currentScript.functions[func].id = func
                 currentScript.functions[func].father = (fatherIndex, currentScript.functions[func].father[1])
+                linesFatherDelta = np.abs(currentScript.linesFather[func].toIndex - currentScript.linesFather[
+                    func].fromIndex)  # range of the function
                 if (currentScript.functions[func].name == 'Repeat' or currentScript.functions[
                     func].name == 'If-Exist' or
                         currentScript.functions[func].name == 'If-Not-Exist' or currentScript.functions[
                             func].name == 'Else'):
                     currentScript.linesFather[func].fromIndex = func
-                    currentScript.linesFather[func].toIndex = func + len(
-                        currentScript.functions[func].extra.functions) + 2
+                    currentScript.linesFather[func].toIndex = func + linesFatherDelta
                 else:
                     currentScript.linesFather[func].fromIndex = fatherIndex
-                    currentScript.linesFather[func].toIndex = fatherIndex + len(
-                        currentScript.functions[fatherIndex].extra.functions) + 2
+                    currentScript.linesFather[func].toIndex = fatherIndex + linesFatherDelta
 
                 if (currentScript.functions[func].name != '{' and currentScript.functions[
                     func].name != '}'):  # if is one of the father function not '{' or '}'
@@ -136,5 +136,5 @@ class IfNotExist():
                     func].name == 'If-Exist' or
                         currentScript.functions[func].name == 'If-Not-Exist' or currentScript.functions[
                             func].name == 'Else'):
-                    currentIndex = currentScript.functions[func].extra.updateFunction(index, delta, currentScript, func)
+                    currentIndex = currentScript.functions[func].extra.updateFunction(currentScript, func)
         return func

@@ -87,7 +87,10 @@ class Repeat():
         return fromIndex-1
 
     def changeRepeatTime(sv,Lb2,currentScript):
-        index = Lb2.curselection()[0]
+        try:
+            index = Lb2.curselection()[0]
+        except:
+            print('need to mark the function that you want to change')
         currentScript.functions[index].extra.time = int(sv.get())
         currentScript.functions[index].name = "Repeat"
         Lb2.delete(index)
@@ -97,7 +100,7 @@ class Repeat():
         Lb2.selection_set(index)
         return True
 
-    def updateFunction(self, index, delta, currentScript, fatherIndex):
+    def updateFunction(self,currentScript, fatherIndex):
         fatherLinesFather = currentScript.linesFather[fatherIndex]
         currentIndex = -1
         for func in range(fatherLinesFather.fromIndex + 1, fatherLinesFather.toIndex + 1):
@@ -127,5 +130,5 @@ class Repeat():
                     func].name == 'If-Exist' or
                         currentScript.functions[func].name == 'If-Not-Exist' or currentScript.functions[
                             func].name == 'Else'):
-                    currentIndex = currentScript.functions[func].extra.updateFunction(index, delta, currentScript, func)
+                    currentIndex = currentScript.functions[func].extra.updateFunction(currentScript, func)
         return func
