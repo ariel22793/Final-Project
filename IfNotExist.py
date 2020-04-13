@@ -36,7 +36,7 @@ class IfNotExist():
         return IfNotExist(extra['image'],functions)
 
     @classmethod
-    def removeIfNotExist(cls,removeFuncFatherIndex, index,currentScript,haveFather):
+    def removeIfNotExist(cls,removeFuncFatherIndex, index,currentScript,haveFather,rightSectionFrame):
         fromIndex = currentScript.linesFather[index].fromIndex
         toIndex = currentScript.linesFather[index].toIndex
 
@@ -45,19 +45,27 @@ class IfNotExist():
             if(i <= place):
                 if(currentScript.functions[i].name == '}'):
                     if currentScript.functions[i].father[1] == 'Repeat':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeRepeat(removeFuncFatherIndex,
-                            currentScript.functions[i].father[0], currentScript,haveFather)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeRepeat(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
                     elif currentScript.functions[i].father[1] == 'If-Exist':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
                     elif currentScript.functions[i].father[1] == 'If-Not-Exist':
-                        place = cls.removeIfNotExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather)
+                        place = cls.removeIfNotExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
                     elif currentScript.functions[i].father[1] == 'Else':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeElse(removeFuncFatherIndex,
-                            currentScript.functions[i].father[0], currentScript,haveFather)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeElse(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
                 elif(currentScript.functions[i].father != (i,currentScript.functions[i].name)):
                     currentScript.functions.pop(i)
                     if haveFather == True:
-                        currentScript.functions[removeFuncFatherIndex].extra.functions.pop(i - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
+                        tempLineFather = currentScript.linesFather[removeFuncFatherIndex]
+                        tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+                        while True:
+                            tempFatherFunction.extra.functions.pop(i - tempLineFather.fromIndex - 2)
+                            if tempFatherFunction.father[0] == tempFatherFunction.id:
+                                break
+                            tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                            tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+                        # currentScript.functions[removeFuncFatherIndex].extra.functions.pop(i - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
                         currentScript.linesFather[removeFuncFatherIndex].toIndex -= 1
                     currentScript.functions[fromIndex].extra.functions.pop(i-fromIndex-2)
                     currentScript.linesFather.pop(i)
@@ -69,30 +77,46 @@ class IfNotExist():
         currentScript.functions.pop(fromIndex)
         currentScript.linesFather.pop(fromIndex)
         if haveFather == True:
-            currentScript.functions[removeFuncFatherIndex].extra.functions.pop(
-                (fromIndex + 2) - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
-            currentScript.functions[removeFuncFatherIndex].extra.functions.pop(
-                (fromIndex + 1) - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
-            currentScript.functions[removeFuncFatherIndex].extra.functions.pop(
-                fromIndex - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
+
+            tempLineFather = currentScript.linesFather[removeFuncFatherIndex]
+            tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+            while True:
+                tempFatherFunction.extra.functions.pop((fromIndex+2) - tempLineFather.fromIndex - 2)
+                tempFatherFunction.extra.functions.pop((fromIndex+1) - tempLineFather.fromIndex - 2)
+                tempFatherFunction.extra.functions.pop(fromIndex - tempLineFather.fromIndex - 2)
+                if tempFatherFunction.father[0] == tempFatherFunction.id:
+                    break
+                tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+            # currentScript.functions[removeFuncFatherIndex].extra.functions.pop((fromIndex+2) - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
+            # currentScript.functions[removeFuncFatherIndex].extra.functions.pop((fromIndex+1) - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
+            # currentScript.functions[removeFuncFatherIndex].extra.functions.pop(fromIndex - (currentScript.linesFather[removeFuncFatherIndex].fromIndex + 2))
             currentScript.linesFather[removeFuncFatherIndex].toIndex -= 3
+
+
             if len(currentScript.functions[removeFuncFatherIndex].extra.functions) == 0:
-                currentScript.functions.insert(removeFuncFatherIndex + 2,
-                                               Function.Function('', '', removeFuncFatherIndex + 2, '',
-                                                                 currentScript.functions[removeFuncFatherIndex].father,
-                                                                 '', currentScript.functions[
-                                                                     removeFuncFatherIndex].indention))
-                currentScript.functions[removeFuncFatherIndex].extra.functions.append(
-                    Function.Function('', '', removeFuncFatherIndex + 2, '',
-                                      currentScript.functions[removeFuncFatherIndex].father, '',
-                                      currentScript.functions[removeFuncFatherIndex].indention))
+                currentFunction = Function.Function('', '', removeFuncFatherIndex + 2,rightSectionFrame, '',(removeFuncFatherIndex,currentScript.functions[removeFuncFatherIndex].name),'', currentScript.functions[
+                                                                     removeFuncFatherIndex].indention+1,)
+                currentScript.functions.insert(removeFuncFatherIndex + 2,currentFunction)
+
+                tempLineFather = currentScript.linesFather[removeFuncFatherIndex]
+                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+                i = currentScript.linesFather[removeFuncFatherIndex].toIndex
+                while True:
+                    tempFatherFunction.extra.functions.insert(
+                            i - tempLineFather.fromIndex - 2, currentFunction)
+                    if tempFatherFunction.father[0] == tempFatherFunction.id:
+                        break
+                    tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
                 currentScript.linesFather.insert(removeFuncFatherIndex + 2,
                                                  LineFather(currentScript.linesFather[removeFuncFatherIndex].fromIndex,
                                                             currentScript.linesFather[removeFuncFatherIndex].toIndex,
                                                             currentScript.linesFather[
                                                                 removeFuncFatherIndex].fatherName))
                 currentScript.linesFather[removeFuncFatherIndex].toIndex += 1
-
         return fromIndex-1
 
     def changeIfNotExistImage(sv,Lb2,currentScript):

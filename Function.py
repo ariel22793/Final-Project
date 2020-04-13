@@ -79,8 +79,8 @@ class Function():
     def getFrame(self,functionName,frame,fatherFrame):
         if(frame != ''):
             return frame
-        if(functionName == ''):
-            return ''
+        # if(functionName == ''):
+        #     return ''
         frame1 = Frame(fatherFrame, bd=3, relief=SUNKEN, bg='white')
         frame1.grid(row=1, column=0, sticky='NEWS')
         functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
