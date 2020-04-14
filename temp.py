@@ -53,10 +53,44 @@ firstTime = True
 process = []
 copyFunction = []
 copyLineFather = []
+redoFunctions = []
+undoFunctions = []
+redoLinesFather = []
+undoLinesFather = []
 stopScript = False
 
 
-def updateCurrentScript():
+def updateRedoFunctions(type = 'regular'):
+    if((type != 'A' and type != 'B') or len(currentScript.functions) == 1):
+        numberOfRedo = 20
+        functionsblock = saveFunctions()
+        linesFatherblock = saveLinesFather()
+
+        if(len(redoFunctions) == numberOfRedo):
+            redoFunctions.insert(len(redoFunctions),functionsblock)
+            redoFunctions.pop(0)
+            redoLinesFather.insert(len(redoLinesFather),linesFatherblock)
+            redoLinesFather.pop(0)
+        else:
+            redoFunctions.append(functionsblock)
+            redoLinesFather.append(linesFatherblock)
+
+def updateUndoFunctions(redoIndex):
+    numberOfUndo = 20
+    functionsblock = copy.deepcopy(redoFunctions[redoIndex])
+    linesFatherblock = copy.deepcopy(redoLinesFather[redoIndex])
+
+    if(len(undoFunctions) == numberOfUndo):
+        undoFunctions.insert(len(undoFunctions),functionsblock)
+        undoFunctions.pop(0)
+        undoLinesFather.insert(len(undoLinesFather),linesFatherblock)
+        undoLinesFather.pop(0)
+    else:
+        undoFunctions.append(functionsblock)
+        undoLinesFather.append(linesFatherblock)
+
+
+def updateCurrentScript(type = 'regular'):
     fromIndex = 0
     toIndex = 0
     currentIndex = -1
@@ -74,6 +108,7 @@ def updateCurrentScript():
             else:
                 currentScript.linesFather[i].fromIndex = i
                 currentScript.linesFather[i].toIndex = i
+    updateRedoFunctions(type)
 
 def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
     vw = Lb2.yview()
@@ -1153,7 +1188,7 @@ def insert_A():
         currentScript.functions[place].father = (place, currentScript.functions[place].name)
 
     if len(currentScript.functions) > 0:
-        updateCurrentScript()
+        updateCurrentScript('A')
     updateLb2(place,place,'add','A')
     selectLb2Index(place)
 
@@ -1166,7 +1201,7 @@ def insert_B(place = 0,flag = True):
         except:
             place = 0
     if(place == 0):
-        currentFunction = Function('', '', place, rightSectionFrame, '', '',0)
+        currentFunction = Function('', '', place, rightSectionFrame, '','','')
         currentScript.functions.insert(place, currentFunction)
     else:
         currentFunction = Function('', '', place, rightSectionFrame, '', '', '',
@@ -1198,7 +1233,7 @@ def insert_B(place = 0,flag = True):
         currentScript.functions[place].father = (place,currentScript.functions[place].name)
 
     if len(currentScript.functions) > 1:
-        updateCurrentScript()
+        updateCurrentScript('B')
     if(flag == True):
         updateLb2(place,place,'add','B')
     selectLb2Index(place)
@@ -1337,6 +1372,7 @@ def Minimize_and_Open(event, screenToMini):
 
         openFunctions(functionsData)
         openLinesFather(linesFatherData)
+        updateCurrentScript()
         updateLb2(0,len(currentScript.functions)-1,'add')
         # closeStartWindow(None,screenToMini)
         folder_path = os.path.split(filePath)[0]
@@ -1642,7 +1678,10 @@ def Lb2_right_click(event):
     menu = Menu(Lb2, tearoff=0)
     menu.add_command(label="Copy", command = lambda: copy_handler())
     menu.add_command(label="Paste", command = lambda: paste_handler())
+    menu.add_command(label="Cut", command = lambda: cut_handler())
     menu.add_command(label="Delete", command = lambda: removeFunctions())
+    menu.add_command(label="Redo", command = lambda: redo_handler())
+    menu.add_command(label="Undo", command = lambda: undo_handler())
     menu.post(event.x_root, event.y_root)
 
 def deletePhoto(path,iid):
@@ -1723,9 +1762,47 @@ def paste_handler():
 
 
 def esc_handler():
-    print ('kaka')
     global stopScript
     stopScript = True
+
+def cut_handler():
+    copy_handler()
+    removeFunctions()
+
+def undo_handler():
+    if(len(undoFunctions) > 0):
+        openFunctions(undoFunctions[len(undoFunctions) - 1])  # change currentScript.functions
+        openLinesFather(undoLinesFather[len(undoLinesFather) - 1])  # change currentScript.linesFather
+
+        undoFunctions.pop(len(undoFunctions) - 1)  # pop the last redo save from redoFunctions
+        undoLinesFather.pop(len(undoLinesFather) - 1)  # pop the last redo save from redoLinesFather
+        updateLb2(0, len(currentScript.functions) - 1, 'add', 'deleteBefore')
+        if (len(currentScript.functions) == 1 and currentScript.functions[0].name == ''):
+            Lb2.select_set(0)
+            disableButtons(0)
+        updateRedoFunctions()
+
+def redo_handler():
+    if(len(redoFunctions) > 1):
+        openFunctions(redoFunctions[len(redoFunctions)-2]) # change currentScript.functions
+        openLinesFather(redoLinesFather[len(redoLinesFather)-2])# change currentScript.linesFather
+
+        updateUndoFunctions(len(redoFunctions)-1)
+
+        redoFunctions.pop(len(redoFunctions)-1) #pop the last redo save from redoFunctions
+        redoLinesFather.pop(len(redoLinesFather)-1)#pop the last redo save from redoLinesFather
+        updateLb2(0, len(currentScript.functions) - 1, 'add', 'deleteBefore')
+        if(len(currentScript.functions) == 1 and currentScript.functions[0].name == ''):
+            Lb2.select_set(0)
+            disableButtons(0)
+
+def delete_handler():
+    indexes = []
+    for x in Lb2.curselection():
+        indexes.append(x)
+    flag = checkMarkArea(indexes)
+    if (flag == True):
+        removeFunctions()
 
 def repeat_handle(fatherFunction,path):
     repeatTime = fatherFunction.extra.time
@@ -2117,6 +2194,10 @@ if __name__ == '__main__':
     hotKeys = keyboard.GlobalHotKeys({
         '<ctrl>+c': copy_handler,
         '<ctrl>+v': paste_handler,
+        '<ctrl>+x': cut_handler,
+        '<ctrl>+z': redo_handler,
+        '<ctrl>+y': undo_handler,
+        '<delete>': delete_handler,
         '<esc>': esc_handler})
     hotKeys.start()
 

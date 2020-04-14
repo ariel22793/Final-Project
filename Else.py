@@ -29,7 +29,7 @@ class Else():
         functions = []
         if(len(extra['functions'])>0):
             for x in extra['functions']:
-                func = Function.Function('','','','','','','')
+                func = Function.Function('','','',rightSectionFrame,'','','')
                 func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction,rightSectionFrame)
                 functions.append(func)
         return Else(functions)
