@@ -1001,7 +1001,16 @@ def checkImageInFunc():
     return funcWithoutImage
 
 
-def runHendle():
+def runHendle(speed):
+    if speed =='Slow':
+        speed =3
+    elif speed =='Regular':
+        speed=1
+    elif speed =='Fast':
+        speed=0.6
+    elif speed =='Very Fast':
+        speed=0.2
+
     global stopScript
     stopScript = False
     functionNum = 0
@@ -1017,10 +1026,9 @@ def runHendle():
                 if currentScript.functions[func].father[0] == currentScript.functions[func].id:
                     if func >= functionNum:
                         if currentScript.functions[func].name == 'Repeat':
-                            functionNum += repeat_handle(currentScript.functions[func],
-                                                                           currentScript.path) + 3
+                            functionNum += repeat_handle(currentScript.functions[func], currentScript.path) + 3
                         elif currentScript.functions[func].name == 'Left-Click':
-                            left_click_handle(currentScript.functions[func].img, currentScript.path)
+                            left_click_handle(currentScript.functions[func].img, currentScript.path, speed)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'If-Exist':
                             exist,tempFunctionNum = exist_handle(currentScript.functions[func],currentScript.path)
@@ -1036,10 +1044,10 @@ def runHendle():
                                                                            currentScript.path)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Double-Click':
-                            double_click_handle(currentScript.functions[func].img, currentScript.path)
+                            double_click_handle(currentScript.functions[func].img, currentScript.path, speed)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Right-Click':
-                            right_click_handle(currentScript.functions[func].img, currentScript.path)
+                            right_click_handle(currentScript.functions[func].img, currentScript.path, speed)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Sleep':
                             sleep_handle(currentScript.functions[func].extra.time)
@@ -1901,14 +1909,14 @@ def repeat_handle(fatherFunction,path):
 def sleep_handle(timeDelay):
     time.sleep(timeDelay)
 
-def left_click_handle(template,path):
+def left_click_handle(template,path, speed):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
-        pyautogui.click(x,y,duration=1)
+        pyautogui.click(x,y,duration=speed)
 
 def insert_input_handle(template,path,text):
     screenShot = ImgRecog.tempScreenShot(template)
@@ -1921,23 +1929,23 @@ def insert_input_handle(template,path,text):
         pyautogui.click(x, y, duration=1)
         pyautogui.typewrite(text, interval=0.1)
 
-def double_click_handle(template,path):
+def double_click_handle(template,path, speed):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
-        pyautogui.doubleClick(x,y,duration=1)
+        pyautogui.doubleClick(x,y,duration=speed)
 
-def right_click_handle(template,path):
+def right_click_handle(template,path, speed):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
-        pyautogui.rightClick(x,y,duration=1)
+        pyautogui.rightClick(x,y,duration=speed)
 
 def exist_handle(fatherFunction,path):
     childrenFunctions = fatherFunction.extra.functions
@@ -2150,6 +2158,37 @@ def editToolBar_click(event, x, y, flag):
     else:
         flag[0]='0'
 
+
+def option_click_handler(selection, flag):
+    print(selection)
+    flag[1] = selection
+
+def optionToolBar_click(event, x, y, flag):
+
+    if flag[0] == '0':
+        menu = Menu(mainScreen, tearoff=0, bg='#3c3f41', fg='white')
+        if flag[1]=='Slow':
+            menu.add_command(label="⦿ Slow", command=lambda: option_click_handler('Slow', flag))
+        else:
+            menu.add_command(label="      Slow", command=lambda: option_click_handler('Slow', flag))
+        if flag[1]=='Regular':
+            menu.add_command(label="⦿ Regular", command=lambda: option_click_handler('Regular', flag))
+        else:
+            menu.add_command(label="      Regular", command=lambda: option_click_handler('Regular', flag))
+        if flag[1]=='Fast':
+            menu.add_command(label="⦿ Fast", command=lambda: option_click_handler('Fast', flag))
+        else:
+            menu.add_command(label="      Fast", command=lambda: option_click_handler('Fast', flag))
+        if flag[1] == 'Very Fast':
+            menu.add_command(label="⦿ Very Fast", command=lambda: option_click_handler('Very Fast', flag))
+        else:
+            menu.add_command(label="      Very Fast", command=lambda: option_click_handler('Very Fast', flag))
+
+        menu.post(x + 10, y + 35)
+        flag[0] = '1'
+    else:
+        flag[0] = '0'
+
 if __name__ == '__main__':
     functionFather = []
 
@@ -2220,6 +2259,16 @@ if __name__ == '__main__':
     canvasEdit.tag_bind('edit', '<Enter>',lambda event: change_on_hover(event, "editTool", canvasEdit, editTool))
     canvasEdit.tag_bind('edit', '<Leave>',lambda event: change_on_hover(event, "editToolHover", canvasEdit, editTool))
 
+    optionToolButton = PhotoImage(file=r"img\optionsTool.png")
+    canvasOption = Canvas(toolbarFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', bd=-2)
+    canvasOption.grid(row=0, column=4, sticky="NWE", pady=2)
+
+    canvasOption.options = optionToolButton
+    optionTool = canvasOption.create_image(-1, -1, anchor=NW, image=optionToolButton, tags="options")
+    canvasOptions_flag = ['0', 'Regular']
+    canvasOption.tag_bind('options', '<Button-1>', lambda event: optionToolBar_click(event, canvasOption.winfo_rootx(), canvasOption.winfo_rooty(), canvasOptions_flag))
+    canvasOption.tag_bind('options', '<Enter>', lambda event: change_on_hover(event, "optionsTool", canvasOption, optionTool))
+    canvasOption.tag_bind('options', '<Leave>', lambda event: change_on_hover(event, "optionsToolHover", canvasOption, optionTool))
 
     playToolButton = PhotoImage(file=r"img\PlayTool.png")
     canvasPlay = Canvas(mainScreen, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',bd=-2)
@@ -2228,7 +2277,7 @@ if __name__ == '__main__':
     canvasPlay.play = playToolButton
     playTool = canvasPlay.create_image(0, 0, anchor=NW, image=playToolButton, tags="PlayTool")
 
-    canvasPlay.tag_bind('PlayTool', '<Button-1>', lambda event: runHendle())
+    canvasPlay.tag_bind('PlayTool', '<Button-1>', lambda event: runHendle(canvasOptions_flag[1]))
     canvasPlay.tag_bind('PlayTool', '<Enter>', lambda event: change_on_hover(event, "PlayTool", canvasPlay, playTool))
     canvasPlay.tag_bind('PlayTool', '<Leave>', lambda event: change_on_hover(event, "PlayToolHover", canvasPlay, playTool))
 
@@ -2412,6 +2461,7 @@ if __name__ == '__main__':
 
 
     reportFrame()
+
 
 
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
