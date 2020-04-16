@@ -81,24 +81,24 @@ class Function():
             return frame
         # if(functionName == ''):
         #     return ''
-        frame1 = Frame(fatherFrame, bd=3, relief=SUNKEN, bg='white')
+        frame1 = Frame(fatherFrame, bg='#2b2b2b')
         frame1.grid(row=1, column=0, sticky='NEWS')
         functionNameLabel = Label(frame1, text='Function Name : {}'.format(functionName))
         if functionName == 'Sleep' or functionName == 'Repeat':
             functionNameLabel.place(x=50, y=50)
-            Frame(frame1, width=200, height=30, bg='white', name='label')
-            Frame(frame1, width=200, height=30, bg='white', name='input')
+            Frame(frame1, width=200, height=30, bg='#2b2b2b', name='label')
+            Frame(frame1, width=200, height=30, bg='#2b2b2b', name='input')
         elif(functionName == 'Insert-Input'):
-            littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, width=437, height=150, bg='white', name='canvasFrame')
+            littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, width=437, height=150, bg='#2b2b2b', name='canvasFrame')
             littlePhoto.place(x=0, y=0)
             functionNameLabel.place(x=50, y=200)
-            Frame(frame1, width=200, height=30, bg='white', name='label')
-            Frame(frame1, width=200, height=30, bg='white', name='input')
+            Frame(frame1, width=200, height=30, bg='#3c3f41', name='label')
+            Frame(frame1, width=200, height=30, bg='#3c3f41', name='input')
         else:
             fileNameLabel = Label(frame1, text='File Name : ', name='fileName')
             functionNameLabel.place(x=50, y=200)
             fileNameLabel.place(x=50, y=250)
-            littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, width=437, height=150, bg='white', name='canvasFrame')
+            littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, width=437, height=150, bg='#2b2b2b', name='canvasFrame')
             littlePhoto.place(x=0, y=0)
         return frame1
 
@@ -123,7 +123,7 @@ class Function():
                 else:
                     y = 50 + count * 50
                     frameLabel.place(x=50, y=y)
-                    label = Label(frameLabel, text=attr)
+                    label = Label(frameLabel, text=attr, bg='#2b2b2b')
                     label.place(x=0, y=0)
 
                     frameInput.place(x=150, y=y)
