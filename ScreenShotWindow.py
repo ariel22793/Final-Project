@@ -141,6 +141,7 @@ class ScreenShotWindow():
             except:
                 pass
             Lb2.select_set(index)
+            self.markCurrentFuncArea(index,currentScript,Lb2)
         # reportFrame()
 
     def SUBS(self,path, parent, tree):
@@ -162,10 +163,47 @@ class ScreenShotWindow():
             shift = ' ' * currentScript.functions[x].indention * 5
             if name == 'Sleep' or name == 'Repeat':
                 Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
-
             elif name == 'If-Exist' or name == 'If-Not-Exist':
                 Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
-
+            elif name == 'Insert-Input':
+                Lb2.insert(x, shift + name + '("{}")'.format(currentScript.functions[x].extra.text))
             else:
                 Lb2.insert(x, shift + name)
+
+    def markCurrentFuncArea(self,index,currentScript,Lb2):
+        fromindex = currentScript.linesFather[index].fromIndex
+        toIndex = currentScript.linesFather[index].toIndex
+        for i in range(len(currentScript.functions)):
+            tempFunc = currentScript.functions[i]
+            if (fromindex <= i <= toIndex):
+                if (tempFunc.name == 'Right-Click'):
+                    Lb2.itemconfig(i, bg='#f4b63f')
+                elif (tempFunc.name == 'Left-Click'):
+                    Lb2.itemconfig(i, bg='#57ceff')
+                elif (tempFunc.name == 'Repeat' or (
+                        (tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '') and tempFunc.father[
+                    1] == 'Repeat')):
+                    Lb2.itemconfig(i, bg='#ff5792')
+                elif (tempFunc.name == 'If-Exist' or (
+                        (tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '') and tempFunc.father[
+                    1] == 'If-Exist')):
+                    Lb2.itemconfig(i, bg='#c2ff57')
+                elif (tempFunc.name == 'If-Not-Exist' or (
+                        (tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '') and tempFunc.father[
+                    1] == 'If-Not-Exist')):
+                    Lb2.itemconfig(i, bg='#ff8657')
+                elif (tempFunc.name == 'Else' or (
+                        (tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '') and tempFunc.father[
+                    1] == 'Else')):
+                    Lb2.itemconfig(i, bg='#579aff')
+                elif (currentScript.functions[i].name == 'Double-Click'):
+                    Lb2.itemconfig(i, bg='#d557ff')
+                elif (currentScript.functions[i].name == 'Insert-Input'):
+                    Lb2.itemconfig(i, bg='#078f02')
+                elif (currentScript.functions[i].name == 'Sleep'):
+                    Lb2.itemconfig(i, bg='#57ff7f')
+            else:
+                Lb2.itemconfig(i, bg='#2b2b2b')
+
+
 
