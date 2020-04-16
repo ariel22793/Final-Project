@@ -165,6 +165,8 @@ def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
     Lb2.yview_moveto(vw[0])
 
 def addFunction(place = 0,functionName = 'None',flag = True):
+    if 'Dis' in add_func_flag[0]:
+        return
     if(flag == True):
         place = Lb2.curselection()[0]
         functionName = functionList[Lb1.curselection()[0]]
@@ -607,6 +609,8 @@ def removeFunctions():
 
 
 def window2():
+    if 'Dis' in takeS_flag[0]:
+        return
     window2 = ScreenShotWindow(mainScreen,Lb2,currentScript,tree,photoViewFrame)
 
 
@@ -630,20 +634,31 @@ def disableMoveDown(index,functionsLen,functionName):
 
         if (functionName == 'Repeat' or functionName == 'If-Exist' or functionName == 'If-Not-Exist' or functionName == 'Else'):
             if (currentScript.linesFather[index].toIndex + 1 == currentScript.linesFather[currentScript.functions[index].father[0]].toIndex):
-                moveDownButton.config(state=DISABLED)
+                # moveDownButton.config(state=DISABLED)
+                move_d_flag[0] = 'moveDownDis'
+                change_on_hover('event', move_d_flag[0], canvasmoveDown, moveDown_b)
             else:
-                moveDownButton.config(state=NORMAL)
+                # moveDownButton.config(state=NORMAL)
+                move_d_flag[0] = 'moveDown'
+                change_on_hover('event', "moveDownHover", canvasmoveDown, moveDown_b)
         else:
             if (fatherFuncLen == index - fatherLinesFather.fromIndex-1):
-                moveDownButton.config(state=DISABLED)
+                # moveDownButton.config(state=DISABLED)
+                move_d_flag[0] = 'moveDownDis'
+                change_on_hover('event', move_d_flag[0], canvasmoveDown, moveDown_b)
             else:
-                moveDownButton.config(state=NORMAL)
+                # moveDownButton.config(state=NORMAL)
+                move_d_flag[0] = 'moveDown'
+                change_on_hover('event', "moveDownHover", canvasmoveDown, moveDown_b)
     else:
         if (currentScript.linesFather[index].toIndex == functionsLen - 1):
-            moveDownButton.config(state=DISABLED)
+            # moveDownButton.config(state=DISABLED)
+            move_d_flag[0] = 'moveDownDis'
+            change_on_hover('event', move_d_flag[0], canvasmoveDown, moveDown_b)
         else:
-            moveDownButton.config(state=NORMAL)
-
+            # moveDownButton.config(state=NORMAL)
+            move_d_flag[0] = 'moveDown'
+            change_on_hover('event', "moveDownHover", canvasmoveDown, moveDown_b)
 
 
 
@@ -655,15 +670,22 @@ def disableMoveUp(index,functionsLen,functionName):
         fatherFuncLen = len(currentScript.functions[currentScript.functions[index].father[0]].extra.functions)
 
         if (index - fatherLinesFather.fromIndex - 2 == 0):
-            moveUpButton.config(state=DISABLED)
+            # moveUpButton.config(state=DISABLED)
+            move_u_flag[0] = 'moveUpDis'
+            change_on_hover('event', move_u_flag[0], canvasmoveUp, moveUp_b)
         else:
-            moveUpButton.config(state=NORMAL)
+            # moveUpButton.config(state=NORMAL)
+            move_u_flag[0] = 'moveUp'
+            change_on_hover('event', 'moveUpHover', canvasmoveUp, moveUp_b)
     else:
         if (index == 0):
-            moveUpButton.config(state=DISABLED)
+            # moveUpButton.config(state=DISABLED)
+            move_u_flag[0] = 'moveUpDis'
+            change_on_hover('event', move_u_flag[0], canvasmoveUp, moveUp_b)
         else:
-            moveUpButton.config(state=NORMAL)
-
+            # moveUpButton.config(state=NORMAL)
+            move_u_flag[0] = 'moveUp'
+            change_on_hover('event', 'moveUpHover', canvasmoveUp, moveUp_b)
 
 
 def disableMoveUpAndDown(index):
@@ -671,8 +693,12 @@ def disableMoveUpAndDown(index):
     functionName = currentScript.functions[index].name
 
     if(functionsLen <= 1 or functionName == '{' or functionName == '}' or functionName == ''): #if the number of functions is less then 2
-        moveDownButton.config(state=DISABLED)
-        moveUpButton.config(state=DISABLED)
+        # moveDownButton.config(state=DISABLED)
+        # moveUpButton.config(state=DISABLED)
+        move_u_flag[0] = 'moveUpDis'
+        move_d_flag[0] = 'moveDownDis'
+        change_on_hover('event', move_u_flag[0], canvasmoveUp, moveUp_b)
+        change_on_hover('event', move_d_flag[0], canvasmoveDown, moveDown_b)
     else:
         disableMoveDown(index,functionsLen,functionName)
         disableMoveUp(index,functionsLen,functionName)
@@ -681,21 +707,31 @@ def disableMoveUpAndDown(index):
 def disableRemoveFunction(index):
     functionName = currentScript.functions[index].name
     if(functionName == '{' or functionName == '}' or functionName == '' ):
-        removeFunc.config(state=DISABLED)
+        # removeFunc.config(state=DISABLED)
+        remove_flag[0] = 'removeDis'
+        change_on_hover('event', remove_flag[0], canvasRemove, remove_b)
     else:
-        removeFunc.config(state=NORMAL)
-
+        # removeFunc.config(state=NORMAL)
+        remove_flag[0] = 'remove'
+        change_on_hover('event', 'removeHover', canvasRemove, remove_b)
 
 def disableInsertAboveAndBelow(index):
     functionName = currentScript.functions[index].name
     if(functionName == '{'):
-        insertA.config(state=DISABLED)
+        # insertA.config(state=DISABLED)
+        insert_a_flag[0] = 'insertADis'
+        change_on_hover('event', insert_a_flag[0], canvasinsertA, insertA)
     else:
-        insertA.config(state=NORMAL)
+        # insertA.config(state=NORMAL)
+        insert_a_flag[0] = 'insertA'
+        change_on_hover('event', 'insertAHover', canvasinsertA, insertA)
     if(functionName == 'Repeat' or functionName == 'If-Exist' or functionName == 'If-Not-Exist' or functionName == 'Else'):
-        insertB.config(state=DISABLED)
+        # insertB.config(state=DISABLED)
+        insert_b_flag[0] = 'insertBDis'
+        change_on_hover('event', insert_b_flag[0], canvasinsertB, insertB)
     else:
-        insertB.config(state=NORMAL)
+        insert_b_flag[0] = 'insertB'
+        change_on_hover('event', 'insertBHover', canvasinsertB, insertB)
 
 
 def disableScreeShot(index):
@@ -704,12 +740,13 @@ def disableScreeShot(index):
         # takeScreenShot.config(state=DISABLED)
         takeS_flag[0]='takeSDis'
         change_on_hover('event', takeS_flag[0], canvasTakeS, takeS)
+        pass
     else:
         # takeScreenShot.config(state=NORMAL)
         takeS_flag[0]='takeS'
-        change_on_hover('event', takeS_flag[0], canvasTakeS, takeS)
+        change_on_hover('event', 'takeSHover', canvasTakeS, takeS)
 
-
+        pass
 
 def disableAddFunction(index):
     functionName = currentScript.functions[index].name
@@ -729,6 +766,7 @@ def disableButtons(index):
     disableInsertAboveAndBelow(index)
     disableScreeShot(index)
     disableAddFunction(index)
+    pass
 
 def markCurrentFuncArea(index):
     fromindex = currentScript.linesFather[index].fromIndex
@@ -763,7 +801,7 @@ def FocusOnSelectedFunc(event):
 
     # takeScreenShot.config(state='normal')
     takeS_flag[0] = 'takeS'
-    change_on_hover('event', takeS_flag[0], canvasTakeS, takeS)
+    change_on_hover('event', "takeSHover", canvasTakeS, takeS)
     Lb1.config(state='normal')
     # addFunc.config(state='normal')
     add_func_flag[0] = 'AddFunc'
@@ -792,6 +830,7 @@ def FocusOnSelectedFunc(event):
     frame = x.frame
     if frame != '':
         frame.grid(row=1, column=0, sticky='NEWS')
+
         if photoName != '':
             for childName, childValue in frame.children.items():
                 if childName == 'fileName':
@@ -816,7 +855,6 @@ def disableTakeScreenShot(event):
     # takeScreenShot.config(state=DISABLED)
     takeS_flag[0] = 'takeSDis'
     change_on_hover('event', takeS_flag[0], canvasTakeS, takeS)
-
 def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
@@ -839,6 +877,8 @@ def createTree(frame):
 
 
 def moveUp():
+    if "Dis" in move_u_flag[0]:
+        return
     index = Lb2.curselection()[0]
     tempFunctions = []
     tempLineFather = []
@@ -881,6 +921,8 @@ def moveUp():
 
 
 def moveDown():
+    if 'Dis' in move_d_flag[0]:
+        return
     index = Lb2.curselection()[0]
     tempFunctions = []
     tempLineFather = []
@@ -1693,7 +1735,7 @@ def Treeview_right_click(event):
         menu.post(event.x_root, event.y_root)
 
 def Lb2_right_click(event):
-    menu = Menu(Lb2, tearoff=0)
+    menu = Menu(Lb2, tearoff=0, bg='#3c3f41', fg='white')
     menu.add_command(label="Copy", command = lambda: copy_handler())
     menu.add_command(label="Paste", command = lambda: paste_handler())
     menu.add_command(label="Cut", command = lambda: cut_handler())
@@ -2036,12 +2078,12 @@ def drag_and_drop(event,pointers,selection_index, canvasGoust, flag):
     if flag[0]=='empty':
         flag[0] = selection
         flag[1] = selection_index
-        name_of_fun = Label(canvasGoust, text=selection, fg='white', bg='black')
+        name_of_fun = Label(canvasGoust, text=selection, fg='white', bg='#3c3f41')
         print(selection_index)
         Lb1.select_set(selection_index)
         Lb1.activate(selection_index)
     else:
-        name_of_fun = Label(canvasGoust, text=flag[0], fg='white', bg='black' )
+        name_of_fun = Label(canvasGoust, text=flag[0], fg='white', bg='#3c3f41' )
         Lb1.select_set(flag[1])
         Lb1.activate(flag[1])
 
@@ -2070,6 +2112,7 @@ def change_on_hover(event, name, canvas, item):
     try:
         if 'Dis' in name:
             filename = "img\\" + name + ".png"
+
             Button1 = PhotoImage(file=filename)
             canvas.a = Button1
             canvas.itemconfig(item, image=Button1)
@@ -2080,6 +2123,8 @@ def change_on_hover(event, name, canvas, item):
         filename = "img\\" +  name[0:name.rfind('Hover')] + ".png"
     else:
         filename = "img\\" + name + "Hover.png"
+
+
     Button1 = PhotoImage(file=filename)
     canvas.a = Button1
     canvas.itemconfig(item, image=Button1)
@@ -2096,7 +2141,19 @@ def combobox_save(comboFlag,x,y):
         pass
 
 
-
+def editToolBar_click(event, x, y, flag):
+    if flag[0] == '0':
+        menu = Menu(mainScreen, tearoff=0, bg='#3c3f41', fg='white')
+        menu.add_command(label="Copy", command = lambda: copy_handler())
+        menu.add_command(label="Paste", command = lambda: paste_handler())
+        menu.add_command(label="Cut", command = lambda: cut_handler())
+        menu.add_command(label="Delete", command = lambda: removeFunctions())
+        menu.add_command(label="Redo", command = lambda: redo_handler())
+        menu.add_command(label="Undo", command = lambda: undo_handler())
+        menu.post(x+10, y+35)
+        flag[0]='1'
+    else:
+        flag[0]='0'
 
 if __name__ == '__main__':
     functionFather = []
@@ -2118,11 +2175,12 @@ if __name__ == '__main__':
         startScreen()
 
     toolbarFrame = Frame(mainScreen, bd=3, bg='#3c3f41')
-    toolbarFrame.grid(sticky = 'WEN')
+
+    toolbarFrame.grid(row=0,column=0,sticky = 'WEN')
 
     openToolButton = PhotoImage(file=r"img\OpenTool.png")
     canvasOpen = Canvas(toolbarFrame,height = openToolButton.height(),width = openToolButton.width(),  bg='#3c3f41', bd=-2)
-    canvasOpen.grid(row=0,column=0, sticky="N", pady=2)
+    canvasOpen.grid(row=0,column=0, sticky="NWE", pady=2)
 
     canvasOpen.open = openToolButton
     openTool = canvasOpen.create_image(-1, -1, anchor=NW, image=openToolButton, tags="openTool")
@@ -2131,13 +2189,11 @@ if __name__ == '__main__':
     canvasOpen.tag_bind('openTool', '<Enter>', lambda event: change_on_hover(event,"openTool",canvasOpen,openTool))
     canvasOpen.tag_bind('openTool', '<Leave>', lambda event: change_on_hover(event,"openToolHover",canvasOpen,openTool))
 
-    # openButton = Button(toolbarFrame, text="Open", command=openButton)
-    # openButton.grid(row=0,column=0,padx = 7, pady = 7)
 
 
     saveToolButton = PhotoImage(file=r"img\SaveTool.png")
     canvasSave = Canvas(toolbarFrame, height=saveToolButton.height(), width=saveToolButton.width(), bg='#3c3f41', bd=-2)
-    canvasSave.grid(row=0, column=1, sticky="N", pady=2)
+    canvasSave.grid(row=0, column=1, sticky="NWE", pady=2)
 
     canvasSave.save = saveToolButton
     saveTool = canvasSave.create_image(-1, -1, anchor=NW, image=saveToolButton, tags="SaveTool")
@@ -2146,12 +2202,10 @@ if __name__ == '__main__':
     canvasSave.tag_bind('SaveTool', '<Enter>', lambda event: change_on_hover(event, "SaveTool", canvasSave, saveTool))
     canvasSave.tag_bind('SaveTool', '<Leave>',lambda event: change_on_hover(event, "SaveToolHover", canvasSave, saveTool))
 
-    # saveButton = Button(toolbarFrame, text="Save", command=saveHundle,)
-    # saveButton.grid(row=0, column=1,padx = 7, pady = 7)
 
     saveAsToolButton = PhotoImage(file=r"img\SaveAsTool.png")
     canvasSaveAs = Canvas(toolbarFrame, height=saveAsToolButton.height(), width=saveAsToolButton.width(), bg='#3c3f41', bd=-2)
-    canvasSaveAs.grid(row=0, column=2, sticky="N", pady=2)
+    canvasSaveAs.grid(row=0, column=2, sticky="EWN", pady=2)
 
     canvasSaveAs.save = saveToolButton
     saveAsTool = canvasSaveAs.create_image(-1, -1, anchor=NW, image=saveAsToolButton, tags="SaveAsTool")
@@ -2160,8 +2214,17 @@ if __name__ == '__main__':
     canvasSaveAs.tag_bind('SaveAsTool', '<Enter>', lambda event: change_on_hover(event, "SaveAsTool", canvasSaveAs, saveAsTool))
     canvasSaveAs.tag_bind('SaveAsTool', '<Leave>', lambda event: change_on_hover(event, "SaveAsToolHover", canvasSaveAs, saveAsTool))
 
-    # saveAsButton = Button(toolbarFrame, text="Save As", command=saveAsHundle)
-    # saveAsButton.grid(row=0, column=2,padx = 7, pady = 7)
+    editToolButton = PhotoImage(file=r"img\editTool.png")
+    canvasEdit = Canvas(toolbarFrame, height=editToolButton.height(), width=editToolButton.width(), bg='#3c3f41',bd=-2)
+    canvasEdit.grid(row=0, column=3, sticky="NWE", pady=2)
+
+    canvasEdit.edit = editToolButton
+    editTool = canvasEdit.create_image(-1, -1, anchor=NW, image=editToolButton, tags="edit")
+    canvasEdit_flag=['0']
+    canvasEdit.tag_bind('edit', '<Button-1>', lambda event: editToolBar_click(event, canvasEdit.winfo_rootx(),canvasEdit.winfo_rooty(), canvasEdit_flag))
+    canvasEdit.tag_bind('edit', '<Enter>',lambda event: change_on_hover(event, "editTool", canvasEdit, editTool))
+    canvasEdit.tag_bind('edit', '<Leave>',lambda event: change_on_hover(event, "editToolHover", canvasEdit, editTool))
+
 
     playToolButton = PhotoImage(file=r"img\PlayTool.png")
     canvasPlay = Canvas(mainScreen, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',bd=-2)
@@ -2174,20 +2237,10 @@ if __name__ == '__main__':
     canvasPlay.tag_bind('PlayTool', '<Enter>', lambda event: change_on_hover(event, "PlayTool", canvasPlay, playTool))
     canvasPlay.tag_bind('PlayTool', '<Leave>', lambda event: change_on_hover(event, "PlayToolHover", canvasPlay, playTool))
 
-    # photo = PhotoImage(file=r"img\start2.png")
-    # photoimage = photo.subsample(3, 3)
-    # runButton = Button(mainScreen, text="Run", command=runHendle, image = photoimage)
-    # runButton.grid(row=0, column=1,padx = 7, pady = 7,sticky='N')
 
     comboToolButton = PhotoImage(file=r"img\Combo.png")
     canvasCombo = Canvas(mainScreen, height=comboToolButton.height(), width=comboToolButton.width(), bg='#3c3f41', bd=-2)
     canvasCombo.grid(row=0, column=2, sticky="N", pady=4)
-    mainSectionFrame = Frame(mainScreen)
-    mainSectionFrame.columnconfigure(0, weight=2)
-    mainSectionFrame.columnconfigure(1, weight=1)
-    mainSectionFrame.columnconfigure(2, weight=2)
-    mainSectionFrame.rowconfigure(0, weight=1)
-    mainSectionFrame.grid(row=2, column=0, sticky='WESN')
 
     canvasCombo.combo = comboToolButton
     combo = canvasCombo.create_image(0, 0, anchor=NW, image=comboToolButton, tags="Combo")
@@ -2196,14 +2249,6 @@ if __name__ == '__main__':
     canvasCombo.tag_bind('Combo', '<Enter>', lambda event: change_on_hover(event, "Combo",canvasCombo , combo))
     canvasCombo.tag_bind('Combo', '<Leave>', lambda event: change_on_hover(event, "ComboHover", canvasCombo, combo))
 
-    # AutoSave = ttk.Combobox(mainScreen, values=[
-    #     "No AutoSave",
-    #     "Every 10 Min",
-    # ],
-    #                         state="readonly" )
-    # AutoSave.bind('<<ComboboxSelected>>', lambda event: comboBoxSelect(event))
-    # AutoSave.grid(row=0, column=2, sticky='N', padx=7, pady=7)
-    # AutoSave.current(0)
 
     line_style = ttk.Style()
     line_style.configure("Line.TSeparator", background="black")
@@ -2223,11 +2268,10 @@ if __name__ == '__main__':
     canvasAddFun.addFun = addFunclButton
     addFunc = canvasAddFun.create_image(0, 0, anchor=NW, image=addFunclButton, tags="AddFunc")
     add_func_flag=['AddFuncDis']
-    # canvasAddFun.tag_bind('AddFunc', '<Button-1>',lambda event: addFunction())
+    canvasAddFun.tag_bind('AddFunc', '<Button-1>',lambda event: addFunction(add_func_flag))
     canvasAddFun.tag_bind('AddFunc', '<Enter>', lambda event: change_on_hover(event, add_func_flag[0], canvasAddFun, addFunc))
     canvasAddFun.tag_bind('AddFunc', '<Leave>', lambda event: change_on_hover(event, add_func_flag[0]+'Hover', canvasAddFun, addFunc))
-    # addFunc = Button(mainScreen, text="Add Functions", command=addFunction, state=DISABLED)
-    # addFunc.grid(row=1,column = 2,sticky='N')
+
 
     # mainSectionFrame = Frame(mainScreen)
     # mainSectionFrame.columnconfigure(0, weight = 2)
@@ -2239,59 +2283,47 @@ if __name__ == '__main__':
     leftSectionFrame = Frame(mainScreen)
     leftSectionFrame.columnconfigure(0, weight=1)
     leftSectionFrame.rowconfigure(0, weight=1)
-    leftSectionFrame.grid(row=0, column=0, sticky='NWE', padx=10, pady=(0, 55))
+    leftSectionFrame.grid(row=2, column=0, sticky='NWE', padx=10, pady=(0, 55))
 
     explorerFrame = Frame(leftSectionFrame, bd=3, relief=SUNKEN)
     explorerFrame.columnconfigure(0, weight=1)
     explorerFrame.rowconfigure(0, weight=1)
     explorerFrame.grid(row=0, column=0, sticky='NWE')
 
-    centerSectionFrame = Frame(mainSectionFrame)
+    centerSectionFrame = Frame(mainScreen,bg='#3c3f41')
     centerSectionFrame.columnconfigure(0, weight=1)
     centerSectionFrame.rowconfigure(0, weight=1)
     centerSectionFrame.rowconfigure(1, weight=30)
-    # centerSectionFrame.grid(row=2,column=1,sticky='NWES',padx = 50)
-    centerSectionFrame.grid(row=0, column=1, sticky='NWES', padx=10)
+    centerSectionFrame.grid(row=2, column=1, sticky='NWES', padx=10)
 
     mainFrame1 = Frame(centerSectionFrame,bd = 3, relief=SUNKEN, bg='#3c3f41')
     mainFrame1.grid(row=0, column=0,sticky='N')
-    # mainFrame1 = Frame(centerSectionFrame, bd=3, relief=SUNKEN, bg='white')
-    # mainFrame1.grid(row=0, column=0, sticky='N')
 
-    Lb2Fframe = Frame(centerSectionFrame, relief=SUNKEN)
-    Lb2Fframe.columnconfigure(0, weight=1)
-    Lb2Fframe.rowconfigure(0, weight=1)
-    Lb2Fframe.grid(row=1, column=0, sticky='NSWE', pady=(0, 55))
+    Lb2Frame = Frame(centerSectionFrame, relief=SUNKEN)
+    Lb2Frame.columnconfigure(0, weight=1)
+    Lb2Frame.rowconfigure(0, weight=1)
+    Lb2Frame.grid(row=1, column=0, sticky='NSWE', pady=(0, 55))
 
-    yScroll = Scrollbar(Lb2Fframe, orient=VERTICAL)
+    yScroll = Scrollbar(Lb2Frame, orient=VERTICAL)
     yScroll.grid(row=0, column=1, sticky='NS')
 
-    xScroll = Scrollbar(Lb2Fframe, orient=HORIZONTAL)
+    xScroll = Scrollbar(Lb2Frame, orient=HORIZONTAL)
     xScroll.grid(row=1, column=0, sticky='EW')
 
-    Lb2 = Listbox(Lb2Fframe, background="#2b2b2b",xscrollcommand=xScroll.set,yscrollcommand=yScroll.set,selectmode=EXTENDED)
+    Lb2 = Listbox(Lb2Frame, background="#2b2b2b",xscrollcommand=xScroll.set,yscrollcommand=yScroll.set,selectmode=EXTENDED)
     Lb2.grid(row=0, column=0, sticky='NSWE')
     Lb2.bind("<Button-3>", Lb2_right_click)
 
     xScroll['command'] = Lb2.xview
     yScroll['command'] = Lb2.yview
 
-    # rightSectionFrame = Frame(mainSectionFrame, relief=SUNKEN)
-    # rightSectionFrame.columnconfigure(0, weight=1)
-    # rightSectionFrame.rowconfigure(0, weight=1)
-    # rightSectionFrame.rowconfigure(1, weight=4)
-    # rightSectionFrame.grid(row=0, column=2, sticky='NWES', padx=10, pady=(0, 55))
-
-    Lb1 = Listbox(rightSectionFrame, exportselection=0, selectmode=SINGLE, bd=3)
     rightSectionFrame = Frame(mainScreen, relief=SUNKEN, background="#3c3f41")
     rightSectionFrame.columnconfigure(0,weight=1)
     rightSectionFrame.rowconfigure(0,weight=1)
     rightSectionFrame.rowconfigure(1,weight=4)
     rightSectionFrame.grid(row=2,column=2,sticky='NWES',padx =(0,10),pady=(0,55))
-    # s = ttk.Style()
-    # s.theme_use("alt")
-    # s.configure('Treeview', rowheight=30, font=(None, 8), background="#2b2b2b", fieldbackground="#2b2b2b",
-    #             foreground="white")
+
+
     Lb1 = Listbox(rightSectionFrame, exportselection=0, selectmode = SINGLE, bd=3,  background="#2b2b2b", fg='white')
     Lb1.grid(row=0, column=0, sticky='NEW')
     for x in range(0, len(functionList)):
@@ -2299,43 +2331,42 @@ if __name__ == '__main__':
     Lb1.config(state=DISABLED)
     flag_for_drag_and_drop = ["empty", 0]
 
-    canvasGoust = Canvas(mainScreen)
+    canvasGoust = Canvas(mainScreen, bg='#3c3f41')
     Lb1.bind('<B1-Motion>',
              lambda event: drag_and_drop(event, mainScreen.winfo_pointerxy(), Lb1.curselection()[0], canvasGoust,
                                          flag_for_drag_and_drop))
     Lb1.bind('<ButtonRelease-1>', lambda event: drop(event, canvasGoust, flag_for_drag_and_drop))
 
-    photoViewFrame = Frame(rightSectionFrame, bd=3, relief=SUNKEN, bg='white', name='photoViewFrame')
+    photoViewFrame = Frame(rightSectionFrame, bd=3, relief=SUNKEN, background="#3c3f41", name='photoViewFrame')
     photoViewFrame.grid(row=1, column=0,sticky='NEWS')
 
-
-    moveDownButton = PhotoImage(file=r"img\moveDown.png")
+    moveDownButton = PhotoImage(file=r"img\moveDownDis.png")
     canvasmoveDown = Canvas(mainFrame1, height=moveDownButton.height(), width=moveDownButton.width(), bg='#3c3f41', bd=-2)
     canvasmoveDown.grid(row=0, column=0, sticky="N", pady=4)
 
     canvasmoveDown.moveDown = moveDownButton
-    moveDown = canvasmoveDown.create_image(0, 0, anchor=NW, image=moveDownButton, tags="moveDown")
-
+    moveDown_b = canvasmoveDown.create_image(0, 0, anchor=NW, image=moveDownButton, tags="moveDown")
+    move_d_flag=['moveDownDis']
     canvasmoveDown.tag_bind('moveDown', '<Button-1>', lambda event: moveDown())
-    canvasmoveDown.tag_bind('moveDown', '<Enter>', lambda event: change_on_hover(event, "moveDown", canvasmoveDown, moveDown))
-    canvasmoveDown.tag_bind('moveDown', '<Leave>', lambda event: change_on_hover(event, "moveDownHover", canvasmoveDown, moveDown))
-    #
-    # moveDownButton = Button(mainFrame1, text="Move down", command=moveDown)
-    # moveDownButton.grid(row=0, column=0, padx=10)
+    canvasmoveDown.tag_bind('moveDown', '<Enter>', lambda event: change_on_hover(event, move_d_flag[0], canvasmoveDown, moveDown_b))
+    canvasmoveDown.tag_bind('moveDown', '<Leave>', lambda event: change_on_hover(event, move_d_flag[0]+'Hover', canvasmoveDown, moveDown_b))
 
-    moveUpButton = PhotoImage(file=r"img\moveUp.png")
+
+
+    moveUpButton = PhotoImage(file=r"img\moveUpDis.png")
     canvasmoveUp = Canvas(mainFrame1, height=moveUpButton.height(), width=moveUpButton.width(), bg='#3c3f41', bd=-2)
     canvasmoveUp.grid(row=0, column=1, sticky="N", pady=4)
 
     canvasmoveUp.moveUp = moveUpButton
-    moveUp = canvasmoveUp.create_image(0, 0, anchor=NW, image=moveUpButton, tags="moveUp")
+    moveUp_b = canvasmoveUp.create_image(0, 0, anchor=NW, image=moveUpButton, tags="moveUp")
+    move_u_flag=['moveUpDis']
 
     canvasmoveUp.tag_bind('moveUp', '<Button-1>',lambda event: moveUp())
-    canvasmoveUp.tag_bind('moveUp', '<Enter>', lambda event: change_on_hover(event, "moveUp", canvasmoveUp, moveUp))
-    canvasmoveUp.tag_bind('moveUp', '<Leave>', lambda event: change_on_hover(event, "moveUpHover", canvasmoveUp, moveUp))
+    canvasmoveUp.tag_bind('moveUp', '<Enter>', lambda event: change_on_hover(event, move_u_flag[0], canvasmoveUp, moveUp_b))
+    canvasmoveUp.tag_bind('moveUp', '<Leave>', lambda event: change_on_hover(event, move_u_flag[0]+'Hover', canvasmoveUp, moveUp_b))
 
-    # moveUpButton = Button(mainFrame1, text="Move up", command=moveUp)
-    # moveUpButton.grid(row=0, column=1, padx=10)
+
+
 
     removeButton = PhotoImage(file=r"img\remove.png")
     canvasRemove = Canvas(mainFrame1, height=removeButton.height(), width=removeButton.width(), bg='#3c3f41', bd=-2)
@@ -2343,39 +2374,36 @@ if __name__ == '__main__':
 
     canvasRemove.remove = removeButton
     remove_b = canvasRemove.create_image(0, 0, anchor=NW, image=removeButton, tags="remove")
-
+    remove_flag=['removeDis']
     canvasRemove.tag_bind('remove', '<Button-1>', lambda event: removeFunctions())
-    canvasRemove.tag_bind('remove', '<Enter>', lambda event: change_on_hover(event, "remove", canvasRemove, remove_b))
-    canvasRemove.tag_bind('remove', '<Leave>', lambda event: change_on_hover(event, "removeHover", canvasRemove, remove_b))
+    canvasRemove.tag_bind('remove', '<Enter>', lambda event: change_on_hover(event, remove_flag[0], canvasRemove, remove_b))
+    canvasRemove.tag_bind('remove', '<Leave>', lambda event: change_on_hover(event, remove_flag[0]+'Hover', canvasRemove, remove_b))
 
-    # removeFunc = Button(mainFrame1, text="Remove Function", command=removeFunctions)
-    # removeFunc.grid(row=0, column=2, padx=10)
 
-    insertBButton = PhotoImage(file=r"img\insertB.png")
+
+    insertBButton = PhotoImage(file=r"img\insertBDis.png")
     canvasinsertB = Canvas(mainFrame1, height=insertBButton.height(), width=insertBButton.width(), bg='#3c3f41', bd=-2)
     canvasinsertB.grid(row=0, column=3, sticky="N", pady=4)
 
     canvasinsertB.insertb = insertBButton
     insertB= canvasinsertB.create_image(0, 0, anchor=NW, image=insertBButton, tags="insertB")
-
+    insert_b_flag = ['insertBDis']
     canvasinsertB.tag_bind('insertB', '<Button-1>', lambda event: insert_B())
-    canvasinsertB.tag_bind('insertB', '<Enter>', lambda event: change_on_hover(event, "insertB", canvasinsertB, insertB))
-    canvasinsertB.tag_bind('insertB', '<Leave>',lambda event: change_on_hover(event, "insertBHover", canvasinsertB, insertB))
+    canvasinsertB.tag_bind('insertB', '<Enter>', lambda event: change_on_hover(event, insert_b_flag[0], canvasinsertB, insertB))
+    canvasinsertB.tag_bind('insertB', '<Leave>',lambda event: change_on_hover(event, insert_b_flag[0]+'Hover', canvasinsertB, insertB))
 
-    # insertB = Button(mainFrame1, text="Insert Below", command=insert_B)
-    # insertB.grid(row=0, column=3, padx=10)
 
-    insertAButton = PhotoImage(file=r"img\insertA.png")
+    insertAButton = PhotoImage(file=r"img\insertADis.png")
     canvasinsertA = Canvas(mainFrame1, height=insertAButton.height(), width=insertAButton.width(), bg='#3c3f41', bd=-2)
     canvasinsertA.grid(row=0, column=4, sticky="N", pady=4)
-    canvasinsertA.insertb = insertAButton
+    canvasinsertA.inserta = insertAButton
+    insert_a_flag = ['insertADis']
+
     insertA = canvasinsertA.create_image(0, 0, anchor=NW, image=insertAButton, tags="insertA")
     canvasinsertA.tag_bind('insertA', '<Button-1>', lambda event: insert_A())
-    canvasinsertA.tag_bind('insertA', '<Enter>', lambda event: change_on_hover(event, "insertA", canvasinsertA, insertA))
-    canvasinsertA.tag_bind('insertA', '<Leave>', lambda event: change_on_hover(event, "insertAHover", canvasinsertA, insertA))
+    canvasinsertA.tag_bind('insertA', '<Enter>', lambda event: change_on_hover(event, insert_a_flag[0], canvasinsertA, insertA))
+    canvasinsertA.tag_bind('insertA', '<Leave>', lambda event: change_on_hover(event, insert_a_flag[0]+'Hover', canvasinsertA, insertA))
 
-    # insertA = Button(mainFrame1, text="Insert Above", command=insert_A)
-    # insertA.grid(row=0, column=4, padx=10)
 
     takeSButton = PhotoImage(file=r"img\TakeSDis.png")
     canvasTakeS = Canvas(mainFrame1, height=takeSButton.height(), width=takeSButton.width(), bg='#3c3f41', bd=-2)
@@ -2383,12 +2411,10 @@ if __name__ == '__main__':
     canvasTakeS.takeS = takeSButton
     takeS_flag = ['takeSDis']
     takeS = canvasTakeS.create_image(0, 0, anchor=NW, image=takeSButton, tags="takeS")
-    # canvasTakeS.tag_bind('takeS', '<Button-1>', lambda event: window2())
+    canvasTakeS.tag_bind('takeS', '<Button-1>', lambda event: window2())
     canvasTakeS.tag_bind('takeS', '<Enter>', lambda event: change_on_hover(event, takeS_flag[0] , canvasTakeS, takeS))
-    canvasTakeS.tag_bind('takeS', '<Leave>', lambda event: change_on_hover(event, takeS_flag[0], canvasTakeS, takeS))
+    canvasTakeS.tag_bind('takeS', '<Leave>', lambda event: change_on_hover(event,  takeS_flag[0]+'Hover', canvasTakeS ,takeS))
 
-    # takeScreenShot = Button(mainFrame1, text="Take Screen Shot", command=window2, state=DISABLED)
-    # takeScreenShot.grid(row=0, column=5, padx=10)
 
     reportFrame()
 
