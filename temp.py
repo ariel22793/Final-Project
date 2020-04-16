@@ -731,15 +731,15 @@ def markCurrentFuncArea(index):
                 Lb2.itemconfig(i, bg='#f4b63f')
             elif (tempFunc.name == 'Left-Click'):
                 Lb2.itemconfig(i, bg='#57ceff')
-            elif (tempFunc.name == 'Repeat' or ((tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '' ) and tempFunc.father[1] == 'Repeat' )):
+            elif (tempFunc.name == 'Repeat' or ((tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '' ) and (tempFunc.father != '' and tempFunc.father[1] == 'Repeat' ))):
                 Lb2.itemconfig(i, bg='#ff5792')
-            elif (tempFunc.name == 'If-Exist' or ((tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '' ) and tempFunc.father[1] == 'If-Exist' )):
+            elif (tempFunc.name == 'If-Exist' or ((tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '' ) and (tempFunc.father != '' and tempFunc.father[1]  == 'If-Exist' ))):
                 Lb2.itemconfig(i, bg='#c2ff57')
             elif (tempFunc.name == 'If-Not-Exist' or (
-                            (tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '') and tempFunc.father[1] == 'If-Not-Exist')):
+                            (tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '') and (tempFunc.father != '' and tempFunc.father[1] ==  'If-Not-Exist'))):
                 Lb2.itemconfig(i, bg='#ff8657')
             elif (tempFunc.name == 'Else' or (
-                            (tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '') and tempFunc.father[1] == 'Else')):
+                            (tempFunc.name == '{' or tempFunc.name == '}' or tempFunc.name == '') and (tempFunc.father != '' and tempFunc.father[1] == 'Else'))):
                 Lb2.itemconfig(i, bg='#579aff')
             elif (currentScript.functions[i].name == 'Double-Click'):
                 Lb2.itemconfig(i, bg='#d557ff')
@@ -1137,7 +1137,10 @@ def insert_A():
         place = Lb2.curselection()[0]
     except:
         place = 0
-    if(place > 0):
+    if (currentScript.functions[place + 1].name == '}'):
+        currentFunction = Function('', '', place, rightSectionFrame, '', '', '',
+                               currentScript.functions[place + 1].indention + 1)
+    elif(place > 0):
         currentFunction = Function('', '', place, rightSectionFrame,'', '', '',currentScript.functions[place+1].indention)
         currentScript.functions.insert(place, currentFunction)
     else:
@@ -1202,11 +1205,13 @@ def insert_B(place = 0,flag = True):
             place = 0
     if(place == 0):
         currentFunction = Function('', '', place, rightSectionFrame, '','','')
-        currentScript.functions.insert(place, currentFunction)
+    elif(currentScript.functions[place - 1].name == '{'):
+        currentFunction = Function('', '', place, rightSectionFrame, '', '', '',
+                                   currentScript.functions[place - 1].indention+1)
     else:
         currentFunction = Function('', '', place, rightSectionFrame, '', '', '',
                                    currentScript.functions[place - 1].indention)
-        currentScript.functions.insert(place, currentFunction)
+    currentScript.functions.insert(place, currentFunction)
 
     if place > 0 and place <= len(currentScript.functions) - 1:
         previousFunction = currentScript.functions[place - 1]
@@ -1225,7 +1230,7 @@ def insert_B(place = 0,flag = True):
 
         fromIndex = currentScript.linesFather[place].fromIndex
         currentScript.functions[place].father = (fromIndex, nextFunction.father[1])
-        if(currentScript.functions[place - 1].indention >0 ):
+        if(currentScript.functions[place].indention >0 ):
             updateExtra(currentLineFather,currentScript.functions[currentLineFather.fromIndex],place,currentFunction) # update all the fathers extra
 
     else:
