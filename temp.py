@@ -58,7 +58,7 @@ undoFunctions = []
 redoLinesFather = []
 undoLinesFather = []
 stopScript = False
-
+speed=1
 
 def updateRedoFunctions(type = 'regular'):
     if((type != 'A' and type != 'B') or len(currentScript.functions) == 1):
@@ -1001,15 +1001,8 @@ def checkImageInFunc():
     return funcWithoutImage
 
 
-def runHendle(speed):
-    if speed =='Slow':
-        speed =3
-    elif speed =='Regular':
-        speed=1
-    elif speed =='Fast':
-        speed=0.6
-    elif speed =='Very Fast':
-        speed=0.2
+def runHendle():
+
 
     global stopScript
     stopScript = False
@@ -1028,7 +1021,7 @@ def runHendle(speed):
                         if currentScript.functions[func].name == 'Repeat':
                             functionNum += repeat_handle(currentScript.functions[func], currentScript.path) + 3
                         elif currentScript.functions[func].name == 'Left-Click':
-                            left_click_handle(currentScript.functions[func].img, currentScript.path, speed)
+                            left_click_handle(currentScript.functions[func].img, currentScript.path)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'If-Exist':
                             exist,tempFunctionNum = exist_handle(currentScript.functions[func],currentScript.path)
@@ -1044,10 +1037,10 @@ def runHendle(speed):
                                                                            currentScript.path)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Double-Click':
-                            double_click_handle(currentScript.functions[func].img, currentScript.path, speed)
+                            double_click_handle(currentScript.functions[func].img, currentScript.path)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Right-Click':
-                            right_click_handle(currentScript.functions[func].img, currentScript.path, speed)
+                            right_click_handle(currentScript.functions[func].img, currentScript.path)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Sleep':
                             sleep_handle(currentScript.functions[func].extra.time)
@@ -1571,79 +1564,23 @@ def hoverOff(event,canvas, item, number):
 def reportFrame():
     data = {}
 
-    reportFrame = Frame(mainScreen, bd=6, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame')
+    reportFrame = Frame(mainScreen, bd=6, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame',  bg='#3c3f41')
     reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
 
     buttonUp = Button(reportFrame, text='⬆', name='arrow')
     buttonUp.place(x=mainScreen.winfo_width() - 40)
     buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
 
-    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=270)
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=270,  bg='#2b2b2b')
     reportContex.place(x=100, y=50)
     size = GetSystemMetrics(0) - 300
     getRepo = Button(reportFrame, text='Get Repo')
     getRepo.place(x=mainScreen.winfo_width() - 150, y=100)
-    getRepo.bind('<Button-1>', lambda event: getReport(event, reportContex, data, size))
+    getRepo.bind('<Button-1>')
 
     clearReport = Button(reportFrame, text='Clear All')
     clearReport.place(x=mainScreen.winfo_width() - 150)
-    clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex ))
-
-def clearRe(event, data, frame):
-    data.clear()
-    for i in frame.winfo_children():
-        try:
-            i.destroy()
-        except:
-            pass
-
-
-def getReport(event, frameToWrite, data, size):
-    data.update({"set_info":{}})
-    counter=1
-    for x in currentScript.functions:
-        if x.name!='{' and x.name !='}':
-            if(x.extra!=''):
-                extra = x.extra.getDict()
-            else:
-                extra="no other parameters"
-
-            data['set_info'].update({
-                x.name:{
-                    'id_number': str(x.id),
-                    'more_vars': extra
-                }
-            })
-            counter+=1
-
-    scrollbar = Scrollbar(frameToWrite)
-    scrollbar.pack(side=RIGHT, fill=Y)
-    tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set, name='repoTree')
-    root = tree.insert('', 'end', text='', open=True, tag='T')
-
-    scrollbar.config(command=tree.yview)
-    jsonTree(frameToWrite, data, tree, root)
-    tree.column("#0", width=size)
-    tree.pack(fill=BOTH, expand=True)
-
-    frameToWrite.place(height=270)
-
-
-def jsonTree(frame, data, tree, parent):
-
-    for key, value in data.items():
-        if isinstance(value,list):
-            value = value[0]
-
-        if isinstance(value,dict):
-            parent_element = tree.insert(parent, 'end', text=key, open=True, tag="T")
-            jsonTree(frame, value , tree, parent_element)
-            # print('insert ' + str(key) + ' his uid is: ' + str(parent_element) + ' his parent uid is: ' + str(parent) )
-
-        else:
-            parent_element = tree.insert(parent, 'end', text=(key + ':' + value), open=True, tag="T")
-            pass
-
+    clearReport.bind('<Button-1>')
 
 
 
@@ -1667,7 +1604,7 @@ def exposeReport(event, frame, button):
             y = frame.winfo_y() + 30
             frame.place(y=y)
             frame.update()
-            # time.sleep(0.009)
+            time.sleep(0.009)
             counter += 1
         button['text'] = '⬆'
 
@@ -1909,7 +1846,7 @@ def repeat_handle(fatherFunction,path):
 def sleep_handle(timeDelay):
     time.sleep(timeDelay)
 
-def left_click_handle(template,path, speed):
+def left_click_handle(template,path):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
@@ -1917,7 +1854,6 @@ def left_click_handle(template,path, speed):
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
         pyautogui.click(x,y,duration=speed)
-
 def insert_input_handle(template,path,text):
     screenShot = ImgRecog.tempScreenShot(template)
 
@@ -1926,10 +1862,10 @@ def insert_input_handle(template,path,text):
     y = (template.y1Cord + template.y0Cord) / 2
     print(exist)
     if(exist == True):
-        pyautogui.click(x, y, duration=1)
+        pyautogui.click(x, y, duration=speed)
         pyautogui.typewrite(text, interval=0.1)
 
-def double_click_handle(template,path, speed):
+def double_click_handle(template,path):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
@@ -1938,13 +1874,14 @@ def double_click_handle(template,path, speed):
     if(exist == True):
         pyautogui.doubleClick(x,y,duration=speed)
 
-def right_click_handle(template,path, speed):
+def right_click_handle(template,path):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
+
         pyautogui.rightClick(x,y,duration=speed)
 
 def exist_handle(fatherFunction,path):
@@ -2160,8 +2097,18 @@ def editToolBar_click(event, x, y, flag):
 
 
 def option_click_handler(selection, flag):
+    global speed
     print(selection)
     flag[1] = selection
+    if selection == 'Slow':
+        speed = 3
+    elif selection == 'Regular':
+        speed = 1
+    elif selection == 'Fast':
+        speed = 0.6
+    elif selection == 'Very Fast':
+        speed = 0.2
+
 
 def optionToolBar_click(event, x, y, flag):
 
@@ -2276,8 +2223,8 @@ if __name__ == '__main__':
 
     canvasPlay.play = playToolButton
     playTool = canvasPlay.create_image(0, 0, anchor=NW, image=playToolButton, tags="PlayTool")
-
-    canvasPlay.tag_bind('PlayTool', '<Button-1>', lambda event: runHendle(canvasOptions_flag[1]))
+    reportList=[]
+    canvasPlay.tag_bind('PlayTool', '<Button-1>', lambda event: runHendle())
     canvasPlay.tag_bind('PlayTool', '<Enter>', lambda event: change_on_hover(event, "PlayTool", canvasPlay, playTool))
     canvasPlay.tag_bind('PlayTool', '<Leave>', lambda event: change_on_hover(event, "PlayToolHover", canvasPlay, playTool))
 
