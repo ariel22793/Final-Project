@@ -136,12 +136,30 @@ def getFunctionColor(funcName):
         return 'white'
 
 
+def updateLb2Indexes(difference,lb2IndexesLength):
+    lb2Indexes.config(state=NORMAL)
+    if(difference>0):
+        for i in range(difference):
+            lb2Indexes.insert(END, str(lb2IndexesLength+i+1))
+            lb2Indexes.itemconfig(lb2IndexesLength+i, foreground='white')
+    else:
+        for i in range(difference * -1):
+            if(lb2Indexes.size() == 33):
+                break
+            lb2Indexes.delete(lb2IndexesLength - i -1)
+    lb2Indexes.config(state=DISABLED)
+
+
 def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
     vw = Lb2.yview()
     if(options == 'deleteBefore'):
         Lb2.delete(0, 'end')
     highestNumDigit = len(str(len(currentScript.functions)))
 
+    lb2IndexesLength = lb2Indexes.size()
+
+    if(len(currentScript.functions) != lb2IndexesLength):
+        updateLb2Indexes(len(currentScript.functions) - lb2IndexesLength ,lb2IndexesLength)
 
 
     if (operation == 'add' or operation == 'replace' ):
@@ -1051,7 +1069,6 @@ def runHendle():
     else:
         mainScreen.iconify()
         for func in range(len(currentScript.functions)):
-            print(stopScript)
             if(stopScript == False):
                 if currentScript.functions[func].father[0] == currentScript.functions[func].id:
                     if func >= functionNum:
@@ -1908,7 +1925,6 @@ def repeat_handle(fatherFunction,path):
     childrenFunction = fatherFunction.extra.functions
     functionNum = 0
     for i in range(repeatTime):
-        print(stopScript)
         if(stopScript == False):
             for func in childrenFunction:
                 if (func.name == 'Repeat'):
@@ -1959,7 +1975,6 @@ def insert_input_handle(template,path,text):
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
-    print(exist)
     if(exist == True):
         pyautogui.click(x, y, duration=speed)
         pyautogui.typewrite(text, interval=0.1)
@@ -1992,7 +2007,6 @@ def exist_handle(fatherFunction,path):
     functionNum = 0
     if(exist == True):
         for func in childrenFunctions:
-            print(stopScript)
             if(stopScript==False):
                 if(func.father[0] == fatherFunction.id):
                     if (func.name == 'Repeat'):
@@ -2035,7 +2049,6 @@ def not_exist_handle(fatherFunction,path):
     if (exist == False):
         functionNum = 0
         for func in childrenFunctions:
-            print(stopScript)
             if(stopScript == False):
                 if (func.name == 'Repeat'):
                     functionNum += repeat_handle(func, path) + 3
@@ -2073,7 +2086,6 @@ def else_handle(fatherFunction,path):
     ifExistFlag = True
     functionNum = 0
     for func in childrenFunctions:
-        print(stopScript)
         if(stopScript==False):
             if (func.name == 'Repeat'):
                 functionNum += repeat_handle(func, path) + 3
@@ -2118,7 +2130,6 @@ def drag_and_drop(event,pointers,selection_index, canvasGoust, flag):
         flag[0] = selection
         flag[1] = selection_index
         name_of_fun = Label(canvasGoust, text=selection, fg='white', bg='#3c3f41')
-        print(selection_index)
         Lb1.select_set(selection_index)
         Lb1.activate(selection_index)
     else:
@@ -2197,7 +2208,6 @@ def editToolBar_click(event, x, y, flag):
 
 def option_click_handler(selection, flag):
     global speed
-    print(selection)
     flag[1] = selection
     if selection == 'Slow':
         speed = 3
@@ -2235,6 +2245,27 @@ def optionToolBar_click(event, x, y, flag):
     else:
         flag[0] = '0'
 
+def OnVsb(*args):
+    lb2Indexes.yview(*args)
+    Lb2.yview(*args)
+
+def OnHsb(*args):
+    lb2Indexes.xview(*args)
+    Lb2.xview(*args)
+
+def OnMouseWheel(event):
+    lb2Indexes.yview("scroll", event.delta*-1, "units")
+    Lb2.yview("scroll", event.delta*-1, "units")
+    # this prevents default bindings from firing, which
+    # would end up scrolling the widget twice
+    return "break"
+def Lb2Indexes_left_click(event):
+    try:
+        index = lb2Indexes.curselection()[0]
+    except:
+        return
+    lb2Indexes.select_clear(index)
+
 if __name__ == '__main__':
     functionFather = []
 
@@ -2254,8 +2285,9 @@ if __name__ == '__main__':
     if firstTime:
         startScreen()
 
-    toolbarFrame = Frame(mainScreen, bd=3, bg='#3c3f41')
 
+
+    toolbarFrame = Frame(mainScreen, bd=3, bg='#3c3f41')
     toolbarFrame.grid(row=0,column=0,sticky = 'WEN')
 
     openToolButton = PhotoImage(file=r"img\OpenTool.png")
@@ -2294,9 +2326,12 @@ if __name__ == '__main__':
     canvasSaveAs.tag_bind('SaveAsTool', '<Enter>', lambda event: change_on_hover(event, "SaveAsTool", canvasSaveAs, saveAsTool))
     canvasSaveAs.tag_bind('SaveAsTool', '<Leave>', lambda event: change_on_hover(event, "SaveAsToolHover", canvasSaveAs, saveAsTool))
 
+    optionsAndRunFrame = Frame(mainScreen, bd=3, bg='#3c3f41')
+    optionsAndRunFrame.grid(row=0, column=1, sticky='N')
+
     editToolButton = PhotoImage(file=r"img\editTool.png")
-    canvasEdit = Canvas(toolbarFrame, height=editToolButton.height(), width=editToolButton.width(), bg='#3c3f41',bd=-2)
-    canvasEdit.grid(row=0, column=3, sticky="NWE", pady=2)
+    canvasEdit = Canvas(optionsAndRunFrame, height=editToolButton.height(), width=editToolButton.width(), bg='#3c3f41',bd=-2)
+    canvasEdit.grid(row=0, column=0, sticky="NWE", pady=2)
 
     canvasEdit.edit = editToolButton
     editTool = canvasEdit.create_image(-1, -1, anchor=NW, image=editToolButton, tags="edit")
@@ -2305,9 +2340,11 @@ if __name__ == '__main__':
     canvasEdit.tag_bind('edit', '<Enter>',lambda event: change_on_hover(event, "editTool", canvasEdit, editTool))
     canvasEdit.tag_bind('edit', '<Leave>',lambda event: change_on_hover(event, "editToolHover", canvasEdit, editTool))
 
+
+
     optionToolButton = PhotoImage(file=r"img\optionsTool.png")
-    canvasOption = Canvas(toolbarFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', bd=-2)
-    canvasOption.grid(row=0, column=4, sticky="NWE", pady=2)
+    canvasOption = Canvas(optionsAndRunFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', bd=-2)
+    canvasOption.grid(row=0, column=1, sticky="NWE", pady=2)
 
     canvasOption.options = optionToolButton
     optionTool = canvasOption.create_image(-1, -1, anchor=NW, image=optionToolButton, tags="options")
@@ -2317,8 +2354,8 @@ if __name__ == '__main__':
     canvasOption.tag_bind('options', '<Leave>', lambda event: change_on_hover(event, "optionsToolHover", canvasOption, optionTool))
 
     playToolButton = PhotoImage(file=r"img\PlayTool.png")
-    canvasPlay = Canvas(mainScreen, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',bd=-2)
-    canvasPlay.grid(row=0, column=1, sticky="N", pady=4)
+    canvasPlay = Canvas(optionsAndRunFrame, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',bd=-2)
+    canvasPlay.grid(row=0, column=2, sticky="N", pady=4)
 
     canvasPlay.play = playToolButton
     playTool = canvasPlay.create_image(0, 0, anchor=NW, image=playToolButton, tags="PlayTool")
@@ -2389,23 +2426,40 @@ if __name__ == '__main__':
     mainFrame1 = Frame(centerSectionFrame,bd = 3, relief=SUNKEN, bg='#3c3f41')
     mainFrame1.grid(row=0, column=0,sticky='N')
 
-    Lb2Frame = Frame(centerSectionFrame, relief=SUNKEN)
+
+    Lb2Frame = Frame(centerSectionFrame,bd=0)
     Lb2Frame.columnconfigure(0, weight=1)
+    Lb2Frame.columnconfigure(1, weight=1000)
     Lb2Frame.rowconfigure(0, weight=1)
     Lb2Frame.grid(row=1, column=0, sticky='NSWE', pady=(0, 55))
 
-    yScroll = Scrollbar(Lb2Frame, orient=VERTICAL)
-    yScroll.grid(row=0, column=1, sticky='NS')
+    yScroll = Scrollbar(Lb2Frame, orient=VERTICAL,command = OnVsb)
+    yScroll.grid(row=0, column=2, sticky='NS')
 
-    xScroll = Scrollbar(Lb2Frame, orient=HORIZONTAL)
-    xScroll.grid(row=1, column=0, sticky='EW')
+    xScroll = Scrollbar(Lb2Frame, orient=HORIZONTAL,command = OnHsb)
+    xScroll.grid(row=1, column=1, sticky='EW')
 
-    Lb2 = Listbox(Lb2Frame, background="#2b2b2b",xscrollcommand=xScroll.set,yscrollcommand=yScroll.set,selectmode=EXTENDED)
-    Lb2.grid(row=0, column=0, sticky='NSWE')
+    lb2Indexes = Listbox(Lb2Frame, background="#2b2b2b",xscrollcommand=xScroll.set,yscrollcommand=yScroll.set,selectmode=BROWSE,width=4,bd=0)
+    lb2Indexes.config(highlightbackground="#2b2b2b")
+    lb2Indexes.grid(row=0, column=0, sticky='WNSE')
+
+    for item in range(33):
+        lb2Indexes.insert(END, str(item+1))
+        lb2Indexes.itemconfig(item,foreground='white')
+    lb2Indexes.configure(state=DISABLED)
+    lb2Indexes.bind("<MouseWheel>", OnMouseWheel)
+    lb2Indexes.bind("<Button-1>", Lb2Indexes_left_click)
+
+
+
+    Lb2 = Listbox(Lb2Frame, background="#2b2b2b",xscrollcommand=xScroll.set,yscrollcommand=yScroll.set,selectmode=EXTENDED,bd=0)
+
+    Lb2.grid(row=0, column=1, sticky='NSWE')
     Lb2.bind("<Button-3>", Lb2_right_click)
+    Lb2.bind("<MouseWheel>", OnMouseWheel)
 
-    xScroll['command'] = Lb2.xview
-    yScroll['command'] = Lb2.yview
+    # xScroll['command'] = Lb2.xview
+    # yScroll['command'] = Lb2.yview
 
     rightSectionFrame = Frame(mainScreen, relief=SUNKEN, background="#3c3f41")
     rightSectionFrame.columnconfigure(0,weight=1)
