@@ -60,6 +60,7 @@ undoLinesFather = []
 stopScript = False
 Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d557ff','#078f02','#57ff7f']
 
+speed=1
 
 def updateRedoFunctions(type = 'regular'):
     if((type != 'A' and type != 'B') or len(currentScript.functions) == 1):
@@ -1055,8 +1056,7 @@ def runHendle():
                 if currentScript.functions[func].father[0] == currentScript.functions[func].id:
                     if func >= functionNum:
                         if currentScript.functions[func].name == 'Repeat':
-                            functionNum += repeat_handle(currentScript.functions[func],
-                                                                           currentScript.path) + 3
+                            functionNum += repeat_handle(currentScript.functions[func], currentScript.path) + 3
                         elif currentScript.functions[func].name == 'Left-Click':
                             left_click_handle(currentScript.functions[func].img, currentScript.path)
                             functionNum += 1
@@ -1606,79 +1606,80 @@ def hoverOff(event,canvas, item, number):
 def reportFrame():
     data = {}
 
-    reportFrame = Frame(mainScreen, bd=6, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame')
+    reportFrame = Frame(mainScreen, bd=6, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame',  bg='#3c3f41')
     reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
 
     buttonUp = Button(reportFrame, text='⬆', name='arrow')
     buttonUp.place(x=mainScreen.winfo_width() - 40)
     buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
 
-    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=270)
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=270,  bg='#2b2b2b')
     reportContex.place(x=100, y=50)
     size = GetSystemMetrics(0) - 300
     getRepo = Button(reportFrame, text='Get Repo')
     getRepo.place(x=mainScreen.winfo_width() - 150, y=100)
-    getRepo.bind('<Button-1>', lambda event: getReport(event, reportContex, data, size))
+    getRepo.bind('<Button-1>')
 
     clearReport = Button(reportFrame, text='Clear All')
     clearReport.place(x=mainScreen.winfo_width() - 150)
     clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex ))
 
-def clearRe(event, data, frame):
-    data.clear()
-    for i in frame.winfo_children():
-        try:
-            i.destroy()
-        except:
-            pass
-
-
-def getReport(event, frameToWrite, data, size):
-    data.update({"set_info":{}})
-    counter=1
-    for x in currentScript.functions:
-        if x.name!='{' and x.name !='}':
-            if(x.extra!=''):
-                extra = x.extra.getDict()
-            else:
-                extra="no other parameters"
-
-            data['set_info'].update({
-                x.name:{
-                    'id_number': str(x.id),
-                    'more_vars': extra
-                }
-            })
-            counter+=1
-
-    scrollbar = Scrollbar(frameToWrite)
-    scrollbar.pack(side=RIGHT, fill=Y)
-    tree1 = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set, name='repoTree')
-    root = tree1.insert('', 'end', text='', open=True, tag='T')
-
-    scrollbar.config(command=tree.yview)
-    jsonTree(frameToWrite, data, tree1, root)
-    tree1.column("#0", width=size)
-    tree1.pack(fill=BOTH, expand=True)
-
-    frameToWrite.place(height=270)
-
-
-def jsonTree(frame, data, tree, parent):
-
-    for key, value in data.items():
-        if isinstance(value,list):
-            value = value[0]
-
-        if isinstance(value,dict):
-            parent_element = tree.insert(parent, 'end', text=key, open=True, tag="T")
-            jsonTree(frame, value , tree, parent_element)
-            # print('insert ' + str(key) + ' his uid is: ' + str(parent_element) + ' his parent uid is: ' + str(parent) )
-
-        else:
-            parent_element = tree.insert(parent, 'end', text=(key + ':' + value), open=True, tag="T")
-            pass
-
+# def clearRe(event, data, frame):
+#     data.clear()
+#     for i in frame.winfo_children():
+#         try:
+#             i.destroy()
+#         except:
+#             pass
+#
+#
+# def getReport(event, frameToWrite, data, size):
+#     data.update({"set_info":{}})
+#     counter=1
+#     for x in currentScript.functions:
+#         if x.name!='{' and x.name !='}':
+#             if(x.extra!=''):
+#                 extra = x.extra.getDict()
+#             else:
+#                 extra="no other parameters"
+#
+#             data['set_info'].update({
+#                 x.name:{
+#                     'id_number': str(x.id),
+#                     'more_vars': extra
+#                 }
+#             })
+#             counter+=1
+#
+#     scrollbar = Scrollbar(frameToWrite)
+#     scrollbar.pack(side=RIGHT, fill=Y)
+#     tree1 = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set, name='repoTree')
+#     root = tree1.insert('', 'end', text='', open=True, tag='T')
+#
+#     scrollbar.config(command=tree.yview)
+#     jsonTree(frameToWrite, data, tree1, root)
+#     tree1.column("#0", width=size)
+#     tree1.pack(fill=BOTH, expand=True)
+#
+#     frameToWrite.place(height=270)
+#
+#
+# def jsonTree(frame, data, tree, parent):
+#
+#     for key, value in data.items():
+#         if isinstance(value,list):
+#             value = value[0]
+#
+#         if isinstance(value,dict):
+#             parent_element = tree.insert(parent, 'end', text=key, open=True, tag="T")
+#             jsonTree(frame, value , tree, parent_element)
+#             # print('insert ' + str(key) + ' his uid is: ' + str(parent_element) + ' his parent uid is: ' + str(parent) )
+#
+#         else:
+#             parent_element = tree.insert(parent, 'end', text=(key + ':' + value), open=True, tag="T")
+#             pass
+#
+#     clearReport.bind('<Button-1>')
 
 
 
@@ -1702,7 +1703,7 @@ def exposeReport(event, frame, button):
             y = frame.winfo_y() + 30
             frame.place(y=y)
             frame.update()
-            # time.sleep(0.009)
+            time.sleep(0.009)
             counter += 1
         button['text'] = '⬆'
 
@@ -1951,8 +1952,7 @@ def left_click_handle(template,path):
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
-        pyautogui.click(x,y,duration=1)
-
+        pyautogui.click(x,y,duration=speed)
 def insert_input_handle(template,path,text):
     screenShot = ImgRecog.tempScreenShot(template)
 
@@ -1961,7 +1961,7 @@ def insert_input_handle(template,path,text):
     y = (template.y1Cord + template.y0Cord) / 2
     print(exist)
     if(exist == True):
-        pyautogui.click(x, y, duration=1)
+        pyautogui.click(x, y, duration=speed)
         pyautogui.typewrite(text, interval=0.1)
 
 def double_click_handle(template,path):
@@ -1971,7 +1971,7 @@ def double_click_handle(template,path):
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
-        pyautogui.doubleClick(x,y,duration=1)
+        pyautogui.doubleClick(x,y,duration=speed)
 
 def right_click_handle(template,path):
     screenShot = ImgRecog.tempScreenShot(template)
@@ -1980,7 +1980,8 @@ def right_click_handle(template,path):
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
-        pyautogui.rightClick(x,y,duration=1)
+
+        pyautogui.rightClick(x,y,duration=speed)
 
 def exist_handle(fatherFunction,path):
     childrenFunctions = fatherFunction.extra.functions
@@ -2193,6 +2194,47 @@ def editToolBar_click(event, x, y, flag):
     else:
         flag[0]='0'
 
+
+def option_click_handler(selection, flag):
+    global speed
+    print(selection)
+    flag[1] = selection
+    if selection == 'Slow':
+        speed = 3
+    elif selection == 'Regular':
+        speed = 1
+    elif selection == 'Fast':
+        speed = 0.6
+    elif selection == 'Very Fast':
+        speed = 0.2
+
+
+def optionToolBar_click(event, x, y, flag):
+
+    if flag[0] == '0':
+        menu = Menu(mainScreen, tearoff=0, bg='#3c3f41', fg='white')
+        if flag[1]=='Slow':
+            menu.add_command(label="⦿ Slow", command=lambda: option_click_handler('Slow', flag))
+        else:
+            menu.add_command(label="      Slow", command=lambda: option_click_handler('Slow', flag))
+        if flag[1]=='Regular':
+            menu.add_command(label="⦿ Regular", command=lambda: option_click_handler('Regular', flag))
+        else:
+            menu.add_command(label="      Regular", command=lambda: option_click_handler('Regular', flag))
+        if flag[1]=='Fast':
+            menu.add_command(label="⦿ Fast", command=lambda: option_click_handler('Fast', flag))
+        else:
+            menu.add_command(label="      Fast", command=lambda: option_click_handler('Fast', flag))
+        if flag[1] == 'Very Fast':
+            menu.add_command(label="⦿ Very Fast", command=lambda: option_click_handler('Very Fast', flag))
+        else:
+            menu.add_command(label="      Very Fast", command=lambda: option_click_handler('Very Fast', flag))
+
+        menu.post(x + 10, y + 35)
+        flag[0] = '1'
+    else:
+        flag[0] = '0'
+
 if __name__ == '__main__':
     functionFather = []
 
@@ -2263,6 +2305,16 @@ if __name__ == '__main__':
     canvasEdit.tag_bind('edit', '<Enter>',lambda event: change_on_hover(event, "editTool", canvasEdit, editTool))
     canvasEdit.tag_bind('edit', '<Leave>',lambda event: change_on_hover(event, "editToolHover", canvasEdit, editTool))
 
+    optionToolButton = PhotoImage(file=r"img\optionsTool.png")
+    canvasOption = Canvas(toolbarFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', bd=-2)
+    canvasOption.grid(row=0, column=4, sticky="NWE", pady=2)
+
+    canvasOption.options = optionToolButton
+    optionTool = canvasOption.create_image(-1, -1, anchor=NW, image=optionToolButton, tags="options")
+    canvasOptions_flag = ['0', 'Regular']
+    canvasOption.tag_bind('options', '<Button-1>', lambda event: optionToolBar_click(event, canvasOption.winfo_rootx(), canvasOption.winfo_rooty(), canvasOptions_flag))
+    canvasOption.tag_bind('options', '<Enter>', lambda event: change_on_hover(event, "optionsTool", canvasOption, optionTool))
+    canvasOption.tag_bind('options', '<Leave>', lambda event: change_on_hover(event, "optionsToolHover", canvasOption, optionTool))
 
     playToolButton = PhotoImage(file=r"img\PlayTool.png")
     canvasPlay = Canvas(mainScreen, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',bd=-2)
@@ -2270,7 +2322,7 @@ if __name__ == '__main__':
 
     canvasPlay.play = playToolButton
     playTool = canvasPlay.create_image(0, 0, anchor=NW, image=playToolButton, tags="PlayTool")
-
+    reportList=[]
     canvasPlay.tag_bind('PlayTool', '<Button-1>', lambda event: runHendle())
     canvasPlay.tag_bind('PlayTool', '<Enter>', lambda event: change_on_hover(event, "PlayTool", canvasPlay, playTool))
     canvasPlay.tag_bind('PlayTool', '<Leave>', lambda event: change_on_hover(event, "PlayToolHover", canvasPlay, playTool))
@@ -2458,6 +2510,7 @@ if __name__ == '__main__':
 
 
     reportFrame()
+
 
 
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
