@@ -59,7 +59,7 @@ redoLinesFather = []
 undoLinesFather = []
 stopScript = False
 Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d557ff','#078f02','#57ff7f']
-
+flag_of_shift = False
 speed=1
 
 def updateRedoFunctions(type = 'regular'):
@@ -663,13 +663,29 @@ def removeFunctions():
 
 
 
-
-
 def window2():
-    if 'Dis' in takeS_flag[0]:
+    global flag_of_shift
+    if 'Dis' in takeS_flag[0] or flag_of_shift == False:
         return
-    window2 = ScreenShotWindow(mainScreen,Lb2,currentScript,tree,photoViewFrame)
 
+    myScreenshot = pyautogui.screenshot()
+    myScreenshot.save('ScreenTest.png')
+
+    window_of_screen_shot = Tk()
+    window_of_screen_shot.title("test!")
+    window_of_screen_shot.attributes('-fullscreen', True)
+
+    canvas = Canvas(window_of_screen_shot, width=window_of_screen_shot.winfo_screenwidth(), height=window_of_screen_shot.winfo_screenheight(),
+                         highlightthickness=0)
+
+    sh = PhotoImage(master=window_of_screen_shot,file=r"C:\Users\AZ\PycharmProjects\Final-Project\ScreenTest.png")
+    canvas.takeS = sh
+    takeS = canvas.create_image(0, 0, anchor=NW, image=sh)
+    canvas.pack()
+    window2 = ScreenShotWindow(mainScreen,Lb2,currentScript,tree,photoViewFrame,window_of_screen_shot)
+    window2.window.attributes("-topmost", True)
+    window2.window.mainloop()
+    flag_of_shift = False
 
 def SUBS(path, parent, tree):
     for p in os.listdir(path):
@@ -894,7 +910,7 @@ def FocusOnSelectedFunc(event):
                     childValue.config(text='File Name: {}'.format(photoName))
                 if childName == 'canvasFrame':
                     canvas = Canvas(childValue, width=437, height=150, name='canvas')
-                    one = PhotoImage(file=currentScript.path + "ScreenShots\\" + photoName)
+                    one = PhotoImage(master=mainScreen,file=currentScript.path + "ScreenShots\\" + photoName)
                     photoViewFrame.one = one  # to prevent the image garbage collected.
                     canvas.create_image((0, 0), image=one, anchor="nw")
                     canvas.pack()
@@ -1376,7 +1392,7 @@ def closeStartWindow(event, startWin):
     canvas = Canvas(frame, width=110, height=500)
     canvas.pack(fill=BOTH)
 
-    background = PhotoImage(file=r"img\StartUpScreen2.png")
+    background = PhotoImage(master=startS,file=r"img\StartUpScreen2.png")
     canvas.bg = background
     canvas.create_image(0, 0, anchor=NW, image=background)
 
@@ -1388,27 +1404,27 @@ def closeStartWindow(event, startWin):
     label = ttk.Label(frame, text="Please select path of new project", background="white")
     label.place(height=40, width=600, x=365, y=310)
 
-    newPButton = PhotoImage(file=r"img\buttonStart.png")
+    newPButton = PhotoImage(master=startS,file=r"img\buttonStart.png")
     canvas.Button1 = newPButton
     np = canvas.create_image(150, 400, anchor=NW, image=newPButton, tags="Start")
     canvas.tag_bind('Start', '<Button-1>', lambda event: save_new_project_and_run_app(label.cget("text"),e1.get(), startS))
-    canvas.tag_bind('Start', '<Enter>', lambda event: hoverOn(event, canvas, np, 1))
-    canvas.tag_bind('Start', '<Leave>', lambda event: hoverOff(event, canvas, np, 1))
+    canvas.tag_bind('Start', '<Enter>', lambda event: hoverOn(event, canvas, np, 1, startS))
+    canvas.tag_bind('Start', '<Leave>', lambda event: hoverOff(event, canvas, np, 1, startS))
 
     e1.place( height=40, width=600 ,x=365,y=215)
-    Selec_F_Button = PhotoImage(file=r"img\buttonPaN.png")
+    Selec_F_Button = PhotoImage(master=startS,file=r"img\buttonPaN.png")
     canvas.Button2 = Selec_F_Button
     Selec_F = canvas.create_image(135, 285, anchor=NW, image=Selec_F_Button, tags="PaN")
     canvas.tag_bind('PaN', '<Button-1>', lambda event: make_new_project(label))
-    canvas.tag_bind('PaN', '<Enter>', lambda event: hoverOn(event, canvas, Selec_F, 5))
-    canvas.tag_bind('PaN', '<Leave>', lambda event: hoverOff(event, canvas, Selec_F, 5))
+    canvas.tag_bind('PaN', '<Enter>', lambda event: hoverOn(event, canvas, Selec_F, 5, startS))
+    canvas.tag_bind('PaN', '<Leave>', lambda event: hoverOff(event, canvas, Selec_F, 5, startS))
 
-    returnButton = PhotoImage(file=r"img\buttonReturn.png")
+    returnButton = PhotoImage(master=startS,file=r"img\buttonReturn.png")
     canvas.Button3 = returnButton
     returnB = canvas.create_image(750, 400, anchor=NW, image=returnButton, tags="return")
     canvas.tag_bind('return', '<Button-1>', lambda event: startScreen())
-    canvas.tag_bind('return', '<Enter>', lambda event: hoverOn(event, canvas, returnB, 6))
-    canvas.tag_bind('return', '<Leave>', lambda event: hoverOff(event, canvas, returnB, 6))
+    canvas.tag_bind('return', '<Enter>', lambda event: hoverOn(event, canvas, returnB, 6, startS))
+    canvas.tag_bind('return', '<Leave>', lambda event: hoverOff(event, canvas, returnB, 6, startS))
 
     mainScreen.wait_window(startS)
 
@@ -1523,32 +1539,32 @@ def startScreen():
     canvas = Canvas(frame, width=110, height=500)
     canvas.pack(fill=BOTH)
 
-    background = PhotoImage(file=r"img\StartUpScreen.png")
+    background = PhotoImage(master=startS,file=r"img\StartUpScreen.png")
     canvas.bg = background
     canvas.create_image(0,0,anchor=NW, image=background)
 
 
-    newPButton = PhotoImage(file=r"img\buttonNP.png")
+    newPButton = PhotoImage(master=startS,file=r"img\buttonNP.png")
     canvas.Button1 = newPButton
     np = canvas.create_image(150,400, anchor=NW, image=newPButton,  tags="NewProject")
     canvas.tag_bind('NewProject','<Button-1>', lambda event: closeStartWindow(event, startS))
-    canvas.tag_bind('NewProject', '<Enter>', lambda event: hoverOn(event, canvas, np,2))
-    canvas.tag_bind('NewProject', '<Leave>', lambda event: hoverOff(event, canvas, np,2))
+    canvas.tag_bind('NewProject', '<Enter>', lambda event: hoverOn(event, canvas, np,2, startS))
+    canvas.tag_bind('NewProject', '<Leave>', lambda event: hoverOff(event, canvas, np,2, startS))
 
 
-    loadButton = PhotoImage(file=r"img\buttonLoad.png")
+    loadButton = PhotoImage(master=startS,file=r"img\buttonLoad.png")
     canvas.Button2 = loadButton
     load = canvas.create_image(450, 400, anchor=NW, image=loadButton, tags="Load")
     canvas.tag_bind('Load', '<Button-1>', lambda event: Minimize_and_Open(event, startS))
-    canvas.tag_bind('Load', '<Enter>',lambda event: hoverOn(event,canvas, load,3))
-    canvas.tag_bind('Load', '<Leave>',lambda event: hoverOff(event, canvas, load,3))
+    canvas.tag_bind('Load', '<Enter>',lambda event: hoverOn(event,canvas, load,3, startS))
+    canvas.tag_bind('Load', '<Leave>',lambda event: hoverOff(event, canvas, load,3, startS))
 
-    closeButton = PhotoImage(file=r"img\buttonClose.png")
+    closeButton = PhotoImage(master=startS,file=r"img\buttonClose.png")
     canvas.Button3 = closeButton
     close=canvas.create_image(750, 400, anchor=NW, image=closeButton, tags="Close")
     canvas.tag_bind('Close', '<Button-1>', lambda event: terminate(startS))
-    canvas.tag_bind('Close', '<Enter>',lambda event: hoverOn(event,canvas, close,4))
-    canvas.tag_bind('Close', '<Leave>',lambda event: hoverOff(event, canvas, close,4))
+    canvas.tag_bind('Close', '<Enter>',lambda event: hoverOn(event,canvas, close,4, startS))
+    canvas.tag_bind('Close', '<Leave>',lambda event: hoverOff(event, canvas, close,4, startS))
 
 
 
@@ -1560,63 +1576,63 @@ def terminate(screen):
     screen.destroy()
     exit()
 
-def hoverOn(event,canvas, item, number):
+def hoverOn(event,canvas, item, number, startS):
     if (number == 1):
-        Button1 = PhotoImage(file=r"img\buttonStartHover.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonStartHover.png")
         canvas.a = Button1
         canvas.itemconfig(item, image=Button1)
 
     if(number==2):
-        Button1 = PhotoImage(file=r"img\buttonNPHover.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonNPHover.png")
         canvas.b = Button1
         canvas.itemconfig(item, image = Button1)
     if(number==3):
-        Button1 = PhotoImage(file=r"img\buttonLoadHover.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonLoadHover.png")
         canvas.c = Button1
         canvas.itemconfig(item, image = Button1)
 
     if(number==4):
-        Button1 = PhotoImage(file=r"img\buttonCloseHover.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonCloseHover.png")
         canvas.d = Button1
         canvas.itemconfig(item, image = Button1)
 
     if (number == 5):
 
-        Button1 = PhotoImage(file=r"img\buttonPaNHover.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonPaNHover.png")
         canvas.e = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 6):
-        Button1 = PhotoImage(file=r"img\buttonReturnHover.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonReturnHover.png")
         canvas.f = Button1
         canvas.itemconfig(item, image=Button1)
 
-def hoverOff(event,canvas, item, number):
+def hoverOff(event,canvas, item, number, startS):
     if (number == 1):
-        Button1 = PhotoImage(file=r"img\buttonStart.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonStart.png")
         canvas.a = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 2):
-        Button1 = PhotoImage(file=r"img\buttonNP.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonNP.png")
         canvas.b = Button1
         canvas.itemconfig(item, image=Button1)
 
     if (number == 3):
-        Button1 = PhotoImage(file=r"img\buttonLoad.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonLoad.png")
         canvas.c = Button1
         canvas.itemconfig(item, image=Button1)
 
     if(number==4):
-        closeButton1 = PhotoImage(file=r"img\buttonClose.png")
+        closeButton1 = PhotoImage(master=startS,file=r"img\buttonClose.png")
         canvas.d = closeButton1
         canvas.itemconfig(item, image=closeButton1)
     if (number == 5):
-        Button1 = PhotoImage(file=r"img\buttonPaN.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonPaN.png")
         canvas.e = Button1
         canvas.itemconfig(item, image=Button1)
     if (number == 6):
-        Button1 = PhotoImage(file=r"img\buttonReturn.png")
+        Button1 = PhotoImage(master=startS,file=r"img\buttonReturn.png")
         canvas.f = Button1
         canvas.itemconfig(item, image=Button1)
 
@@ -1831,7 +1847,7 @@ def out(entry,fileName, iid, path):
 
 def image_preview(filePath):
     r = Toplevel()
-    my_image = PhotoImage(file=filePath, master=mainScreen)
+    my_image = PhotoImage(master=mainScreen,file=filePath)
     canvas_image = my_image.zoom(2, 2)
 
     canvas = Canvas(r, height=my_image.width()+100, width=my_image.height()+100)
@@ -1919,6 +1935,7 @@ def delete_handler():
     flag = checkMarkArea(indexes)
     if (flag == True):
         removeFunctions()
+
 
 def repeat_handle(fatherFunction,path):
     repeatTime = fatherFunction.extra.time
@@ -2147,7 +2164,7 @@ def drop(event, canvasGoust, flag ):
 
     for child in canvasGoust.winfo_children():
         child.destroy()
-    background = PhotoImage(file=r"img\transparent.png")
+    background = PhotoImage(master=mainScreen,file=r"img\transparent.png")
     canvasGoust.bg = background
     canvasGoust.create_image(0, 0, image=background)
     # canvasGoust.pack()
@@ -2163,7 +2180,7 @@ def change_on_hover(event, name, canvas, item):
         if 'Dis' in name:
             filename = "img\\" + name + ".png"
 
-            Button1 = PhotoImage(file=filename)
+            Button1 = PhotoImage(master=mainScreen,file=filename)
             canvas.a = Button1
             canvas.itemconfig(item, image=Button1)
             return
@@ -2175,7 +2192,7 @@ def change_on_hover(event, name, canvas, item):
         filename = "img\\" + name + "Hover.png"
 
 
-    Button1 = PhotoImage(file=filename)
+    Button1 = PhotoImage(master=mainScreen,file=filename)
     canvas.a = Button1
     canvas.itemconfig(item, image=Button1)
 
@@ -2266,6 +2283,12 @@ def Lb2Indexes_left_click(event):
         return
     lb2Indexes.select_clear(index)
 
+def screen_shot_handle():
+    global flag_of_shift
+    flag_of_shift = True
+    mainScreen.iconify()
+
+
 if __name__ == '__main__':
     functionFather = []
 
@@ -2290,7 +2313,7 @@ if __name__ == '__main__':
     toolbarFrame = Frame(mainScreen, bd=3, bg='#3c3f41')
     toolbarFrame.grid(row=0,column=0,sticky = 'WEN')
 
-    openToolButton = PhotoImage(file=r"img\OpenTool.png")
+    openToolButton = PhotoImage(master=mainScreen, file=r"img\OpenTool.png")
     canvasOpen = Canvas(toolbarFrame,height = openToolButton.height(),width = openToolButton.width(),  bg='#3c3f41', bd=-2)
     canvasOpen.grid(row=0,column=0, sticky="NWE", pady=2)
 
@@ -2303,7 +2326,7 @@ if __name__ == '__main__':
 
 
 
-    saveToolButton = PhotoImage(file=r"img\SaveTool.png")
+    saveToolButton = PhotoImage(master=mainScreen, file=r"img\SaveTool.png")
     canvasSave = Canvas(toolbarFrame, height=saveToolButton.height(), width=saveToolButton.width(), bg='#3c3f41', bd=-2)
     canvasSave.grid(row=0, column=1, sticky="NWE", pady=2)
 
@@ -2315,7 +2338,7 @@ if __name__ == '__main__':
     canvasSave.tag_bind('SaveTool', '<Leave>',lambda event: change_on_hover(event, "SaveToolHover", canvasSave, saveTool))
 
 
-    saveAsToolButton = PhotoImage(file=r"img\SaveAsTool.png")
+    saveAsToolButton = PhotoImage(master=mainScreen,file=r"img\SaveAsTool.png")
     canvasSaveAs = Canvas(toolbarFrame, height=saveAsToolButton.height(), width=saveAsToolButton.width(), bg='#3c3f41', bd=-2)
     canvasSaveAs.grid(row=0, column=2, sticky="EWN", pady=2)
 
@@ -2329,7 +2352,7 @@ if __name__ == '__main__':
     optionsAndRunFrame = Frame(mainScreen, bd=3, bg='#3c3f41')
     optionsAndRunFrame.grid(row=0, column=1, sticky='N')
 
-    editToolButton = PhotoImage(file=r"img\editTool.png")
+    editToolButton = PhotoImage(master=mainScreen,file=r"img\editTool.png")
     canvasEdit = Canvas(optionsAndRunFrame, height=editToolButton.height(), width=editToolButton.width(), bg='#3c3f41',bd=-2)
     canvasEdit.grid(row=0, column=0, sticky="NWE", pady=2)
 
@@ -2342,7 +2365,7 @@ if __name__ == '__main__':
 
 
 
-    optionToolButton = PhotoImage(file=r"img\optionsTool.png")
+    optionToolButton = PhotoImage(master=mainScreen, file=r"img\optionsTool.png")
     canvasOption = Canvas(optionsAndRunFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', bd=-2)
     canvasOption.grid(row=0, column=1, sticky="NWE", pady=2)
 
@@ -2353,7 +2376,7 @@ if __name__ == '__main__':
     canvasOption.tag_bind('options', '<Enter>', lambda event: change_on_hover(event, "optionsTool", canvasOption, optionTool))
     canvasOption.tag_bind('options', '<Leave>', lambda event: change_on_hover(event, "optionsToolHover", canvasOption, optionTool))
 
-    playToolButton = PhotoImage(file=r"img\PlayTool.png")
+    playToolButton = PhotoImage(master=mainScreen,file=r"img\PlayTool.png")
     canvasPlay = Canvas(optionsAndRunFrame, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',bd=-2)
     canvasPlay.grid(row=0, column=2, sticky="N", pady=4)
 
@@ -2365,7 +2388,7 @@ if __name__ == '__main__':
     canvasPlay.tag_bind('PlayTool', '<Leave>', lambda event: change_on_hover(event, "PlayToolHover", canvasPlay, playTool))
 
 
-    comboToolButton = PhotoImage(file=r"img\Combo.png")
+    comboToolButton = PhotoImage(master=mainScreen,file=r"img\Combo.png")
     canvasCombo = Canvas(mainScreen, height=comboToolButton.height(), width=comboToolButton.width(), bg='#3c3f41', bd=-2)
     canvasCombo.grid(row=0, column=2, sticky="N", pady=4)
 
@@ -2388,7 +2411,7 @@ if __name__ == '__main__':
     separator3 = ttk.Separator(mainScreen, orient='horizontal', style="Line.TSeparator")
     separator3.grid(column=2, row=0, sticky="WE", pady=35)
 
-    addFunclButton = PhotoImage(file=r"img\AddFuncDis.png")
+    addFunclButton = PhotoImage(master=mainScreen,file=r"img\AddFuncDis.png")
     canvasAddFun = Canvas(mainScreen, height=addFunclButton.height(), width=addFunclButton.width(), bg='#3c3f41', bd=-2)
     canvasAddFun.grid(row=1, column=2, sticky="N", pady=4)
 
@@ -2487,7 +2510,7 @@ if __name__ == '__main__':
     photoViewFrame = Frame(rightSectionFrame, bd=3, relief=SUNKEN, background="#3c3f41", name='photoViewFrame')
     photoViewFrame.grid(row=1, column=0,sticky='NEWS')
 
-    moveDownButton = PhotoImage(file=r"img\moveDownDis.png")
+    moveDownButton = PhotoImage(master=mainScreen,file=r"img\moveDownDis.png")
     canvasmoveDown = Canvas(mainFrame1, height=moveDownButton.height(), width=moveDownButton.width(), bg='#3c3f41', bd=-2)
     canvasmoveDown.grid(row=0, column=0, sticky="N", pady=4)
 
@@ -2500,7 +2523,7 @@ if __name__ == '__main__':
 
 
 
-    moveUpButton = PhotoImage(file=r"img\moveUpDis.png")
+    moveUpButton = PhotoImage(master=mainScreen,file=r"img\moveUpDis.png")
     canvasmoveUp = Canvas(mainFrame1, height=moveUpButton.height(), width=moveUpButton.width(), bg='#3c3f41', bd=-2)
     canvasmoveUp.grid(row=0, column=1, sticky="N", pady=4)
 
@@ -2515,7 +2538,7 @@ if __name__ == '__main__':
 
 
 
-    removeButton = PhotoImage(file=r"img\remove.png")
+    removeButton = PhotoImage(master=mainScreen,file=r"img\remove.png")
     canvasRemove = Canvas(mainFrame1, height=removeButton.height(), width=removeButton.width(), bg='#3c3f41', bd=-2)
     canvasRemove.grid(row=0, column=2, sticky="N", pady=4)
 
@@ -2528,7 +2551,7 @@ if __name__ == '__main__':
 
 
 
-    insertBButton = PhotoImage(file=r"img\insertBDis.png")
+    insertBButton = PhotoImage(master=mainScreen,file=r"img\insertBDis.png")
     canvasinsertB = Canvas(mainFrame1, height=insertBButton.height(), width=insertBButton.width(), bg='#3c3f41', bd=-2)
     canvasinsertB.grid(row=0, column=3, sticky="N", pady=4)
 
@@ -2540,7 +2563,7 @@ if __name__ == '__main__':
     canvasinsertB.tag_bind('insertB', '<Leave>',lambda event: change_on_hover(event, insert_b_flag[0]+'Hover', canvasinsertB, insertB))
 
 
-    insertAButton = PhotoImage(file=r"img\insertADis.png")
+    insertAButton = PhotoImage(master=mainScreen,file=r"img\insertADis.png")
     canvasinsertA = Canvas(mainFrame1, height=insertAButton.height(), width=insertAButton.width(), bg='#3c3f41', bd=-2)
     canvasinsertA.grid(row=0, column=4, sticky="N", pady=4)
     canvasinsertA.inserta = insertAButton
@@ -2552,13 +2575,14 @@ if __name__ == '__main__':
     canvasinsertA.tag_bind('insertA', '<Leave>', lambda event: change_on_hover(event, insert_a_flag[0]+'Hover', canvasinsertA, insertA))
 
 
-    takeSButton = PhotoImage(file=r"img\TakeSDis.png")
+    takeSButton = PhotoImage(master=mainScreen,file=r"img\TakeSDis.png")
     canvasTakeS = Canvas(mainFrame1, height=takeSButton.height(), width=takeSButton.width(), bg='#3c3f41', bd=-2)
     canvasTakeS.grid(row=0, column=5, sticky="N", pady=4)
     canvasTakeS.takeS = takeSButton
     takeS_flag = ['takeSDis']
     takeS = canvasTakeS.create_image(0, 0, anchor=NW, image=takeSButton, tags="takeS")
-    canvasTakeS.tag_bind('takeS', '<Button-1>', lambda event: window2())
+    # canvasTakeS.tag_bind('takeS', '<Button-1>', lambda event: window2())
+    canvasTakeS.tag_bind('takeS', '<Button-1>', lambda event: screen_shot_handle())
     canvasTakeS.tag_bind('takeS', '<Enter>', lambda event: change_on_hover(event, takeS_flag[0] , canvasTakeS, takeS))
     canvasTakeS.tag_bind('takeS', '<Leave>', lambda event: change_on_hover(event,  takeS_flag[0]+'Hover', canvasTakeS ,takeS))
 
@@ -2584,8 +2608,11 @@ if __name__ == '__main__':
         '<ctrl>+z': redo_handler,
         '<ctrl>+y': undo_handler,
         '<delete>': delete_handler,
+        '<shift>': window2,
         '<esc>': esc_handler})
     hotKeys.start()
+
+
 
 mainScreen.mainloop()
 

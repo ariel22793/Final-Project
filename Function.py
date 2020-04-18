@@ -132,3 +132,4 @@ class Function():
                     entry.bind('<Return>', (lambda _: eventFunction(entry, Lb2, currentScript)))
                     entry.pack()
                     entry.place(x=0, y=0)
+

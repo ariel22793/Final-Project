@@ -1,29 +1,43 @@
 import os
 from tkinter import *
-from PIL import Image
+from PIL import Image, ImageTk
 import pyautogui
 import Photo
+import matplotlib.pyplot as plt
 from Photo import Photo
 
 
 class ScreenShotWindow():
     Lb1Colors = ['#f4b63f', '#57ceff', '#ff5792', '#c2ff57', '#ff8657', '#579aff', '#d557ff', '#078f02', '#57ff7f']
 
-    def __init__(self,mainScreen,Lb2,currentScript,tree,photoViewFrame):
-        mainScreen.iconify()
+    def __init__(self,mainScreen,Lb2,currentScript,tree,photoViewFrame,window_of_screen_shot):
+        # mainScreen.iconify()
+
+
         window2 = Tk()
         window2.title("window2")
         window2.attributes('-fullscreen', True)
         window2.attributes('-alpha', 0.3)
 
+
         #tkinter.messagebox.showinfo("Notic!", "Press ENTER To Take ScreenShot\nPress ESC To Quit")
         self.width = window2.winfo_screenwidth()
         self.heigth = window2.winfo_screenheight()
+        self.window_of_screen_shot = window_of_screen_shot
 
         self.x0, self.y0, self.x1, self.y1 = -1, -1, -1, -1
         self.canvas = Canvas(window2, width=window2.winfo_screenwidth(), height=window2.winfo_screenheight(),
                              highlightthickness=0)
+        #
+        # sh = PhotoImage(master=window2,file=r"C:\Users\AZ\PycharmProjects\Final-Project\ScreenTest.png")
+        #
+        #
+        # self.canvas.takeS = sh
+        # takeS = self.canvas.create_image(0, 0, anchor=NW, image=sh)
+
         self.canvas.pack()
+
+
         self.click = 0
         self.window = window2
         window2.bind('<Button-1>', self.getMaousePosition)
@@ -58,6 +72,7 @@ class ScreenShotWindow():
 
                 mainScreen.state('zoomed')
                 self.window.destroy()
+                self.window_of_screen_shot.destroy()
 
                 for func in range(len(currentScript.functions)):
                     if currentScript.functions[func].id == index:
@@ -83,9 +98,11 @@ class ScreenShotWindow():
             print("Quit window")
             mainScreen.state('zoomed')
             self.window.destroy()
+            self.window_of_screen_shot.destroy()
 
         else:
             pass
+
 
     def paint(self, event):
         if self.click == 1:
@@ -97,6 +114,8 @@ class ScreenShotWindow():
             self.canvas.create_rectangle(self.x0, 0, self.x1, self.y0, fill='red', outline='red')  # outter
             self.canvas.create_rectangle(self.x0, self.y1, self.width, self.heigth, fill='red', outline='red')  # outter
             self.canvas.create_rectangle(self.x1, 0, self.width, self.heigth, fill='red', outline='red')  # outter
+
+
 
     def getMaousePosition(self, event):
         if (str(event.type) == 'ButtonPress'):
@@ -281,6 +300,4 @@ class ScreenShotWindow():
                     Lb2.itemconfig(i, bg='#57ff7f')
             else:
                 Lb2.itemconfig(i, bg='#2b2b2b')
-
-
 
