@@ -58,6 +58,7 @@ undoFunctions = []
 redoLinesFather = []
 undoLinesFather = []
 stopScript = False
+Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d557ff','#078f02','#57ff7f']
 
 
 def updateRedoFunctions(type = 'regular'):
@@ -110,6 +111,30 @@ def updateCurrentScript(type = 'regular'):
                 currentScript.linesFather[i].toIndex = i
     updateRedoFunctions(type)
 
+
+def getFunctionColor(funcName):
+    if(funcName == 'Right-Click'):
+        return Lb1Colors[0]
+    elif(funcName == 'Left-Click'):
+        return Lb1Colors[1]
+    elif (funcName == 'Repeat'):
+        return Lb1Colors[2]
+    elif (funcName == 'If-Exist'):
+        return Lb1Colors[3]
+    elif (funcName == 'If-Not-Exist'):
+        return Lb1Colors[4]
+    elif (funcName == 'Else'):
+        return Lb1Colors[5]
+    elif (funcName == 'Double-Click'):
+        return Lb1Colors[6]
+    elif (funcName == 'Insert-Input'):
+        return Lb1Colors[7]
+    elif (funcName == 'Sleep'):
+        return Lb1Colors[8]
+    else:
+        return 'white'
+
+
 def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
     vw = Lb2.yview()
     if(options == 'deleteBefore'):
@@ -117,8 +142,10 @@ def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
     highestNumDigit = len(str(len(currentScript.functions)))
 
 
+
     if (operation == 'add' or operation == 'replace' ):
         for x in range(fromIndex, toIndex+1):
+            textColor = getFunctionColor(currentScript.functions[x].name)
             currentNumDigit = len(str(x))
             if(operation == 'add'):
                 name = currentScript.functions[x].name
@@ -129,14 +156,18 @@ def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
                 if name == 'Sleep' or name == 'Repeat':
                     Lb2.insert(x, shift + name + '({})'.format(
                         currentScript.functions[x].extra.time))
+                    Lb2.itemconfig(x, foreground=textColor)
                 elif name == 'If-Exist' or name == 'If-Not-Exist':
                     Lb2.insert(x,shift + name + '({})'.format(
                         currentScript.functions[x].extra.image))
+                    Lb2.itemconfig(x, foreground=textColor)
                 elif name == 'Insert-Input':
                     Lb2.insert(x,shift + name + '("{}")'.format(
                         currentScript.functions[x].extra.text))
+                    Lb2.itemconfig(x, foreground=textColor)
                 else:
                     Lb2.insert(x,shift + name)
+                    Lb2.itemconfig(x, foreground=textColor)
 
             elif (operation == 'replace'):
                 name = currentScript.functions[x].name
@@ -146,21 +177,28 @@ def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
                 if name == 'Sleep' or name == 'Repeat':
                     Lb2.insert(x,shift + name + '({})'.format(
                         currentScript.functions[x].extra.time))
+                    Lb2.itemconfig(x, foreground=textColor)
                 elif name == 'If-Exist' or name == 'If-Not-Exist':
                     Lb2.insert(x,shift + name + '({})'.format(
                         currentScript.functions[x].extra.image))
+                    Lb2.itemconfig(x, foreground=textColor)
                 elif name == 'Insert-Input':
                     Lb2.insert(x,+ name + '("{}")'.format(
                         currentScript.functions[x].extra.text))
+                    Lb2.itemconfig(x, foreground=textColor)
                 else:
                     Lb2.insert(x,shift + name)
+                    Lb2.itemconfig(x, foreground=textColor)
         Lb2.update()
     elif(operation == 'remove'):
         for x in range(toIndex, fromIndex-1,-1):
+            # textColor = getFunctionColor(currentScript.functions[x].name)
             Lb2.delete(x)
             if(x==fromIndex and x <= len(currentScript.functions)-1 and (currentScript.functions[x].indention > 0 or (len(currentScript.functions) == 1 and currentScript.functions[0].name == '' ) )):
                 shift = ' ' * currentScript.functions[x].indention * 5
                 Lb2.insert(x, shift + '')
+                Lb2.itemconfig(x, foreground='white')
+
         Lb2.update()
     Lb2.yview_moveto(vw[0])
 
@@ -847,7 +885,7 @@ def FocusOnSelectedFunc(event):
             frame.refresh()
         except:
             pass
-    markCurrentFuncArea(index)
+    # markCurrentFuncArea(index)
     disableButtons(index)
     reportFrame()
 
@@ -1192,7 +1230,7 @@ def insert_A():
         place = Lb2.curselection()[0]
     except:
         place = 0
-    if (currentScript.functions[place + 1].name == '}'):
+    if (place != 0 and currentScript.functions[place + 1].name == '}'):
         currentFunction = Function('', '', place, rightSectionFrame, '', '', '',
                                currentScript.functions[place + 1].indention + 1)
     elif(place > 0):
@@ -1615,13 +1653,13 @@ def getReport(event, frameToWrite, data, size):
 
     scrollbar = Scrollbar(frameToWrite)
     scrollbar.pack(side=RIGHT, fill=Y)
-    tree = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set, name='repoTree')
-    root = tree.insert('', 'end', text='', open=True, tag='T')
+    tree1 = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set, name='repoTree')
+    root = tree1.insert('', 'end', text='', open=True, tag='T')
 
     scrollbar.config(command=tree.yview)
-    jsonTree(frameToWrite, data, tree, root)
-    tree.column("#0", width=size)
-    tree.pack(fill=BOTH, expand=True)
+    jsonTree(frameToWrite, data, tree1, root)
+    tree1.column("#0", width=size)
+    tree1.pack(fill=BOTH, expand=True)
 
     frameToWrite.place(height=270)
 
@@ -1957,23 +1995,23 @@ def exist_handle(fatherFunction,path):
             if(stopScript==False):
                 if(func.father[0] == fatherFunction.id):
                     if (func.name == 'Repeat'):
-                        functionNum += repeat_handle(func, path,stopScript) + 3
+                        functionNum += repeat_handle(func, path) + 3
                     elif (func.name == 'Left-Click'):
                         left_click_handle(func.img, path)
                         functionNum += 1
                     elif (func.name == 'If-Exist'):
-                        exist,tempFunctionNum = exist_handle(func,path,stopScript)
+                        exist,tempFunctionNum = exist_handle(func,path)
                         functionNum += tempFunctionNum
                         ifExistFlag = exist
                     elif (func.name == 'If-Not-Exist'):
-                        exist, tempFunctionNum = not_exist_handle(func, path,stopScript)
+                        exist, tempFunctionNum = not_exist_handle(func, path)
                         functionNum += tempFunctionNum
                         ifExistFlag = exist
                     elif (func.name == 'Double-Click'):
                         double_click_handle(func.img,path)
                         functionNum += 1
                     elif (func.name == 'Else' and not ifExistFlag):
-                        functionNum += else_handle(func, path,stopScript)
+                        functionNum += else_handle(func, path)
                     elif (func.name == 'Right-Click'):
                         right_click_handle(func.img,path)
                         functionNum += 1
@@ -1999,23 +2037,23 @@ def not_exist_handle(fatherFunction,path):
             print(stopScript)
             if(stopScript == False):
                 if (func.name == 'Repeat'):
-                    functionNum += repeat_handle(func, path,stopScript) + 3
+                    functionNum += repeat_handle(func, path) + 3
                 elif (func.name == 'Left-Click'):
                     left_click_handle(func.img, path)
                     functionNum += 1
                 elif (func.name == 'If-Exist'):
-                    exist, tempFunctionNum = exist_handle(func, path,stopScript)
+                    exist, tempFunctionNum = exist_handle(func, path)
                     functionNum += tempFunctionNum
                     ifExistFlag = exist
                 elif (func.name == 'If-Not-Exist'):
-                    exist, tempFunctionNum = not_exist_handle(func, path,stopScript)
+                    exist, tempFunctionNum = not_exist_handle(func, path)
                     functionNum += tempFunctionNum
                     ifExistFlag = exist
                 elif (func.name == 'Double-Click'):
                     double_click_handle(func.img,path)
                     functionNum += 1
                 elif (func.name == 'Else' and not ifExistFlag):
-                    functionNum += else_handle(func, path,stopScript)
+                    functionNum += else_handle(func, path)
                 elif (func.name == 'Right-Click'):
                     right_click_handle(func.img)
                     functionNum += 1
@@ -2037,23 +2075,23 @@ def else_handle(fatherFunction,path):
         print(stopScript)
         if(stopScript==False):
             if (func.name == 'Repeat'):
-                functionNum += repeat_handle(func, path,stopScript) + 3
+                functionNum += repeat_handle(func, path) + 3
             elif (func.name == 'Left-Click'):
                 left_click_handle(func.img, path)
                 functionNum += 1
             elif (func.name == 'If-Exist'):
-                exist, tempFunctionNum = exist_handle(func, path,stopScript)
+                exist, tempFunctionNum = exist_handle(func, path)
                 functionNum += tempFunctionNum
                 ifExistFlag = exist
             elif (func.name == 'If-Not-Exist'):
-                exist, tempFunctionNum = not_exist_handle(func, path,stopScript)
+                exist, tempFunctionNum = not_exist_handle(func, path)
                 functionNum += tempFunctionNum
                 ifExistFlag = exist
             elif (func.name == 'Double-Click'):
                 double_click_handle(func.img,path)
                 functionNum += 1
             elif (func.name == 'Else' and not ifExistFlag):
-                functionNum += else_handle(func, path,stopScript)
+                functionNum += else_handle(func, path)
             elif (func.name == 'Right-Click'):
                 right_click_handle(func.img)
                 functionNum += 1
@@ -2326,8 +2364,11 @@ if __name__ == '__main__':
 
     Lb1 = Listbox(rightSectionFrame, exportselection=0, selectmode = SINGLE, bd=3,  background="#2b2b2b", fg='white')
     Lb1.grid(row=0, column=0, sticky='NEW')
+
+
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
+        Lb1.itemconfig(x, foreground=Lb1Colors[x])
     Lb1.config(state=DISABLED)
     flag_for_drag_and_drop = ["empty", 0]
 

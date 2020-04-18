@@ -7,6 +7,8 @@ from Photo import Photo
 
 
 class ScreenShotWindow():
+    Lb1Colors = ['#f4b63f', '#57ceff', '#ff5792', '#c2ff57', '#ff8657', '#579aff', '#d557ff', '#078f02', '#57ff7f']
+
     def __init__(self,mainScreen,Lb2,currentScript,tree,photoViewFrame):
         mainScreen.iconify()
         window2 = Tk()
@@ -67,7 +69,7 @@ class ScreenShotWindow():
                             currentScript.functions[currentScript.functions[func].father[0]].extra.functions[
                                 func - currentScript.functions[func].father[0] - 2].img = img
                 Lb2.select_clear(0, END)
-                self.updateLb2(Lb2,currentScript)
+                self.updateLb2(index,index,'add',currentScript,Lb2)
                 self.FocusOnSelectedFunc(mainScreen,Lb2,currentScript,index,photoViewFrame)
 
                 for i in tree.get_children(): #clear treeView
@@ -141,7 +143,7 @@ class ScreenShotWindow():
             except:
                 pass
             Lb2.select_set(index)
-            self.markCurrentFuncArea(index,currentScript,Lb2)
+            # self.markCurrentFuncArea(index,currentScript,Lb2)
         # reportFrame()
 
     def SUBS(self,path, parent, tree):
@@ -155,20 +157,95 @@ class ScreenShotWindow():
             else:
                 parent_element = tree.insert(parent, 'end', text=p, open=True, tag="T")
 
+    def getFunctionColor(self,funcName):
+        ['#f4b63f', '#57ceff', '#ff5792', '#c2ff57', '#ff8657', '#579aff', '#d557ff', '#078f02', '#57ff7f']
+        if (funcName == 'Right-Click'):
+            return '#f4b63f'
+        elif (funcName == 'Left-Click'):
+            return  '#57ceff'
+        elif (funcName == 'Repeat'):
+            return '#ff5792'
+        elif (funcName == 'If-Exist'):
+            return'#c2ff57'
+        elif (funcName == 'If-Not-Exist'):
+            return '#ff8657'
+        elif (funcName == 'Else'):
+            return '#579aff'
+        elif (funcName == 'Double-Click'):
+            return '#d557ff'
+        elif (funcName == 'Insert-Input'):
+            return '#078f02'
+        elif (funcName == 'Sleep'):
+            return '#57ff7f'
+        else:
+            return 'white'
 
-    def updateLb2(self,Lb2,currentScript):
-        Lb2.delete(0, 'end')
-        for x in range(0, len(currentScript.functions)):
-            name = currentScript.functions[x].name
-            shift = ' ' * currentScript.functions[x].indention * 5
-            if name == 'Sleep' or name == 'Repeat':
-                Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.time))
-            elif name == 'If-Exist' or name == 'If-Not-Exist':
-                Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
-            elif name == 'Insert-Input':
-                Lb2.insert(x, shift + name + '("{}")'.format(currentScript.functions[x].extra.text))
-            else:
-                Lb2.insert(x, shift + name)
+    def updateLb2(self,fromIndex, toIndex, operation,currentScript,Lb2, options='regular'):
+        vw = Lb2.yview()
+        if (options == 'deleteBefore'):
+            Lb2.delete(0, 'end')
+        highestNumDigit = len(str(len(currentScript.functions)))
+
+        if (operation == 'add' or operation == 'replace'):
+            for x in range(fromIndex, toIndex + 1):
+                textColor = self.getFunctionColor(currentScript.functions[x].name)
+                currentNumDigit = len(str(x))
+                if (operation == 'add'):
+                    name = currentScript.functions[x].name
+                    shift = ' ' * currentScript.functions[x].indention * 5
+                    tabFromNumber = ' ' * (5 + (highestNumDigit - currentNumDigit))
+                    if (x == fromIndex and options != 'A' and options != 'B'):
+                        Lb2.delete(x)
+                    if name == 'Sleep' or name == 'Repeat':
+                        Lb2.insert(x, shift + name + '({})'.format(
+                            currentScript.functions[x].extra.time))
+                        Lb2.itemconfig(x, foreground=textColor)
+                    elif name == 'If-Exist' or name == 'If-Not-Exist':
+                        Lb2.insert(x, shift + name + '({})'.format(
+                            currentScript.functions[x].extra.image))
+                        Lb2.itemconfig(x, foreground=textColor)
+                    elif name == 'Insert-Input':
+                        Lb2.insert(x, shift + name + '("{}")'.format(
+                            currentScript.functions[x].extra.text))
+                        Lb2.itemconfig(x, foreground=textColor)
+                    else:
+                        Lb2.insert(x, shift + name)
+                        Lb2.itemconfig(x, foreground=textColor)
+
+                elif (operation == 'replace'):
+                    name = currentScript.functions[x].name
+                    shift = ' ' * currentScript.functions[x].indention * 5
+                    tabFromNumber = ' ' * (5 + (highestNumDigit - currentNumDigit))
+                    Lb2.delete(x)
+                    if name == 'Sleep' or name == 'Repeat':
+                        Lb2.insert(x, shift + name + '({})'.format(
+                            currentScript.functions[x].extra.time))
+                        Lb2.itemconfig(x, foreground=textColor)
+                    elif name == 'If-Exist' or name == 'If-Not-Exist':
+                        Lb2.insert(x, shift + name + '({})'.format(
+                            currentScript.functions[x].extra.image))
+                        Lb2.itemconfig(x, foreground=textColor)
+                    elif name == 'Insert-Input':
+                        Lb2.insert(x, + name + '("{}")'.format(
+                            currentScript.functions[x].extra.text))
+                        Lb2.itemconfig(x, foreground=textColor)
+                    else:
+                        Lb2.insert(x, shift + name)
+                        Lb2.itemconfig(x, foreground=textColor)
+            Lb2.update()
+        elif (operation == 'remove'):
+            for x in range(toIndex, fromIndex - 1, -1):
+                # textColor = getFunctionColor(currentScript.functions[x].name)
+                Lb2.delete(x)
+                if (x == fromIndex and x <= len(currentScript.functions) - 1 and (
+                        currentScript.functions[x].indention > 0 or (
+                        len(currentScript.functions) == 1 and currentScript.functions[0].name == ''))):
+                    shift = ' ' * currentScript.functions[x].indention * 5
+                    Lb2.insert(x, shift + '')
+                    Lb2.itemconfig(x, foreground='white')
+
+            Lb2.update()
+        Lb2.yview_moveto(vw[0])
 
     def markCurrentFuncArea(self,index,currentScript,Lb2):
         fromindex = currentScript.linesFather[index].fromIndex
