@@ -131,7 +131,7 @@ class ScreenShotWindow():
                     if childName == 'fileName':
                         childValue.config(text='File Name: {}'.format(photoName))
                     if childName == 'canvasFrame':
-                        canvas = Canvas(childValue, width=437, height=150, name='canvas')
+                        canvas = Canvas(childValue, width=437, height=150, name='canvas',bg = '#2b2b2b')
                         one = PhotoImage(file=currentScript.path + "ScreenShots\\" + photoName)
                         photoViewFrame.one = one  # to prevent the image garbage collected.
                         canvas.create_image((0, 0), image=one, anchor="nw")
