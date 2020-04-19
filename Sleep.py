@@ -11,14 +11,16 @@ class Sleep():
 
     def changeSleepTime(sv,Lb2,currentScript):
         try:
-            index = Lb2.curselection()[0]
+            index = currentScript.lastClickOnLb2
         except:
             print('need to mark the function that you want to change')
-        currentScript.functions[index].extra.time = int(sv.get())
-        currentScript.functions[index].name = "Sleep"
-        Lb2.delete(index)
-        shift = ' ' * currentScript.functions[index].indention * 5
-        Lb2.insert(index,
-                   shift + currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
-        Lb2.selection_set(index)
-        return True
+        if(currentScript.functions[index].name == 'Sleep'):
+            currentScript.functions[index].extra.time = int(sv.get())
+            # currentScript.functions[index].name = "Sleep"
+            Lb2.delete(index)
+            shift = ' ' * currentScript.functions[index].indention * 5
+            Lb2.insert(index,
+                       shift + currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
+            Lb2.itemconfig(index, foreground='#57ff7f')
+            Lb2.selection_set(index)
+            return True

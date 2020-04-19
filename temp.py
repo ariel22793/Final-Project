@@ -61,6 +61,7 @@ stopScript = False
 Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d557ff','#078f02','#57ff7f']
 flag_of_shift = False
 speed=1
+lastClickOnLb2 = 0
 
 def updateRedoFunctions(type = 'regular'):
     if((type != 'A' and type != 'B') or len(currentScript.functions) == 1):
@@ -267,7 +268,7 @@ def addFunction(place = 0,functionName = 'None',flag = True):
             currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, functionName), insertInput)
             currentLineFather = LineFather(place, place, functionName)
-        currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('label'), currentFunction.frame.children.get('input'), InsertInput.changeInsertInputText,Lb2,currentScript)
+        currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), InsertInput.changeInsertInputText,Lb2,currentScript)
     elif functionName == 'Sleep':
         sleep = Sleep('?')
 
@@ -297,7 +298,7 @@ def addFunction(place = 0,functionName = 'None',flag = True):
             currentFunction = Function(functionName, '', place, rightSectionFrame,'',
                                        (currentLineFather.fromIndex, functionName), sleep)
             currentLineFather = LineFather(place, place, functionName)
-        currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('label'), currentFunction.frame.children.get('input'), Sleep.changeSleepTime,Lb2,currentScript)
+        currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), Sleep.changeSleepTime,Lb2,currentScript)
     elif functionName == 'Repeat':
         delta = 3
         toIndex = place +3
@@ -358,7 +359,7 @@ def addFunction(place = 0,functionName = 'None',flag = True):
                                                    Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
                                                             (place, functionName), ''))
             currentLineFather = LineFather(place, place + 3, functionName)
-        currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('label'), currentFunction.frame.children.get('input'), Repeat.changeRepeatTime,Lb2,currentScript)
+        currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), Repeat.changeRepeatTime,Lb2,currentScript)
     elif functionName == 'If-Exist':
         delta = 3
         toIndex = place + 3
@@ -669,7 +670,7 @@ def window2():
         return
 
     myScreenshot = pyautogui.screenshot()
-    myScreenshot.save('ScreenTest.png')
+    myScreenshot.save(currentScript.path + 'ScreenTest.png')
 
     window_of_screen_shot = Tk()
     window_of_screen_shot.title("test!")
@@ -677,8 +678,8 @@ def window2():
 
     canvas = Canvas(window_of_screen_shot, width=window_of_screen_shot.winfo_screenwidth(), height=window_of_screen_shot.winfo_screenheight(),
                          highlightthickness=0)
-
-    sh = PhotoImage(master=window_of_screen_shot,file=r"C:\Users\AZ\PycharmProjects\Final-Project\ScreenTest.png")
+    print(currentScript.path + 'ScreenTest.png')
+    sh = PhotoImage(master=window_of_screen_shot,file=currentScript.path + 'ScreenTest.png')
     canvas.takeS = sh
     takeS = canvas.create_image(0, 0, anchor=NW, image=sh)
     canvas.pack()
@@ -809,8 +810,10 @@ def disableInsertAboveAndBelow(index):
 
 def disableScreeShot(index):
     functionName = currentScript.functions[index].name
+    global takeS_flag
     if (functionName == '{' or functionName == '}' or functionName == '' or functionName == 'Repeat' or functionName == 'Sleep' or functionName == 'Else'):
         # takeScreenShot.config(state=DISABLED)
+
         takeS_flag[0]='takeSDis'
         change_on_hover('event', takeS_flag[0], canvasTakeS, takeS)
         pass
@@ -818,8 +821,6 @@ def disableScreeShot(index):
         # takeScreenShot.config(state=NORMAL)
         takeS_flag[0]='takeS'
         change_on_hover('event', 'takeSHover', canvasTakeS, takeS)
-
-        pass
 
 def disableAddFunction(index):
     functionName = currentScript.functions[index].name
@@ -839,7 +840,6 @@ def disableButtons(index):
     disableInsertAboveAndBelow(index)
     disableScreeShot(index)
     disableAddFunction(index)
-    pass
 
 def markCurrentFuncArea(index):
     fromindex = currentScript.linesFather[index].fromIndex
@@ -883,6 +883,7 @@ def FocusOnSelectedFunc(event):
     # mainScreen.update()
     try:
         index = Lb2.curselection()[0]
+        currentScript.lastClickOnLb2 = index
     except:
         return
 
@@ -909,11 +910,11 @@ def FocusOnSelectedFunc(event):
                 if childName == 'fileName':
                     childValue.config(text='File Name: {}'.format(photoName))
                 if childName == 'canvasFrame':
-                    canvas = Canvas(childValue, width=437, height=150, name='canvas')
+                    canvas = Canvas(childValue, height=150, bg = '#2b2b2b', name='canvas')
                     one = PhotoImage(master=mainScreen,file=currentScript.path + "ScreenShots\\" + photoName)
                     photoViewFrame.one = one  # to prevent the image garbage collected.
                     canvas.create_image((0, 0), image=one, anchor="nw")
-                    canvas.pack()
+                    canvas.grid(sticky='N')
 
         frame.tkraise()
         try:
@@ -922,12 +923,9 @@ def FocusOnSelectedFunc(event):
             pass
     # markCurrentFuncArea(index)
     disableButtons(index)
-    reportFrame()
+    # reportFrame()
 
-def disableTakeScreenShot(event):
-    # takeScreenShot.config(state=DISABLED)
-    takeS_flag[0] = 'takeSDis'
-    change_on_hover('event', takeS_flag[0], canvasTakeS, takeS)
+
 def createTree(frame):
     tree = ttk.Treeview(frame)
     s = ttk.Style()
@@ -1083,43 +1081,48 @@ def runHendle():
     if funcWithoutImage != '':
         popupmsg(funcWithoutImage)
     else:
+        testLogPath = currentScript.path + 'testLog.txt'
+        testLog = open(testLogPath, "w+")
+        testLog.write('******************the test start *********************\n')
+        textView.insert(END, '******************the test start *********************\n')
         mainScreen.iconify()
         for func in range(len(currentScript.functions)):
             if(stopScript == False):
                 if currentScript.functions[func].father[0] == currentScript.functions[func].id:
                     if func >= functionNum:
                         if currentScript.functions[func].name == 'Repeat':
-                            functionNum += repeat_handle(currentScript.functions[func], currentScript.path) + 3
+                            functionNum += repeat_handle(currentScript.functions[func], currentScript.path,testLog) + 3
                         elif currentScript.functions[func].name == 'Left-Click':
-                            left_click_handle(currentScript.functions[func].img, currentScript.path)
+                            left_click_handle(currentScript.functions[func].img, currentScript.path,testLog)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'If-Exist':
-                            exist,tempFunctionNum = exist_handle(currentScript.functions[func],currentScript.path)
+                            exist,tempFunctionNum = exist_handle(currentScript.functions[func],currentScript.path,testLog)
                             functionNum += tempFunctionNum
                             ifExistFlag = exist
                         elif currentScript.functions[func].name == 'If-Not-Exist':
                             exist,tempFunctionNum = not_exist_handle(currentScript.functions[func],
-                                                                           currentScript.path)
+                                                                           currentScript.path,testLog)
                             functionNum += tempFunctionNum
                             ifExistFlag = exist
                         elif currentScript.functions[func].name == 'Else' and not ifExistFlag:
-                            else_handle(currentScript.functions[func],
-                                                                           currentScript.path)
+                            else_handle(currentScript.functions[func],currentScript.path,testLog)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Double-Click':
-                            double_click_handle(currentScript.functions[func].img, currentScript.path)
+                            double_click_handle(currentScript.functions[func].img, currentScript.path,testLog)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Right-Click':
-                            right_click_handle(currentScript.functions[func].img, currentScript.path)
+                            right_click_handle(currentScript.functions[func].img, currentScript.path,testLog)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Sleep':
-                            sleep_handle(currentScript.functions[func].extra.time)
+                            sleep_handle(currentScript.functions[func].extra.time,testLog)
                             functionNum += 1
                         elif currentScript.functions[func].name == 'Insert-Input':
-                            insert_input_handle(currentScript.functions[func].img, currentScript.path,currentScript.functions[func].extra.text)
+                            insert_input_handle(currentScript.functions[func].img, currentScript.path,currentScript.functions[func].extra.text,testLog)
                             functionNum += 1
             else:
                 break
+    testLog.write('******************the test end *********************\n')
+    textView.insert(END, '******************the test end *********************\n')
     mainScreen.deiconify()
 
 
@@ -1648,10 +1651,9 @@ def reportFrame():
 
     reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=270,  bg='#2b2b2b')
     reportContex.place(x=100, y=50)
-    size = GetSystemMetrics(0) - 300
-    getRepo = Button(reportFrame, text='Get Repo')
-    getRepo.place(x=mainScreen.winfo_width() - 150, y=100)
-    getRepo.bind('<Button-1>')
+
+    textView = Text(reportContex,width=GetSystemMetrics(0) - 300)
+    textView.place(x=0,y=0)
 
     clearReport = Button(reportFrame, text='Clear All')
     clearReport.place(x=mainScreen.winfo_width() - 150)
@@ -1937,7 +1939,7 @@ def delete_handler():
         removeFunctions()
 
 
-def repeat_handle(fatherFunction,path):
+def repeat_handle(fatherFunction,path,testLog):
     repeatTime = fatherFunction.extra.time
     childrenFunction = fatherFunction.extra.functions
     functionNum = 0
@@ -1945,77 +1947,99 @@ def repeat_handle(fatherFunction,path):
         if(stopScript == False):
             for func in childrenFunction:
                 if (func.name == 'Repeat'):
-                    functionNum += repeat_handle(func,path,stopScript) + 3
+                    functionNum += repeat_handle(func,path,testLog) + 3
                 elif (func.name == 'Left-Click'):
-                    left_click_handle(func.img, path)
+                    left_click_handle(func.img, path,testLog)
                     functionNum += 1
                 elif (func.name == 'If-Exist'):
-                    exist, tempFunctionNum = exist_handle(func, path,stopScript)
+                    exist, tempFunctionNum = exist_handle(func, path,testLog)
                     functionNum += tempFunctionNum
                     ifExistFlag = exist
                 elif (func.name == 'If-Not-Exist'):
-                    exist, tempFunctionNum = not_exist_handle(func, path,stopScript)
+                    exist, tempFunctionNum = not_exist_handle(func, path,testLog)
                     functionNum += tempFunctionNum
                     ifExistFlag = exist
                 elif (func.name == 'Double-Click'):
-                    double_click_handle(func.img,path)
+                    double_click_handle(func.img,path,testLog)
                     functionNum += 1
                 elif (func.name == 'Else' and not ifExistFlag):
-                    functionNum += else_handle(func, path,stopScript)
+                    functionNum += else_handle(func, path,testLog)
                 elif (func.name == 'Right-Click'):
-                    right_click_handle(func.img)
+                    right_click_handle(func.img,testLog)
                     functionNum += 1
                 elif (func.name == 'Sleep'):
-                    sleep_handle(func.extra.time)
+                    sleep_handle(func.extra.time,testLog)
                     functionNum += 1
                 elif (func.name == 'Insert-Input'):
-                    right_click_handle(func.extra.time)
+                    insert_input_handle(func.extra.time,testLog)
                     functionNum += 1
         else:
             break
     return functionNum/repeatTime
 
-def sleep_handle(timeDelay):
+def sleep_handle(timeDelay,testLog):
+    testLog.write('wait for {} second as expected (Sleep)\n'.format(timeDelay))
+    textView.insert(END,'wait for {} second (Sleep)\n'.format(timeDelay))
     time.sleep(timeDelay)
 
-def left_click_handle(template,path):
+def left_click_handle(template,path,testLog):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
+        testLog.write('image {} is exist as expected (Left-Click)\n'.format(template.img))
+        textView.insert(END,'image {} is exist as expected (Left-Click)\n'.format(template.img))
         pyautogui.click(x,y,duration=speed)
-def insert_input_handle(template,path,text):
+    testLog.write('image {} is not exist as not expected (Left-Click)\n'.format(template.img))
+    textView.insert(END, 'image {} is not exist as not expected (Left-Click)\n'.format(template.img))
+
+def insert_input_handle(template,path,text,testLog):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
+        testLog.write('image {} is exist as expected (Insert-Input)\n'.format(template.img))
+        textView.insert(END, 'image {} is exist as expected (Insert-Input)\n'.format(template.img))
         pyautogui.click(x, y, duration=speed)
         pyautogui.typewrite(text, interval=0.1)
+    testLog.write('image {} is not exist as not expected (Insert-Input)\n'.format(template.img))
+    textView.insert(END, 'image {} is not exist as not expected (Insert-Input)\n'.format(template.img))
 
-def double_click_handle(template,path):
+
+def double_click_handle(template,path,testLog):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
+        testLog.write('image {} is exist as expected (Double-Click)\n'.format(template.img))
+        textView.insert(END, 'image {} is exist as expected (Double-Click)\n'.format(template.img))
         pyautogui.doubleClick(x,y,duration=speed)
+    testLog.write('image {} is exist as not expected (Double-Click)\n'.format(template.img))
+    textView.insert(END, 'image {} is exist as not expected (Double-Click)\n'.format(template.img))
 
-def right_click_handle(template,path):
+
+def right_click_handle(template,path,testLog):
     screenShot = ImgRecog.tempScreenShot(template)
 
     exist = ImgRecog.photoRec(path,screenShot,template)
     x = (template.x1Cord + template.x0Cord) / 2
     y = (template.y1Cord + template.y0Cord) / 2
     if(exist == True):
+        testLog.write('image {} is exist as expected (Right-Click)\n'.format(template.img))
+        textView.insert(END, 'image {} is exist as expected (Right-Click)\n'.format(template.img))
 
         pyautogui.rightClick(x,y,duration=speed)
+    testLog.write('image {} is exist as not expected (Right-Click)\n'.format(template.img))
+    textView.insert(END, 'image {} is exist as not expected (Right-Click)\n'.format(template.img))
 
-def exist_handle(fatherFunction,path):
+
+def exist_handle(fatherFunction,path,testLog):
     childrenFunctions = fatherFunction.extra.functions
     template = fatherFunction.img
     ifExistFlag = True
@@ -2023,113 +2047,125 @@ def exist_handle(fatherFunction,path):
     exist = ImgRecog.photoRec(path, screenShot, template)
     functionNum = 0
     if(exist == True):
+        testLog.write('image {} is exist as expected (If-Exist)\n'.format(template.img))
+        textView.insert(END, 'image {} is exist as expected (If-Exist)\n'.format(template.img))
+
         for func in childrenFunctions:
             if(stopScript==False):
                 if(func.father[0] == fatherFunction.id):
                     if (func.name == 'Repeat'):
-                        functionNum += repeat_handle(func, path) + 3
+                        functionNum += repeat_handle(func, path,testLog) + 3
                     elif (func.name == 'Left-Click'):
-                        left_click_handle(func.img, path)
+                        left_click_handle(func.img, path,testLog)
                         functionNum += 1
                     elif (func.name == 'If-Exist'):
-                        exist,tempFunctionNum = exist_handle(func,path)
+                        exist,tempFunctionNum = exist_handle(func,path,testLog)
                         functionNum += tempFunctionNum
                         ifExistFlag = exist
                     elif (func.name == 'If-Not-Exist'):
-                        exist, tempFunctionNum = not_exist_handle(func, path)
+                        exist, tempFunctionNum = not_exist_handle(func, path,testLog)
                         functionNum += tempFunctionNum
                         ifExistFlag = exist
                     elif (func.name == 'Double-Click'):
-                        double_click_handle(func.img,path)
+                        double_click_handle(func.img,path,testLog)
                         functionNum += 1
                     elif (func.name == 'Else' and not ifExistFlag):
-                        functionNum += else_handle(func, path)
+                        functionNum += else_handle(func, path,testLog)
                     elif (func.name == 'Right-Click'):
-                        right_click_handle(func.img,path)
+                        right_click_handle(func.img,path,testLog)
                         functionNum += 1
                     elif (func.name == 'Sleep'):
-                        sleep_handle(func.extra.time)
+                        sleep_handle(func.extra.time,testLog)
                         functionNum += 1
                     elif (func.name == 'Insert-Input'):
-                        right_click_handle(func.extra.time)
+                        insert_input_handle(func.extra.time,testLog)
                         functionNum += 1
             else:
                 break
+    testLog.write('image {} is not exist as not expected (If-Exist)\n'.format(template.img))
+    textView.insert(END,'image {} is not exist as not expected (If-Exist)\n'.format(template.img))
+
     return exist,functionNum
 
-def not_exist_handle(fatherFunction,path):
+def not_exist_handle(fatherFunction,path,testLog):
     childrenFunctions = fatherFunction.extra.functions
     template = fatherFunction.img
     ifExistFlag = True
     screenShot = ImgRecog.tempScreenShot(template)
     exist = ImgRecog.photoRec(path, screenShot, template)
     if (exist == False):
+        testLog.write('image {} is not exist as expected (If-Not-Exist)\n'.format(template.img))
+        textView.insert(END,'image {} is not exist as expected (If-Not-Exist)\n'.format(template.img))
+
         functionNum = 0
         for func in childrenFunctions:
             if(stopScript == False):
                 if (func.name == 'Repeat'):
-                    functionNum += repeat_handle(func, path) + 3
+                    functionNum += repeat_handle(func, path,testLog) + 3
                 elif (func.name == 'Left-Click'):
-                    left_click_handle(func.img, path)
+                    left_click_handle(func.img, path,testLog)
                     functionNum += 1
                 elif (func.name == 'If-Exist'):
-                    exist, tempFunctionNum = exist_handle(func, path)
+                    exist, tempFunctionNum = exist_handle(func, path,testLog)
                     functionNum += tempFunctionNum
                     ifExistFlag = exist
                 elif (func.name == 'If-Not-Exist'):
-                    exist, tempFunctionNum = not_exist_handle(func, path)
+                    exist, tempFunctionNum = not_exist_handle(func, path,testLog)
                     functionNum += tempFunctionNum
                     ifExistFlag = exist
                 elif (func.name == 'Double-Click'):
-                    double_click_handle(func.img,path)
+                    double_click_handle(func.img,path,testLog)
                     functionNum += 1
                 elif (func.name == 'Else' and not ifExistFlag):
-                    functionNum += else_handle(func, path)
+                    functionNum += else_handle(func, path,testLog)
                 elif (func.name == 'Right-Click'):
-                    right_click_handle(func.img)
+                    right_click_handle(func.img,testLog)
                     functionNum += 1
                 elif (func.name == 'Sleep'):
-                    sleep_handle(func.extra.time)
+                    sleep_handle(func.extra.time,testLog)
                     functionNum += 1
                 elif (func.name == 'Insert-Input'):
-                    right_click_handle(func.extra.time)
+                    insert_input_handle(func.extra.time,testLog)
                     functionNum += 1
             else:
                 break
+    testLog.write('image {} is exist as not expected(If-Not-Exist)\n'.format(template.img))
+    textView.insert(END, 'image {} is exist as not expected(If-Not-Exist)\n'.format(template.img))
+
     return exist, functionNum
 
-def else_handle(fatherFunction,path):
+def else_handle(fatherFunction,path,testLog):
     childrenFunctions = fatherFunction.extra.functions
     ifExistFlag = True
     functionNum = 0
     for func in childrenFunctions:
         if(stopScript==False):
             if (func.name == 'Repeat'):
-                functionNum += repeat_handle(func, path) + 3
+                functionNum += repeat_handle(func, path,testLog) + 3
             elif (func.name == 'Left-Click'):
-                left_click_handle(func.img, path)
+                left_click_handle(func.img, path,testLog)
                 functionNum += 1
             elif (func.name == 'If-Exist'):
-                exist, tempFunctionNum = exist_handle(func, path)
+                exist, tempFunctionNum = exist_handle(func, path,testLog)
                 functionNum += tempFunctionNum
                 ifExistFlag = exist
             elif (func.name == 'If-Not-Exist'):
-                exist, tempFunctionNum = not_exist_handle(func, path)
+                exist, tempFunctionNum = not_exist_handle(func, path,testLog)
                 functionNum += tempFunctionNum
                 ifExistFlag = exist
             elif (func.name == 'Double-Click'):
-                double_click_handle(func.img,path)
+                double_click_handle(func.img,path,testLog)
                 functionNum += 1
             elif (func.name == 'Else' and not ifExistFlag):
-                functionNum += else_handle(func, path)
+                functionNum += else_handle(func, path,testLog)
             elif (func.name == 'Right-Click'):
-                right_click_handle(func.img)
+                right_click_handle(func.img,testLog)
                 functionNum += 1
             elif (func.name == 'Sleep'):
-                sleep_handle(func.extra.time)
+                sleep_handle(func.extra.time,testLog)
                 functionNum += 1
             elif (func.name == 'Insert-Input'):
-                right_click_handle(func.extra.time)
+                insert_input_handle(func.extra.time,testLog)
                 functionNum += 1
         else:
             break
@@ -2287,6 +2323,7 @@ def screen_shot_handle():
     global flag_of_shift
     flag_of_shift = True
     mainScreen.iconify()
+
 
 
 if __name__ == '__main__':
@@ -2587,12 +2624,36 @@ if __name__ == '__main__':
     canvasTakeS.tag_bind('takeS', '<Leave>', lambda event: change_on_hover(event,  takeS_flag[0]+'Hover', canvasTakeS ,takeS))
 
 
-    reportFrame()
+    # reportFrame()
+    reportFrame = Frame(mainScreen, bd=6, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame',
+                        bg='#3c3f41')
+    reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
 
+    buttonUp = Button(reportFrame, text='⬆', name='arrow')
+    buttonUp.place(x=mainScreen.winfo_width() - 40)
+    buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
+
+    reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=13, bg='#2b2b2b')
+    reportContex.place(x=100, y=50)
+
+    textView = Text(reportContex,width = 160,height = 13)
+    textView.grid(row=0,column=0)
+
+    yScroll1 = Scrollbar(reportContex, orient=VERTICAL, command=textView.yview)
+    yScroll1.grid(row=0, column=1, sticky='NS')
+
+    xScroll1 = Scrollbar(reportContex, orient=HORIZONTAL, command=textView.xview)
+    xScroll1.grid(row=1, column=0, sticky='EW')
+
+    textView['yscrollcommand'] = yScroll1.set
+    textView['xscrollcommand'] = xScroll1.set
+
+    clearReport = Button(reportFrame, text='Clear All')
+    clearReport.place(x=mainScreen.winfo_width() - 150)
+    clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex))
 
 
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
-    Lb2.bind("<FocusOut>", func=disableTakeScreenShot)
 
     tree = createTree(explorerFrame)
 

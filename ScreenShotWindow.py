@@ -28,13 +28,6 @@ class ScreenShotWindow():
         self.x0, self.y0, self.x1, self.y1 = -1, -1, -1, -1
         self.canvas = Canvas(window2, width=window2.winfo_screenwidth(), height=window2.winfo_screenheight(),
                              highlightthickness=0)
-        #
-        # sh = PhotoImage(master=window2,file=r"C:\Users\AZ\PycharmProjects\Final-Project\ScreenTest.png")
-        #
-        #
-        # self.canvas.takeS = sh
-        # takeS = self.canvas.create_image(0, 0, anchor=NW, image=sh)
-
         self.canvas.pack()
 
 
@@ -144,17 +137,18 @@ class ScreenShotWindow():
         frame = x.frame
         print(frame)
         if frame != '':
+            frame.columnconfigure(0,weight = 1)
             frame.grid(row=1, column=0, sticky='NEWS')
             if photoName != '':
                 for childName, childValue in frame.children.items():
                     if childName == 'fileName':
                         childValue.config(text='File Name: {}'.format(photoName))
                     if childName == 'canvasFrame':
-                        canvas = Canvas(childValue, width=437, height=150, name='canvas',bg = '#2b2b2b')
+                        canvas = Canvas(childValue, height=150, name='canvas',bg = '#2b2b2b')
                         one = PhotoImage(file=currentScript.path + "ScreenShots\\" + photoName)
                         photoViewFrame.one = one  # to prevent the image garbage collected.
                         canvas.create_image((0, 0), image=one, anchor="nw")
-                        canvas.pack()
+                        canvas.grid(sticky = 'N')
 
             frame.tkraise()
             try:
