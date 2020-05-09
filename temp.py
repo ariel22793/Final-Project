@@ -62,6 +62,7 @@ Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d5
 flag_of_shift = False
 speed=1
 lastClickOnLb2 = 0
+lb2NumberOfRows = 0
 
 def updateRedoFunctions(type = 'regular'):
     if((type != 'A' and type != 'B') or len(currentScript.functions) == 1):
@@ -145,7 +146,7 @@ def updateLb2Indexes(difference,lb2IndexesLength):
             lb2Indexes.itemconfig(lb2IndexesLength+i, foreground='white')
     else:
         for i in range(difference * -1):
-            if(lb2Indexes.size() == 33):
+            if(lb2Indexes.size() == lb2NumberOfRows):
                 break
             lb2Indexes.delete(lb2IndexesLength - i -1)
     lb2Indexes.config(state=DISABLED)
@@ -666,6 +667,7 @@ def removeFunctions():
 
 def window2():
     global flag_of_shift
+    print(flag_of_shift)
     if 'Dis' in takeS_flag[0] or flag_of_shift == False:
         return
 
@@ -1071,12 +1073,23 @@ def checkImageInFunc():
         index += 1
     return funcWithoutImage
 
+def on_press(key):
+    if key == keyboard.Key.esc:
+        # Stop listener
+        return False
+    else:
+        pass
 
 def runHendle():
     global stopScript
     stopScript = False
     functionNum = 0
     ifExistFlag = True
+
+    # with keyboard.Listener(
+    #         on_press=on_press) as listener:
+    #     listener.join()
+
     funcWithoutImage = checkImageInFunc()
     if funcWithoutImage != '':
         popupmsg(funcWithoutImage)
@@ -1639,6 +1652,9 @@ def hoverOff(event,canvas, item, number, startS):
         canvas.f = Button1
         canvas.itemconfig(item, image=Button1)
 
+def clearRe(event):
+    textView.delete('1.0',END)
+
 def reportFrame():
     data = {}
 
@@ -1657,7 +1673,7 @@ def reportFrame():
 
     clearReport = Button(reportFrame, text='Clear All')
     clearReport.place(x=mainScreen.winfo_width() - 150)
-    clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex ))
+    clearReport.bind('<Button-1>', lambda event: clearRe)
 
 # def clearRe(event, data, frame):
 #     data.clear()
@@ -1879,12 +1895,12 @@ def paste_handler():
     except:
         return
     currentFunc = currentScript.functions[index]
-    difference = copyFunction[0].id - index
     placeAndName = []
     if(currentFunc.name == ''):
         for func in copyFunction:
             if(func.name != '{' and func.name != '}' and func.name != ''):
-                placeAndName.append((func.id - difference,func.name))
+                placeAndName.append((index,func.name))
+                index += 1
         for func in placeAndName:
             if(func[0] > len(currentScript.functions)-1 or currentScript.functions[func[0]].name != ''):
                 insert_B(func[0],False)
@@ -2325,7 +2341,6 @@ def screen_shot_handle():
     mainScreen.iconify()
 
 
-
 if __name__ == '__main__':
     functionFather = []
 
@@ -2503,7 +2518,12 @@ if __name__ == '__main__':
     lb2Indexes.config(highlightbackground="#2b2b2b")
     lb2Indexes.grid(row=0, column=0, sticky='WNSE')
 
-    for item in range(33):
+    Lb2Frame.update()
+    Lb2FrameHeight = Lb2Frame.winfo_reqheight()
+
+    lb2NumberOfRows = int(np.ceil(Lb2FrameHeight/4))
+
+    for item in range(lb2NumberOfRows):
         lb2Indexes.insert(END, str(item+1))
         lb2Indexes.itemconfig(item,foreground='white')
     lb2Indexes.configure(state=DISABLED)
@@ -2650,7 +2670,7 @@ if __name__ == '__main__':
 
     clearReport = Button(reportFrame, text='Clear All')
     clearReport.place(x=mainScreen.winfo_width() - 150)
-    clearReport.bind('<Button-1>', lambda event: clearRe(event, data, reportContex))
+    clearReport.bind('<Button-1>', lambda event: clearRe(event))
 
 
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
@@ -2672,8 +2692,6 @@ if __name__ == '__main__':
         '<shift>': window2,
         '<esc>': esc_handler})
     hotKeys.start()
-
-
 
 mainScreen.mainloop()
 
