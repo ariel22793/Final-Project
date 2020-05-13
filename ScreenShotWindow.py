@@ -5,6 +5,7 @@ import pyautogui
 import Photo
 import matplotlib.pyplot as plt
 from Photo import Photo
+import ImgRecog
 
 
 class ScreenShotWindow():
@@ -46,6 +47,7 @@ class ScreenShotWindow():
                 myScreenshot = pyautogui.screenshot()
                 myScreenshot.save('Screen.png')
                 img = Image.open("Screen.png")
+                img1 = Image.open(currentScript.path + 'ScreenTest.png')
                 img = img.crop((self.x0, self.y0, self.x1, self.y1))
 
                 index = Lb2.curselection()[0]
@@ -62,7 +64,7 @@ class ScreenShotWindow():
                     img.save(currentScript.path + 'ScreenShots\\' + currentFunction.img.img)
 
                 img = Photo(self.x0, self.y0, self.x1, self.y1, imgName)
-
+                flag = ImgRecog.photoRec(currentScript.path,img1,img)
                 mainScreen.state('zoomed')
                 self.window.destroy()
                 self.window_of_screen_shot.destroy()
@@ -141,8 +143,12 @@ class ScreenShotWindow():
             frame.grid(row=1, column=0, sticky='NEWS')
             if photoName != '':
                 for childName, childValue in frame.children.items():
-                    if childName == 'fileName':
-                        childValue.config(text='File Name: {}'.format(photoName))
+                    if childName == 'fileNameFrame':
+                        for childName1, childValue1 in childValue.children.items():
+                            if childName1 == 'fileName':
+                                childValue1.config(text='File Name: {}'.format(photoName))
+                            elif childName1 == 'fileNameButton':
+                                childValue1.config(state=NORMAL)
                     if childName == 'canvasFrame':
                         canvas = Canvas(childValue, height=150, name='canvas',bg = '#2b2b2b')
                         one = PhotoImage(file=currentScript.path + "ScreenShots\\" + photoName)

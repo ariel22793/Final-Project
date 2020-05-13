@@ -39,6 +39,7 @@ def tempScreenShot(img):
     return myScreenshot
 
 def photoRec(templatePath,photo, templateImage):
+    howManyRectangles = 0
     photo = np.array(photo)
     gray_img = cv2.cvtColor(photo, cv2.COLOR_BGR2GRAY)
     template = cv2.imread(templatePath + "ScreenShots\\" + templateImage.img,0)
@@ -50,14 +51,28 @@ def photoRec(templatePath,photo, templateImage):
     result = cv2.matchTemplate(gray_img, template, cv2.TM_CCOEFF_NORMED)
     loc = np.where(result >= 0.6)
     flag=0
+    pritedPoints = []
     for pt in zip(*loc[::-1]):
         cv2.rectangle(photo, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 3)
+        howManyRectangles += findSameRectangle(pt,pritedPoints)
         flag = 1
         cv2.imwrite(os.path.join(templatePath , 'Test Image\\ ' + templateImage.img),photo)
-    
-
 
     if (flag==1):
-        return True
+        return True,howManyRectangles
     else:
-        return False
+        return False,howManyRectangles
+
+def findSameRectangle(point,pritedPoints):
+
+    delta = 10
+    sameOrNot = False
+    for printedPoint in pritedPoints:
+        if point[0]-delta < printedPoint[0] < point[0]+delta and point[1]-delta < printedPoint[1] < point[1]+delta  :
+            sameOrNot = True
+
+    if(sameOrNot == False ):
+        pritedPoints.append(point)
+        return 1
+    else:
+        return 0

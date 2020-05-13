@@ -30,7 +30,7 @@ class IfNotExist():
         functions = []
         if(len(extra['functions'])>0):
             for x in extra['functions']:
-                func = Function.Function('','','',rightSectionFrame,'','','')
+                func = Function.Function('','','',rightSectionFrame,'','','',currentScript)
                 func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction,rightSectionFrame)
                 functions.append(func)
         return IfNotExist(extra['image'],functions)
@@ -96,7 +96,7 @@ class IfNotExist():
 
 
             if len(currentScript.functions[removeFuncFatherIndex].extra.functions) == 0:
-                currentFunction = Function.Function('', '', removeFuncFatherIndex + 2,rightSectionFrame, '',(removeFuncFatherIndex,currentScript.functions[removeFuncFatherIndex].name),'', currentScript.functions[
+                currentFunction = Function.Function('', '', removeFuncFatherIndex + 2,rightSectionFrame, '',(removeFuncFatherIndex,currentScript.functions[removeFuncFatherIndex].name),'',currentScript, currentScript.functions[
                                                                      removeFuncFatherIndex].indention+1,)
                 currentScript.functions.insert(removeFuncFatherIndex + 2,currentFunction)
 
