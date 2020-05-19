@@ -9,7 +9,7 @@ import ImgRecog
 
 
 class ScreenShotWindow():
-    Lb1Colors = ['#f4b63f', '#57ceff', '#ff5792', '#c2ff57', '#ff8657', '#579aff', '#d557ff', '#078f02', '#57ff7f']
+    Lb1Colors = ['#f4b63f', '#57ceff', '#ff5792', '#c2ff57', '#ff8657', '#579aff', '#d557ff', '#078f02', '#57ff7f','white', 'white']
 
     def __init__(self,mainScreen,Lb2,currentScript,tree,photoViewFrame,window_of_screen_shot):
         # mainScreen.iconify()
@@ -58,26 +58,37 @@ class ScreenShotWindow():
                 if not os.path.exists(currentScript.path + 'ScreenShots\\'):
                     os.mkdir(currentScript.path + 'ScreenShots\\')
 
-                if currentFunction.img == '':
-                    img.save(currentScript.path + 'ScreenShots\\' + imgName)
-                else:
-                    img.save(currentScript.path + 'ScreenShots\\' + currentFunction.img.img)
+                img.save(currentScript.path + 'ScreenShots\\' + imgName)
 
                 img = Photo(self.x0, self.y0, self.x1, self.y1, imgName)
-                flag = ImgRecog.photoRec(currentScript.path,img1,img)
+                # flag = ImgRecog.photoRec(currentScript.path,img1,img)
                 mainScreen.state('zoomed')
                 self.window.destroy()
                 self.window_of_screen_shot.destroy()
 
-                for func in range(len(currentScript.functions)):
-                    if currentScript.functions[func].id == index:
-                        currentScript.functions[func].img = img
-                        if currentScript.functions[func].name == 'If-Exist' or \
-                                currentScript.functions[func].name == 'If-Not-Exist':
-                            currentScript.functions[func].extra.image = img.img
-                        if (currentScript.functions[func].father[1] == 'Repeat' or currentScript.functions[func].father[1] == 'If-Exist' or currentScript.functions[func].father[1] == 'If-Not-Exist' or currentScript.functions[func].father[1] == 'Else') and currentScript.functions[func].id !=currentScript.functions[func].father[0]   :
-                            currentScript.functions[currentScript.functions[func].father[0]].extra.functions[
-                                func - currentScript.functions[func].father[0] - 2].img = img
+                # for func in range(len(currentScript.functions)):
+                #     if currentScript.functions[func].id == index:
+                currentScript.functions[index].img = img
+                if currentScript.functions[index].name == 'If-Exist' or \
+                        currentScript.functions[index].name == 'If-Not-Exist':
+                    currentScript.functions[index].extra.image = img.img
+                if currentScript.functions[index].father[0] != index:
+                    tempLineFather = currentScript.linesFather[currentScript.functions[index].father[0]]
+                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+                    while True:
+                        tempFatherFunction.extra.functions[index - tempLineFather.fromIndex - 2].img = img
+                        if tempFatherFunction.father[0] == tempFatherFunction.id:
+                            break
+                        tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+                        tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+
+
+
+                        # if (currentScript.functions[func].father[1] == 'Repeat' or currentScript.functions[func].father[1] == 'If-Exist' or currentScript.functions[func].father[1] == 'If-Not-Exist' or currentScript.functions[func].father[1] == 'Else') and currentScript.functions[func].id !=currentScript.functions[func].father[0]   :
+                        #     currentScript.functions[currentScript.functions[func].father[0]].extra.functions[
+                        #         func - currentScript.functions[func].father[0] - 2].img = img
                 Lb2.select_clear(0, END)
                 self.updateLb2(index,index,'add',currentScript,Lb2)
                 self.FocusOnSelectedFunc(mainScreen,Lb2,currentScript,index,photoViewFrame)
@@ -196,6 +207,10 @@ class ScreenShotWindow():
             return '#078f02'
         elif (funcName == 'Sleep'):
             return '#57ff7f'
+        elif (funcName == 'Scan_Text'):
+            return 'white'
+        elif (funcName == 'Scan Text_&_Compare'):
+            return 'white'
         else:
             return 'white'
 
@@ -220,10 +235,12 @@ class ScreenShotWindow():
                             currentScript.functions[x].extra.time))
                         Lb2.itemconfig(x, foreground=textColor)
                     elif name == 'If-Exist' or name == 'If-Not-Exist':
-                        Lb2.insert(x, shift + name + '({})'.format(
-                            currentScript.functions[x].extra.image))
+                        if currentScript.functions[x].extra.compareState == 'text':
+                            Lb2.insert(x, shift + name + '({},{})'.format(currentScript.functions[x].extra.image,currentScript.functions[x].extra.text))
+                        else:
+                            Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
                         Lb2.itemconfig(x, foreground=textColor)
-                    elif name == 'Insert-Input':
+                    elif name == 'Insert-Input' or name == 'Scan Text & Compare':
                         Lb2.insert(x, shift + name + '("{}")'.format(
                             currentScript.functions[x].extra.text))
                         Lb2.itemconfig(x, foreground=textColor)
@@ -241,10 +258,13 @@ class ScreenShotWindow():
                             currentScript.functions[x].extra.time))
                         Lb2.itemconfig(x, foreground=textColor)
                     elif name == 'If-Exist' or name == 'If-Not-Exist':
-                        Lb2.insert(x, shift + name + '({})'.format(
-                            currentScript.functions[x].extra.image))
+                        if currentScript.functions[x].extra.compareState == 'text':
+                            Lb2.insert(x, shift + name + '({},{})'.format(currentScript.functions[x].extra.image,currentScript.functions[x].extra.text))
+                        else:
+                            Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
+
                         Lb2.itemconfig(x, foreground=textColor)
-                    elif name == 'Insert-Input':
+                    elif name == 'Insert-Input' or name == 'Scan Text & Compare':
                         Lb2.insert(x, + name + '("{}")'.format(
                             currentScript.functions[x].extra.text))
                         Lb2.itemconfig(x, foreground=textColor)

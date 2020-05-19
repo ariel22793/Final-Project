@@ -6,8 +6,10 @@ import LineFather
 from LineFather import LineFather
 
 class IfNotExist():
-    def __init__(self,image, functions):
+    def __init__(self,image,compareState,text, functions):
         self.image = image
+        self.compareState = compareState
+        self.text = text
         self.functions = functions
 
     def getDict(self):
@@ -23,18 +25,33 @@ class IfNotExist():
                 else:
                     block.append({'name': x.name, 'img': imgdict, 'id': str(x.id),'frameFather':'', 'frame': '','fatherIndex': str(x.father[0]),'fatherName':x.father[1],
                                   'extra':'','indention':x.indention})
-        return {'image':str(self.image),'functions':block}
+        return {'image':str(self.image),'compareState':str(self.compareState),'text':str(self.text),'functions':block}
 
     @classmethod
-    def getExtra(cls, extra,Lb2,currentScript,tempFunction,rightSectionFrame):
+    def getExtra(cls, extra,Lb2,currentScript,tempFunction,rightSectionFrame,photoViewFrame,tree):
         functions = []
         if(len(extra['functions'])>0):
             for x in extra['functions']:
-                func = Function.Function('','','',rightSectionFrame,'','','',currentScript)
-                func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction,rightSectionFrame)
+                func = Function.Function('','','', rightSectionFrame,'','','',currentScript,tree,Lb2,photoViewFrame)
+                func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction,rightSectionFrame,tree,photoViewFrame)
                 functions.append(func)
-        return IfNotExist(extra['image'],functions)
+        return IfNotExist(extra['image'],extra['compareState'],extra['text'],functions)
+    def changeIfNotExistText(sv,Lb2,currentScript):
+        try:
+            index = currentScript.lastClickOnLb2
+        except:
+            print('need to mark the function that you want to change')
+        if (currentScript.functions[index].name == 'If-Exist'):
+            currentScript.functions[index].extra.text = sv.get()
+            # currentScript.functions[index].name = "Insert-Input"
 
+            Lb2.delete(index)
+            shift = ' ' * currentScript.functions[index].indention * 5
+            Lb2.insert(index,
+                       shift + currentScript.functions[index].name + '("{}")'.format(currentScript.functions[index].extra.text))
+            Lb2.itemconfig(index, foreground='#078f02')
+            Lb2.selection_set(index)
+            return True
     @classmethod
     def removeIfNotExist(cls,removeFuncFatherIndex, index,currentScript,haveFather,rightSectionFrame):
         fromIndex = currentScript.linesFather[index].fromIndex

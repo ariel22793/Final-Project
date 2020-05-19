@@ -3,11 +3,12 @@ import tkinter.filedialog
 import tkinter.messagebox
 import tkinter.font as tkFont
 import pyautogui
+import PIL
 from PIL import Image
 import tkinter.ttk as ttk
 import os
 import json
-
+import matplotlib.pyplot as plt
 from keyboard import on_press
 from pynput import keyboard
 import pyautogui
@@ -31,6 +32,9 @@ import Else
 from Else import Else
 import InsertInput
 from InsertInput import InsertInput
+import Scan_Text_Compare
+from Scan_Text_Compare import Scan_Text_Compare
+import ScanText
 import Photo
 import LineFather
 from LineFather import LineFather
@@ -60,7 +64,7 @@ undoFunctions = []
 redoLinesFather = []
 undoLinesFather = []
 stopScript = False
-Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d557ff','#078f02','#57ff7f']
+Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d557ff','#078f02','#57ff7f','white','white']
 flag_of_shift = False
 speed=1
 logger = None
@@ -150,6 +154,10 @@ def getFunctionColor(funcName):
             return Lb1Colors[7]
         elif (funcName == 'Sleep'):
             return Lb1Colors[8]
+        elif (funcName == 'Scan Text'):
+            return Lb1Colors[9]
+        elif (funcName == 'Scan Text & Compare'):
+            return Lb1Colors[10]
         else:
             return 'white'
     except Exception as e:
@@ -203,10 +211,12 @@ def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
                             currentScript.functions[x].extra.time))
                         Lb2.itemconfig(x, foreground=textColor)
                     elif name == 'If-Exist' or name == 'If-Not-Exist':
-                        Lb2.insert(x,shift + name + '({})'.format(
-                            currentScript.functions[x].extra.image))
+                        if currentScript.functions[x].extra.compareState == 'text':
+                            Lb2.insert(x, shift + name + '({},{})'.format(currentScript.functions[x].extra.image,currentScript.functions[x].extra.text))
+                        else:
+                            Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
                         Lb2.itemconfig(x, foreground=textColor)
-                    elif name == 'Insert-Input':
+                    elif name == 'Insert-Input' or name == 'Scan Text & Compare':
                         Lb2.insert(x,shift + name + '("{}")'.format(
                             currentScript.functions[x].extra.text))
                         Lb2.itemconfig(x, foreground=textColor)
@@ -224,10 +234,12 @@ def updateLb2(fromIndex,toIndex,operation,options = 'regular'):
                             currentScript.functions[x].extra.time))
                         Lb2.itemconfig(x, foreground=textColor)
                     elif name == 'If-Exist' or name == 'If-Not-Exist':
-                        Lb2.insert(x,shift + name + '({})'.format(
-                            currentScript.functions[x].extra.image))
+                        if currentScript.functions[x].extra.compareState == 'text':
+                            Lb2.insert(x, shift + name + '({},{})'.format(currentScript.functions[x].extra.image,currentScript.functions[x].extra.text))
+                        else:
+                            Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
                         Lb2.itemconfig(x, foreground=textColor)
-                    elif name == 'Insert-Input':
+                    elif name == 'Insert-Input' or name == 'Scan Text & Compare':
                         Lb2.insert(x,+ name + '("{}")'.format(
                             currentScript.functions[x].extra.text))
                         Lb2.itemconfig(x, foreground=textColor)
@@ -269,13 +281,16 @@ def addFunction(place = 0,functionName = 'None',flag = True):
             if(currentScript.functions==[] and place ==0):      ## case that this is the first time we add a function
                 print('first time!')
 
-        if functionName == 'Insert-Input':
-            insertInput = InsertInput('')
+        if functionName == 'Insert-Input' or functionName == 'Scan Text & Compare':
+            if functionName == 'Insert-Input' :
+                extra = InsertInput('')
+            else:
+                extra = Scan_Text_Compare('')
 
             if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
 
                 currentFunction = Function(functionName, '', place, rightSectionFrame, '',
-                                           (currentLineFather.fromIndex, currentLineFather.fatherName), insertInput,currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +1)
+                                           (currentLineFather.fromIndex, currentLineFather.fatherName), extra,currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +1)
 
                 currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
                                                currentLineFather.fatherName)
@@ -296,9 +311,13 @@ def addFunction(place = 0,functionName = 'None',flag = True):
 
             else:
                 currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                           (currentLineFather.fromIndex, functionName), insertInput,currentScript,tree,Lb2,photoViewFrame)
+                                           (currentLineFather.fromIndex, functionName), extra,currentScript,tree,Lb2,photoViewFrame)
                 currentLineFather = LineFather(place, place, functionName)
-            currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), InsertInput.changeInsertInputText,Lb2,currentScript)
+            if functionName == 'Insert-Input':
+                currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), InsertInput.changeInsertInputText,Lb2,currentScript)
+            else:
+                currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), Scan_Text_Compare.changeScan_Text_Compare,Lb2,currentScript)
+
         elif functionName == 'Sleep':
             sleep = Sleep('?')
 
@@ -393,7 +412,7 @@ def addFunction(place = 0,functionName = 'None',flag = True):
         elif functionName == 'If-Exist':
             delta = 3
             toIndex = place + 3
-            ifExist = IfExist('?', [Function('', '', place +2 , rightSectionFrame,'',(place, functionName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +2)])
+            ifExist = IfExist('?','image','', [Function('', '', place +2 , rightSectionFrame,'',(place, functionName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +2)])
             tempFunction = ['{', '', '}']
 
             if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
@@ -449,11 +468,11 @@ def addFunction(place = 0,functionName = 'None',flag = True):
                                                        Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
                                                                 (place, functionName), '',currentScript,tree,Lb2,photoViewFrame))
                 currentLineFather = LineFather(place, place + 3, functionName)
-
+            currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), IfExist.changeIfExistText,Lb2,currentScript)
         elif functionName == 'If-Not-Exist':
             delta = 3
             toIndex = place + 3
-            ifNotExist = IfNotExist('?', [Function('', '', place + 2, rightSectionFrame,'', (place, functionName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +2)])
+            ifNotExist = IfNotExist('?','image','', [Function('', '', place + 2, rightSectionFrame,'', (place, functionName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +2)])
             tempFunction = ['{', '', '}']
 
             if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
@@ -513,6 +532,7 @@ def addFunction(place = 0,functionName = 'None',flag = True):
                                                        Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
                                                                 (place, functionName), '',currentScript,tree,Lb2,photoViewFrame))
                 currentLineFather = LineFather(place, place + 3, functionName)
+            currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), IfExist.changeIfNotExistText,Lb2,currentScript)
         elif functionName == 'Else':
             toIndex = place + 3
             if place == 0 or (currentScript.functions[place-1].father[1] != 'If-Exist' and currentScript.functions[place-1].father[1] != 'If-Not-Exist'):
@@ -1129,13 +1149,7 @@ def moveDown():
 
 def popupmsg(msg):
     try:
-        popup = Tk()
-        popup.wm_title("!")
-        label = ttk.Label(popup, text=msg, font=("Verdana", 10))
-        label.pack(side="top", fill="x", pady=10)
-        B1 = ttk.Button(popup, text="Okay", command=popup.destroy)
-        B1.pack()
-        popup.mainloop()
+        tkinter.messagebox.showinfo('Notice',msg)
     except Exception as e:
         exeptionHandler(e)
 
@@ -1155,12 +1169,19 @@ def checkImageInFunc():
             elif func.name == 'Insert-Input':
                 if func.extra.text == '':
                     funcWithoutImage += ("The {} in line {} doesn't have input text\n".format(func.name, index))
+            elif func.name == 'Scan_Text_&_Compare':
+                if func.extra.text == '':
+                    funcWithoutImage += ("The {} in line {} doesn't have input text\n".format(func.name, index))
             elif func.name == 'If-Exist':
                 if func.extra.image == '?':
                     funcWithoutImage += ("The {} in line {} doesn't have image\n".format(func.name, index))
+                elif func.extra.text == '' and func.extra.compareState == 'text':
+                    funcWithoutImage += ("The {} in line {} doesn't have input text\n".format(func.name, index))
             elif func.name == 'If-Not-Exist':
                 if func.extra.image == '?':
                     funcWithoutImage += ("The {} in line {} doesn't have image\n".format(func.name, index))
+                elif func.extra.text == '' and func.extra.compareState == 'text':
+                    funcWithoutImage += ("The {} in line {} doesn't have input text\n".format(func.name, index))
             elif func.img == '' and func.name != '' and func.name != '{' and func.name != '}' and func.name != 'Else':
                 funcWithoutImage += ("The {} in line {} doesn't have screenshot\n".format(func.name, index))
             index += 1
@@ -1211,12 +1232,20 @@ def runHendle():
                                 left_click_handle(currentScript.functions[func].img, currentScript.path,testLog)
                                 functionNum += 1
                             elif currentScript.functions[func].name == 'If-Exist':
-                                exist,tempFunctionNum = exist_handle(currentScript.functions[func],currentScript.path,testLog)
+                                if currentScript.functions[func].extra.compareState == 'image':
+                                    exist,tempFunctionNum = exist_handle(currentScript.functions[func],currentScript.path,testLog)
+                                else:
+                                    exist, tempFunctionNum = scan_text_compare_handle(currentScript.functions[func], currentScript.path,
+                                                             currentScript.functions[func].extra.text, testLog)
                                 functionNum += tempFunctionNum
                                 ifExistFlag = exist
                             elif currentScript.functions[func].name == 'If-Not-Exist':
-                                exist,tempFunctionNum = not_exist_handle(currentScript.functions[func],
+                                if currentScript.functions[func].extra.compareState == 'image':
+                                    exist,tempFunctionNum = not_exist_handle(currentScript.functions[func],
                                                                                currentScript.path,testLog)
+                                else:
+                                    exist, tempFunctionNum = not scan_text_compare_handle(currentScript.functions[func], currentScript.path,
+                                                             currentScript.functions[func].extra.text, testLog)
                                 functionNum += tempFunctionNum
                                 ifExistFlag = exist
                             elif currentScript.functions[func].name == 'Else' and not ifExistFlag:
@@ -1233,6 +1262,12 @@ def runHendle():
                                 functionNum += 1
                             elif currentScript.functions[func].name == 'Insert-Input':
                                 insert_input_handle(currentScript.functions[func].img, currentScript.path,currentScript.functions[func].extra.text,testLog)
+                                functionNum += 1
+                            elif currentScript.functions[func].name == 'Scan_Text':
+                                scan_text_handle(currentScript.functions[func].img, currentScript.path,currentScript.functions[func].extra.text,testLog)
+                                functionNum += 1
+                            elif currentScript.functions[func].name == 'Scan_Text_&_Compare':
+                                scan_text_compare_handle(currentScript.functions[func].img, currentScript.path,currentScript.functions[func].extra.text,testLog)
                                 functionNum += 1
                 else:
                     break
@@ -2218,7 +2253,13 @@ def repeat_handle(fatherFunction,path,testLog):
                         sleep_handle(func.extra.time,testLog)
                         functionNum += 1
                     elif (func.name == 'Insert-Input'):
-                        insert_input_handle(func.extra.time,testLog)
+                        insert_input_handle(func.img,path,func.extra.text,testLog)
+                        functionNum += 1
+                    elif (func.name == 'Scan_Text'):
+                        scan_text_handle(func.extra.text,testLog)
+                        functionNum += 1
+                    elif (func.name == 'Scan_Text_&_Compare'):
+                        scan_text_compare_handle(func.img,path,func.extra.text,testLog)
                         functionNum += 1
             else:
                 break
@@ -2240,7 +2281,7 @@ def left_click_handle(template,path,testLog):
     try:
         screenShot = ImgRecog.tempScreenShot(template)
 
-        exist = ImgRecog.photoRec(path,screenShot,template)
+        exist,howManyRectangles = ImgRecog.photoRec(path,screenShot,template)
         x = (template.x1Cord + template.x0Cord) / 2
         y = (template.y1Cord + template.y0Cord) / 2
         if(exist == True):
@@ -2269,6 +2310,77 @@ def insert_input_handle(template,path,text,testLog):
         else:
             testLog.write('image {} is not exist as not expected (Insert-Input)\n'.format(template.img))
             textView.insert(END, 'image {} is not exist as not expected (Insert-Input)\n'.format(template.img))
+    except Exception as e:
+        exeptionHandler(e)
+def scan_text_handle(template,path,testLog):
+    logger.writeToLog('scan_text_handle function')
+    try:
+        screenShot = ImgRecog.tempScreenShot(template)
+
+        if(exist == True):
+            testLog.write('image {} is exist as expected (scan_text_compare)\n'.format(template.img))
+            textView.insert(END, 'image {} is exist as expected (scan_text_compare)\n'.format(template.img))
+            pyautogui.click(x, y, duration=speed)
+            pyautogui.typewrite(text, interval=0.1)
+        else:
+            testLog.write('image {} is not exist as not expected (scan_text_compare)\n'.format(template.img))
+            textView.insert(END, 'image {} is not exist as not expected (scan_text_compare)\n'.format(template.img))
+    except Exception as e:
+        exeptionHandler(e)
+
+def scan_text_compare_handle(fatherFunction,path,text,testLog):
+    logger.writeToLog('scan_text_compare_handle function')
+    try:
+        childrenFunctions = fatherFunction.extra.functions
+        screenShot = ImgRecog.tempScreenShot(fatherFunction.img)
+        exist = ScanText.scan_text_and_compare(screenShot,text)
+        functionNum = 0
+        if (exist == True):
+            testLog.write('image {} is exist as expected (scan_text_compare)\n'.format(fatherFunction.img.img))
+            textView.insert(END, 'image {} is exist as expected (scan_text_compare)\n'.format(fatherFunction.img.img))
+
+            for func in childrenFunctions:
+                if (stopScript == False):
+                    if (func.father[0] == fatherFunction.id):
+                        if (func.name == 'Repeat'):
+                            functionNum += repeat_handle(func, path, testLog) + 3
+                        elif (func.name == 'Left-Click'):
+                            left_click_handle(func.img, path, testLog)
+                            functionNum += 1
+                        elif (func.name == 'If-Exist'):
+                            exist, tempFunctionNum = exist_handle(func, path, testLog)
+                            functionNum += tempFunctionNum
+                            ifExistFlag = exist
+                        elif (func.name == 'If-Not-Exist'):
+                            exist, tempFunctionNum = not_exist_handle(func, path, testLog)
+                            functionNum += tempFunctionNum
+                            ifExistFlag = exist
+                        elif (func.name == 'Double-Click'):
+                            double_click_handle(func.img, path, testLog)
+                            functionNum += 1
+                        elif (func.name == 'Else' and not ifExistFlag):
+                            functionNum += else_handle(func, path, testLog)
+                        elif (func.name == 'Right-Click'):
+                            right_click_handle(func.img, path, testLog)
+                            functionNum += 1
+                        elif (func.name == 'Sleep'):
+                            sleep_handle(func.extra.time, testLog)
+                            functionNum += 1
+                        elif (func.name == 'Insert-Input'):
+                            insert_input_handle(func.img, path, func.extra.text, testLog)
+                            functionNum += 1
+                        elif (func.name == 'Scan_Text'):
+                            scan_text_handle(func.extra.text, testLog)
+                            functionNum += 1
+                        elif (func.name == 'Scan_Text_&_Compare'):
+                            scan_text_compare_handle(func.img, path, func.extra.text, testLog)
+                            functionNum += 1
+                else:
+                    break
+        else:
+            testLog.write('image {} is not exist as not expected (scan_text_compare)\n'.format(fatherFunction.img.img))
+            textView.insert(END, 'image {} is not exist as not expected (scan_text_compare)\n'.format(fatherFunction.img.img))
+        return exist,functionNum
     except Exception as e:
         exeptionHandler(e)
 
@@ -2350,7 +2462,13 @@ def exist_handle(fatherFunction,path,testLog):
                             sleep_handle(func.extra.time,testLog)
                             functionNum += 1
                         elif (func.name == 'Insert-Input'):
-                            insert_input_handle(func.extra.time,testLog)
+                            insert_input_handle(func.img, path, func.extra.text, testLog)
+                            functionNum += 1
+                        elif (func.name == 'Scan_Text'):
+                            scan_text_handle(func.extra.text, testLog)
+                            functionNum += 1
+                        elif (func.name == 'Scan_Text_&_Compare'):
+                            scan_text_compare_handle(func.img, path, func.extra.text, testLog)
                             functionNum += 1
                 else:
                     break
@@ -2402,7 +2520,13 @@ def not_exist_handle(fatherFunction,path,testLog):
                         sleep_handle(func.extra.time,testLog)
                         functionNum += 1
                     elif (func.name == 'Insert-Input'):
-                        insert_input_handle(func.extra.time,testLog)
+                        insert_input_handle(func.img, path, func.extra.text, testLog)
+                        functionNum += 1
+                    elif (func.name == 'Scan_Text'):
+                        scan_text_handle(func.extra.text, testLog)
+                        functionNum += 1
+                    elif (func.name == 'Scan_Text_&_Compare'):
+                        scan_text_compare_handle(func.img, path, func.extra.text, testLog)
                         functionNum += 1
                 else:
                     break
@@ -2447,7 +2571,13 @@ def else_handle(fatherFunction,path,testLog):
                     sleep_handle(func.extra.time,testLog)
                     functionNum += 1
                 elif (func.name == 'Insert-Input'):
-                    insert_input_handle(func.extra.time,testLog)
+                    insert_input_handle(func.img,path,func.extra.text,testLog)
+                    functionNum += 1
+                elif (func.name == 'Scan_Text'):
+                    scan_text_handle(func.extra.text,testLog)
+                    functionNum += 1
+                elif (func.name == 'Scan_Text_&_Compare'):
+                    scan_text_compare_handle(func.img,path,func.extra.text,testLog)
                     functionNum += 1
             else:
                 break
@@ -2643,6 +2773,7 @@ def screen_shot_handle():
         global flag_of_shift
         flag_of_shift = True
         mainScreen.iconify()
+
     except Exception as e:
         exeptionHandler(e)
 
@@ -2676,7 +2807,7 @@ if __name__ == '__main__':
     toolbarFrame.grid(row=0,column=0,sticky = 'WEN')
 
     openToolButton = PhotoImage(master=mainScreen, file=r"img\OpenTool.png")
-    canvasOpen = Canvas(toolbarFrame,height = openToolButton.height(),width = openToolButton.width(),  bg='#3c3f41', bd=-2)
+    canvasOpen = Canvas(toolbarFrame,height = openToolButton.height(),width = openToolButton.width(),  bg='#3c3f41', highlightbackground='#3c3f41')
     canvasOpen.grid(row=0,column=0, sticky="NWE", pady=2)
 
     canvasOpen.open = openToolButton
@@ -2689,7 +2820,7 @@ if __name__ == '__main__':
 
 
     saveToolButton = PhotoImage(master=mainScreen, file=r"img\SaveTool.png")
-    canvasSave = Canvas(toolbarFrame, height=saveToolButton.height(), width=saveToolButton.width(), bg='#3c3f41', bd=-2)
+    canvasSave = Canvas(toolbarFrame, height=saveToolButton.height(), width=saveToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasSave.grid(row=0, column=1, sticky="NWE", pady=2)
 
     canvasSave.save = saveToolButton
@@ -2701,7 +2832,7 @@ if __name__ == '__main__':
 
 
     saveAsToolButton = PhotoImage(master=mainScreen,file=r"img\SaveAsTool.png")
-    canvasSaveAs = Canvas(toolbarFrame, height=saveAsToolButton.height(), width=saveAsToolButton.width(), bg='#3c3f41', bd=-2)
+    canvasSaveAs = Canvas(toolbarFrame, height=saveAsToolButton.height(), width=saveAsToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasSaveAs.grid(row=0, column=2, sticky="EWN", pady=2)
 
     canvasSaveAs.save = saveToolButton
@@ -2715,7 +2846,7 @@ if __name__ == '__main__':
     optionsAndRunFrame.grid(row=0, column=1, sticky='N')
 
     editToolButton = PhotoImage(master=mainScreen,file=r"img\editTool.png")
-    canvasEdit = Canvas(optionsAndRunFrame, height=editToolButton.height(), width=editToolButton.width(), bg='#3c3f41',bd=-2)
+    canvasEdit = Canvas(optionsAndRunFrame, height=editToolButton.height(), width=editToolButton.width(), bg='#3c3f41',highlightbackground='#3c3f41')
     canvasEdit.grid(row=0, column=0, sticky="NWE", pady=2)
 
     canvasEdit.edit = editToolButton
@@ -2728,7 +2859,7 @@ if __name__ == '__main__':
 
 
     optionToolButton = PhotoImage(master=mainScreen, file=r"img\optionsTool.png")
-    canvasOption = Canvas(optionsAndRunFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', bd=-2)
+    canvasOption = Canvas(optionsAndRunFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasOption.grid(row=0, column=1, sticky="NWE", pady=2)
 
     canvasOption.options = optionToolButton
@@ -2739,7 +2870,7 @@ if __name__ == '__main__':
     canvasOption.tag_bind('options', '<Leave>', lambda event: change_on_hover(event, "optionsToolHover", canvasOption, optionTool))
 
     playToolButton = PhotoImage(master=mainScreen,file=r"img\PlayTool.png")
-    canvasPlay = Canvas(optionsAndRunFrame, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',bd=-2)
+    canvasPlay = Canvas(optionsAndRunFrame, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',highlightbackground='#3c3f41')
     canvasPlay.grid(row=0, column=2, sticky="N", pady=4)
 
     canvasPlay.play = playToolButton
@@ -2751,7 +2882,7 @@ if __name__ == '__main__':
 
 
     comboToolButton = PhotoImage(master=mainScreen,file=r"img\Combo.png")
-    canvasCombo = Canvas(mainScreen, height=comboToolButton.height(), width=comboToolButton.width(), bg='#3c3f41', bd=-2)
+    canvasCombo = Canvas(mainScreen, height=comboToolButton.height(), width=comboToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasCombo.grid(row=0, column=2, sticky="N", pady=4)
 
     canvasCombo.combo = comboToolButton
@@ -2765,16 +2896,16 @@ if __name__ == '__main__':
     line_style = ttk.Style()
     line_style.configure("Line.TSeparator", background="black")
     separator = ttk.Separator(mainScreen, orient='horizontal', style="Line.TSeparator")
-    separator.grid(column=0, row=1, sticky="WE", pady=(0,10))
+    separator.grid(column=0, row=1, sticky="WE", pady=(0,1))
 
     separator2 = ttk.Separator(mainScreen, orient='horizontal', style="Line.TSeparator")
-    separator2.grid(column=1, row=1, sticky="WE", pady=(0,10))
+    separator2.grid(column=1, row=1, sticky="WE", pady=(0,1))
 
     separator3 = ttk.Separator(mainScreen, orient='horizontal', style="Line.TSeparator")
-    separator3.grid(column=2, row=1, sticky="WE", pady=(0,10))
+    separator3.grid(column=2, row=1, sticky="WE", pady=(0,1))
 
     addFunclButton = PhotoImage(master=mainScreen,file=r"img\AddFuncDis.png")
-    canvasAddFun = Canvas(mainScreen, height=addFunclButton.height(), width=addFunclButton.width(), bg='#3c3f41', bd=-2)
+    canvasAddFun = Canvas(mainScreen, height=addFunclButton.height(), width=addFunclButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasAddFun.grid(row=2, column=2, sticky="N", pady=4)
 
     canvasAddFun.addFun = addFunclButton
@@ -2897,7 +3028,7 @@ if __name__ == '__main__':
     photoViewFrame.grid(row=1, column=0,sticky='NEWS')
 
     moveDownButton = PhotoImage(master=mainScreen,file=r"img\moveDownDis.png")
-    canvasmoveDown = Canvas(mainFrame1, height=moveDownButton.height(), width=moveDownButton.width(), bg='#3c3f41', bd=-2)
+    canvasmoveDown = Canvas(mainFrame1, height=moveDownButton.height(), width=moveDownButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasmoveDown.grid(row=0, column=0, sticky="N", pady=4)
 
     canvasmoveDown.moveDown = moveDownButton
@@ -2910,7 +3041,7 @@ if __name__ == '__main__':
 
 
     moveUpButton = PhotoImage(master=mainScreen,file=r"img\moveUpDis.png")
-    canvasmoveUp = Canvas(mainFrame1, height=moveUpButton.height(), width=moveUpButton.width(), bg='#3c3f41', bd=-2)
+    canvasmoveUp = Canvas(mainFrame1, height=moveUpButton.height(), width=moveUpButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasmoveUp.grid(row=0, column=1, sticky="N", pady=4)
 
     canvasmoveUp.moveUp = moveUpButton
@@ -2925,7 +3056,7 @@ if __name__ == '__main__':
 
 
     removeButton = PhotoImage(master=mainScreen,file=r"img\remove.png")
-    canvasRemove = Canvas(mainFrame1, height=removeButton.height(), width=removeButton.width(), bg='#3c3f41', bd=-2)
+    canvasRemove = Canvas(mainFrame1, height=removeButton.height(), width=removeButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasRemove.grid(row=0, column=2, sticky="N", pady=4)
 
     canvasRemove.remove = removeButton
@@ -2938,7 +3069,7 @@ if __name__ == '__main__':
 
 
     insertBButton = PhotoImage(master=mainScreen,file=r"img\insertBDis.png")
-    canvasinsertB = Canvas(mainFrame1, height=insertBButton.height(), width=insertBButton.width(), bg='#3c3f41', bd=-2)
+    canvasinsertB = Canvas(mainFrame1, height=insertBButton.height(), width=insertBButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasinsertB.grid(row=0, column=3, sticky="N", pady=4)
 
     canvasinsertB.insertb = insertBButton
@@ -2950,7 +3081,7 @@ if __name__ == '__main__':
 
 
     insertAButton = PhotoImage(master=mainScreen,file=r"img\insertADis.png")
-    canvasinsertA = Canvas(mainFrame1, height=insertAButton.height(), width=insertAButton.width(), bg='#3c3f41', bd=-2)
+    canvasinsertA = Canvas(mainFrame1, height=insertAButton.height(), width=insertAButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasinsertA.grid(row=0, column=4, sticky="N", pady=4)
     canvasinsertA.inserta = insertAButton
     insert_a_flag = ['insertADis']
@@ -2962,7 +3093,7 @@ if __name__ == '__main__':
 
 
     takeSButton = PhotoImage(master=mainScreen,file=r"img\TakeSDis.png")
-    canvasTakeS = Canvas(mainFrame1, height=takeSButton.height(), width=takeSButton.width(), bg='#3c3f41', bd=-2)
+    canvasTakeS = Canvas(mainFrame1, height=takeSButton.height(), width=takeSButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasTakeS.grid(row=0, column=5, sticky="N", pady=4)
     canvasTakeS.takeS = takeSButton
     takeS_flag = ['takeSDis']

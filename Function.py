@@ -11,6 +11,8 @@ import Else
 from Else import Else
 import InsertInput
 from InsertInput import InsertInput
+import Scan_Text_Compare
+from Scan_Text_Compare import Scan_Text_Compare
 from tkinter import *
 from win32api import GetSystemMetrics
 import tkinter.ttk as ttk
@@ -24,10 +26,10 @@ class Function():
         self.img = img
         self.id = id
         self.frameFather = frameFather
-        self.frame = self.getFrame(name,frame,frameFather,currentScript,tree,Lb2,photoViewFrame)
         self.father = father
         self.extra = extra
         self.indention = indention
+        self.frame = self.getFrame(name, frame, frameFather, currentScript, tree, Lb2, photoViewFrame)
 
 
     def getFunction(self,func,Lb2,currentScript,tempFunction,rightSectionFrame,tree,photoViewFrame):
@@ -46,22 +48,25 @@ class Function():
             self.img = img
         if (func['extra'] != ''):
             if(func['name'] == 'Repeat'):
-                extra = Repeat.Repeat.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
+                extra = Repeat.Repeat.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame,photoViewFrame,tree)
                 self.extra=extra
             elif (func['name'] == 'Sleep'):
                 extra = Sleep.getExtra(func['extra'])
                 self.extra = extraself.extra=extra
             elif (func['name'] == 'If-Exist'):
-                extra = IfExist.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
+                extra = IfExist.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame,photoViewFrame,tree)
                 self.extra = extra
             elif (func['name'] == 'If-Not-Exist'):
-                extra = IfNotExist.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
+                extra = IfNotExist.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame,photoViewFrame,tree)
                 self.extra = extra
             elif (func['name'] == 'Else'):
-                extra = Else.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame)
+                extra = Else.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame,photoViewFrame,tree)
                 self.extra = extra
             elif (func['name'] == 'Insert-Input'):
                 extra = InsertInput.getExtra(func['extra'])
+                self.extra = extra
+            elif (func['name'] == 'Scan Text & Compare'):
+                extra = Scan_Text_Compare.getExtra(func['extra'])
                 self.extra = extra
         if (func['name'] != '{' and func['name'] != '}'):
             frame = self.getFrame(func['name'],'',rightSectionFrame,currentScript,tree,Lb2,photoViewFrame)
@@ -74,6 +79,15 @@ class Function():
             elif (func['name'] == 'Insert-Input'):
                 self.getInputBox(func['name'], extra, frame.children.get('labelAndInput'),
                                  InsertInput.changeInsertInputText, Lb2, currentScript)
+            elif (func['name'] == 'If-Exist'):
+                self.getInputBox(func['name'], extra, frame.children.get('labelAndInput'),
+                                 InsertInput.changeInsertInputText, Lb2, currentScript)
+            elif (func['name'] == 'If-Not-Exist'):
+                self.getInputBox(func['name'], extra, frame.children.get('labelAndInput'),
+                                 InsertInput.changeInsertInputText, Lb2, currentScript)
+            elif (func['name'] == 'Scan Text & Compare'):
+                self.getInputBox(func['name'], extra, frame.children.get('labelAndInput'),
+                                 Scan_Text_Compare.changeScan_Text_Compare, Lb2, currentScript)
         if(tempFunction[int(func['id'])] == 0):
             function = Function(func['name'], img, int(func['id']),rightSectionFrame, frame,
                                 (int(func['fatherIndex']), func['fatherName']), extra,currentScript,tree,Lb2,photoViewFrame,int(func['indention']))
@@ -212,7 +226,7 @@ class Function():
             tempFrame1.grid(row = 1 , column = 0,sticky = 'NE',padx = 1, pady = 15)
             tempFrame2 = Frame(tempFrame, width=10, height=30, name='input')
             tempFrame2.grid(row=2, column=0, sticky='NW' ,padx = 1, pady = 15)
-        elif(functionName == 'Insert-Input'):
+        elif(functionName == 'Insert-Input' or functionName == 'Scan Text & Compare'):
             littlePhoto = Frame(frame1, bd=2, relief=SUNKEN,height=150, bg='#2b2b2b', name='canvasFrame')
             littlePhoto.columnconfigure(0, weight=1)
             littlePhoto.grid(row = 0 , column = 0,sticky = 'EWN', pady = (0,15))
@@ -233,7 +247,56 @@ class Function():
             fileNameLabel.grid(row=0, column=0, sticky='WN', padx=(50, 25))
             fileNameButton = Button(fileNameFrame, width=20, text='Change Image Name',state = DISABLED,name = 'fileNameButton',command = lambda: self.changeImageName(currentScript,tree,Lb2,photoViewFrame),bg='#2b2b2b',fg = 'white')
             fileNameButton.grid(row=0, column=1, sticky='EN', padx=(25, 50))
-        elif (functionName == 'Else'):
+
+        elif (functionName == 'If-Exist' or functionName == 'If-Not-Exist' ):
+            littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, height=150, bg='#2b2b2b', name='canvasFrame')
+            littlePhoto.columnconfigure(0, weight=1)
+            littlePhoto.grid(row=0, column=0, sticky='EWN', pady=(0, 15))
+            canvas = Canvas(littlePhoto, height=150, bg='#2b2b2b', name='canvas')
+            canvas.grid(sticky='NWE')
+            functionNameLabel.grid(row=1, column=0, sticky='WN', padx=50, pady=15)
+            tempFrame = Frame(frame1, height=30, bg='#2b2b2b', name='labelAndInput')
+            tempFrame.grid(row=4, column=0, sticky='WNE', padx=50, pady=15)
+            tempFrame1 = Frame(tempFrame, width=200, height=30, name='label', bg='#2b2b2b')
+            tempFrame1.grid(row=1, column=0, sticky='NE', padx=1, pady=15)
+            tempFrame2 = Frame(tempFrame, width=10, height=30, name='input')
+            tempFrame2.grid(row=2, column=0, sticky='NW', padx=1, pady=15)
+            radioFrame = Frame(frame1, bg='#2b2b2b')
+            radioFrame.columnconfigure(0, weight=1)
+            radioFrame.columnconfigure(1, weight=1)
+            radioFrame.grid(row=2, column=0, sticky='WNE', padx=50, pady=15)
+            if self.extra.compareState == 'image':
+                buttonImage = Button(radioFrame,text='Image' ,command = lambda : self.radio_button_handle('image',tempFrame,buttonImage,buttonText,Lb2),bg='white',fg='#2b2b2b')
+                buttonImage.grid(row=0, column=0, sticky='WN', padx=(50, 25))
+                buttonText = Button(radioFrame,text='Text',command = lambda : self.radio_button_handle('text',tempFrame,buttonImage,buttonText,Lb2),bg='#2b2b2b',fg='white')
+                buttonText.grid(row=0, column=1, sticky='WN', padx=(50, 25))
+            else:
+                buttonImage = Button(radioFrame, text='Image',
+                                     command=lambda: self.radio_button_handle('image', tempFrame, buttonImage,
+                                                                              buttonText,Lb2), bg='#2b2b2b', fg='white')
+                buttonImage.grid(row=0, column=0, sticky='WN', padx=(50, 25))
+                buttonText = Button(radioFrame, text='Text',
+                                    command=lambda: self.radio_button_handle('text', tempFrame, buttonImage,
+                                                                             buttonText,Lb2), bg='white', fg='#2b2b2b')
+                buttonText.grid(row=0, column=1, sticky='WN', padx=(50, 25))
+            # var = StringVar(radioFrame)
+            # radioFrame.grid(row=2, column=0, sticky='WNE', padx=50, pady=15)
+            # R1 = Radiobutton(radioFrame, text="Image", variable=var, value='A',  bg='#2b2b2b', indicatoron=0, command = lambda : self.radio_button_handle('image',tempFrame))
+            # R1.grid(row=0, column=0, sticky='WN', padx=(50, 25))
+            # R2 = Radiobutton(radioFrame, text="Text", variable=var, value='B', bg='#2b2b2b',  indicatoron=0, command = lambda : self.radio_button_handle('text',tempFrame))
+            # R2.grid(row=0, column=1, sticky='WN', padx=(50, 25))
+            # R1.select()
+            fileNameFrame = Frame(frame1, bg='#2b2b2b', name='fileNameFrame')
+            fileNameFrame.columnconfigure(0, weight=1)
+            fileNameFrame.columnconfigure(1, weight=1)
+            fileNameFrame.grid(row=3, column=0, sticky='WEN', pady=15)
+            fileNameLabel = Label(fileNameFrame, text='File Name : ', name='fileName', bg='#2b2b2b', fg='white')
+            fileNameLabel.grid(row=0, column=0, sticky='WN', padx=(50, 25))
+            fileNameButton = Button(fileNameFrame, width=20, text='Change Image Name', state=DISABLED,name='fileNameButton',command=lambda: self.changeImageName(currentScript, tree, Lb2, photoViewFrame),bg='#2b2b2b', fg='white')
+            fileNameButton.grid(row=0, column=1, sticky='EN', padx=(25, 50))
+
+
+        elif (functionName == 'Else' ):
             functionNameLabel.grid(row=0, column=0, sticky='WN', padx=50, pady=15)
         else:
             littlePhoto = Frame(frame1, bd=2, relief=SUNKEN, height=150, bg='#2b2b2b', name='canvasFrame')
@@ -262,26 +325,69 @@ class Function():
                 frameLabel = frameLabelAndInput.children.get('label')
                 frameInput = frameLabelAndInput.children.get('input')
 
-                if(functionName == 'Insert-Input'):
+                if(functionName == 'Insert-Input' or functionName == 'Scan Text & Compare'):
                     frameLabel.grid(row=0, column=0, sticky='NE')
-                    label = Label(frameLabel, text=attr.capitalize() + ' :',bg='#2b2b2b',fg='white')
+                    label = Label(frameLabel, text='Text:',bg='#2b2b2b',fg='white')
                     label.grid(row=0, column=0, sticky='N')
 
                     frameInput.grid(row=0, column=1, sticky='NW')
                     sv = StringVar(value=function.text)
-                    entry = Entry(frameInput, textvariable=sv,bg='#2b2b2b',fg='white')
+                    entry = Entry(frameInput, textvariable=sv,bg='#2b2b2b',fg='white',name = 'entry',disabledbackground = '#2b2b2b')
                     entry.bind('<Return>', (lambda _: eventFunction(entry,Lb2,currentScript)))
+                    entry.grid(row=0, column=0, sticky='N')
+                elif (functionName == 'If-Exist' or functionName == 'If-Not_Exist'):
+                    frameLabel.grid(row=0, column=0, sticky='NE')
+                    label = Label(frameLabel, text='Text:', bg='#2b2b2b', fg='white')
+                    label.grid(row=0, column=0, sticky='N')
+                    frameInput.grid(row=0, column=1, sticky='NW')
+                    sv = StringVar(value=function.text)
+                    if(self.extra.compareState == 'image'):
+                        entry = Entry(frameInput, textvariable=sv, bg='#2b2b2b',state='disabled', fg='white',name = 'entry',disabledbackground = '#2b2b2b')
+                    elif (self.extra.compareState == 'text'):
+                        entry = Entry(frameInput, textvariable=sv, bg='#2b2b2b', fg='white',
+                                          name='entry', disabledbackground='#2b2b2b')
+                    entry.bind('<Return>', (lambda _: eventFunction(entry, Lb2, currentScript)))
                     entry.grid(row=0, column=0, sticky='N')
                 else:
                     frameLabel.grid(row = 0 , column = 0,sticky = 'NE')
-                    label = Label(frameLabel, text=attr.capitalize() + ' :',bg='#2b2b2b',fg='white')
+                    label = Label(frameLabel, text='Time:',bg='#2b2b2b',fg='white')
                     label.grid(row =0 , column = 0,sticky = 'N')
 
                     frameInput.grid(row = 0 , column = 1,sticky = 'NW')
                     sv = StringVar(value=function.time)
-                    entry = Entry(frameInput, textvariable=sv,bg='#2b2b2b',fg='white')
+                    entry = Entry(frameInput, textvariable=sv,bg='#2b2b2b',fg='white',name = 'entry',disabledbackground = '#2b2b2b')
                     entry.bind('<Return>', (lambda _: eventFunction(entry, Lb2, currentScript)))
                     entry.grid(row=0, column=0, sticky='N')
+
+
+    def radio_button_handle(self, value, textBox,buttonImage,buttonText,Lb2):
+        name = self.name
+        shift = ' ' * self.indention * 5
+        Lb2.delete(self.id)
+        if(value =='image' ):
+            for childName, childValue in textBox.children.items():
+                if(childName == 'input'):
+                    for childName, childValue in childValue.children.items():
+                        if(childName == 'entry'):
+                            childValue.config(state='disabled')
+            self.extra.compareState = 'image'
+            buttonImage.config(bg='white',fg='#2b2b2b')
+            buttonText.config(bg='#2b2b2b',fg='white')
+            Lb2.insert(self.id, shift + name + '({})'.format(self.extra.image))
+
+
+        elif (value =='text' ):
+            for childName, childValue in textBox.children.items():
+                if(childName == 'input'):
+                    for childName, childValue in childValue.children.items():
+                        if (childName == 'entry'):
+                            childValue.config(state='normal')
+            self.extra.compareState = 'text'
+            buttonText.config(bg='white',fg='#2b2b2b')
+            buttonImage.config(bg='#2b2b2b',fg='white')
+            Lb2.insert(self.id, shift + name + '({},{})'.format(self.extra.image,self.extra.text))
+        Lb2.itemconfig(self.id, foreground=self.getFunctionColor(name))
+
 
     def FocusOnSelectedFunc(self,Lb2,currentScript,index,photoViewFrame):
         frame = ''
@@ -333,4 +439,31 @@ class Function():
                 self.SUBS(abspath, parent_element, tree)
             else:
                 parent_element = tree.insert(parent, 'end', text=p, open=True, tag="T")
+
+    def getFunctionColor(self, funcName):
+        ['#f4b63f', '#57ceff', '#ff5792', '#c2ff57', '#ff8657', '#579aff', '#d557ff', '#078f02', '#57ff7f']
+        if (funcName == 'Right-Click'):
+            return '#f4b63f'
+        elif (funcName == 'Left-Click'):
+            return '#57ceff'
+        elif (funcName == 'Repeat'):
+            return '#ff5792'
+        elif (funcName == 'If-Exist'):
+            return '#c2ff57'
+        elif (funcName == 'If-Not-Exist'):
+            return '#ff8657'
+        elif (funcName == 'Else'):
+            return '#579aff'
+        elif (funcName == 'Double-Click'):
+            return '#d557ff'
+        elif (funcName == 'Insert-Input'):
+            return '#078f02'
+        elif (funcName == 'Sleep'):
+            return '#57ff7f'
+        elif (funcName == 'Scan_Text'):
+            return 'white'
+        elif (funcName == 'Scan Text_&_Compare'):
+            return 'white'
+        else:
+            return 'white'
 

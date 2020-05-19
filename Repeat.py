@@ -28,12 +28,12 @@ class Repeat():
         return {'time':str(self.time),'functions':block}
 
     @classmethod
-    def getExtra(cls, extra,Lb2,currentScript,tempFunction,rightSectionFrame):
+    def getExtra(cls, extra,Lb2,currentScript,tempFunction,rightSectionFrame,tree):
         functions = []
         if(len(extra['functions'])>0):
             for x in extra['functions']:
-                func = Function.Function('','','',rightSectionFrame,'','','',currentScript)
-                func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction,rightSectionFrame)
+                func = Function.Function('','','', rightSectionFrame,'','','',currentScript,tree,Lb2,photoViewFrame)
+                func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction,rightSectionFrame,tree,photoViewFrame)
                 functions.append(func)
         if(extra['time'] == '?'):
             return Repeat(extra['time'],functions)
