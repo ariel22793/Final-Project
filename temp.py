@@ -53,7 +53,7 @@ try:
 except:
     pass
 
-functionList = ['Right-Click','Left-Click','Repeat','If-Exist','If-Not-Exist','Else', 'Double-Click','Insert-Input', 'Sleep']
+functionList = ['Right-Click','Left-Click','Repeat','If-Exist','If-Not-Exist','Else', 'Double-Click','Insert-Input', 'Sleep','Exit','Move-To']
 currentScript = None
 firstTime = True
 process = []
@@ -154,9 +154,9 @@ def getFunctionColor(funcName):
             return Lb1Colors[7]
         elif (funcName == 'Sleep'):
             return Lb1Colors[8]
-        elif (funcName == 'Scan Text'):
+        elif (funcName == 'Exit'):
             return Lb1Colors[9]
-        elif (funcName == 'Scan Text & Compare'):
+        elif (funcName == 'Move-To'):
             return Lb1Colors[10]
         else:
             return 'white'
@@ -894,7 +894,7 @@ def disableScreeShot(index):
     try:
         functionName = currentScript.functions[index].name
         global takeS_flag
-        if (functionName == '{' or functionName == '}' or functionName == '' or functionName == 'Repeat' or functionName == 'Sleep' or functionName == 'Else'):
+        if (functionName == '{' or functionName == '}' or functionName == '' or functionName == 'Repeat' or functionName == 'Exit' or functionName == 'Sleep' or functionName == 'Else'):
             # takeScreenShot.config(state=DISABLED)
 
             takeS_flag[0]='takeSDis'
@@ -1169,9 +1169,6 @@ def checkImageInFunc():
             elif func.name == 'Insert-Input':
                 if func.extra.text == '':
                     funcWithoutImage += ("The {} in line {} doesn't have input text\n".format(func.name, index))
-            elif func.name == 'Scan_Text_&_Compare':
-                if func.extra.text == '':
-                    funcWithoutImage += ("The {} in line {} doesn't have input text\n".format(func.name, index))
             elif func.name == 'If-Exist':
                 if func.extra.image == '?':
                     funcWithoutImage += ("The {} in line {} doesn't have image\n".format(func.name, index))
@@ -1182,7 +1179,7 @@ def checkImageInFunc():
                     funcWithoutImage += ("The {} in line {} doesn't have image\n".format(func.name, index))
                 elif func.extra.text == '' and func.extra.compareState == 'text':
                     funcWithoutImage += ("The {} in line {} doesn't have input text\n".format(func.name, index))
-            elif func.img == '' and func.name != '' and func.name != '{' and func.name != '}' and func.name != 'Else':
+            elif func.img == '' and func.name != '' and func.name != 'Exit' and func.name != '{' and func.name != '}' and func.name != 'Else':
                 funcWithoutImage += ("The {} in line {} doesn't have screenshot\n".format(func.name, index))
             index += 1
         return funcWithoutImage
@@ -1263,11 +1260,11 @@ def runHendle():
                             elif currentScript.functions[func].name == 'Insert-Input':
                                 insert_input_handle(currentScript.functions[func].img, currentScript.path,currentScript.functions[func].extra.text,testLog)
                                 functionNum += 1
-                            elif currentScript.functions[func].name == 'Scan_Text':
-                                scan_text_handle(currentScript.functions[func].img, currentScript.path,currentScript.functions[func].extra.text,testLog)
+                            elif currentScript.functions[func].name == 'Exit':
+                                exit_handle(testLog)
                                 functionNum += 1
-                            elif currentScript.functions[func].name == 'Scan_Text_&_Compare':
-                                scan_text_compare_handle(currentScript.functions[func].img, currentScript.path,currentScript.functions[func].extra.text,testLog)
+                            elif currentScript.functions[func].name == 'Move-To':
+                                move_to_handle(currentScript.functions[func].img, currentScript.path,testLog)
                                 functionNum += 1
                 else:
                     break
@@ -1318,6 +1315,7 @@ def saveLinesFather():
 def saveHundle():
     logger.writeToLog('saveHundle function')
     try:
+        clearImages()
         functionPath = currentScript.path + "/functions.json"
         try:
             os.remove(functionPath)
@@ -1347,6 +1345,7 @@ def saveAsHundle():
             os.remove(functionPath)
         except:
             pass
+        clearImages()
         functionsblock = saveFunctions()
         linesFatherblock = saveLinesFather()
         with open(functionPath, 'w+') as outfile:
@@ -2015,10 +2014,34 @@ def comboBoxSelect(arg):
 def on_closing():
     logger.writeToLog('on_closing function')
     try:
-        if tkinter.messagebox.askokcancel("Quit", "Do you want to quit?"):
+        currentFunctions = saveFunctions()
+        currentlinesFather = saveLinesFather()
+
+        filePath = currentScript.path + 'functions.json'
+        with open(filePath) as json_file:
+            data = json_file.read()
+            savedFunctions = json.loads(data[:data.index('\n')])
+            savedlinesFather = json.loads(data[data.index('\n') + 1:])
+
+        if currentFunctions == savedFunctions and currentlinesFather == savedlinesFather:
+            if tkinter.messagebox.askokcancel("Quit", "Do you want to quit?"):
                 for x in process:
                     x._is_stopped = True
                 mainScreen.destroy()
+
+        else:
+            temp = tkinter.messagebox.askyesnocancel("Quit", "Your project is not saved\nDo you want to save your project?")
+            if temp == True:
+                saveHundle()
+                for x in process:
+                    x._is_stopped = True
+                mainScreen.destroy()
+            elif temp == False:
+                clearImages()
+                for x in process:
+                    x._is_stopped = True
+                mainScreen.destroy()
+
     except Exception as e:
         exeptionHandler(e)
 
@@ -2255,11 +2278,11 @@ def repeat_handle(fatherFunction,path,testLog):
                     elif (func.name == 'Insert-Input'):
                         insert_input_handle(func.img,path,func.extra.text,testLog)
                         functionNum += 1
-                    elif (func.name == 'Scan_Text'):
-                        scan_text_handle(func.extra.text,testLog)
+                    elif (func.name == 'Exit'):
+                        exit_handle(testLog)
                         functionNum += 1
-                    elif (func.name == 'Scan_Text_&_Compare'):
-                        scan_text_compare_handle(func.img,path,func.extra.text,testLog)
+                    elif (func.name == 'Move-To'):
+                        move_to_handle(func.img, path,testLog)
                         functionNum += 1
             else:
                 break
@@ -2312,19 +2335,28 @@ def insert_input_handle(template,path,text,testLog):
             textView.insert(END, 'image {} is not exist as not expected (Insert-Input)\n'.format(template.img))
     except Exception as e:
         exeptionHandler(e)
-def scan_text_handle(template,path,testLog):
-    logger.writeToLog('scan_text_handle function')
+def exit_handle(testLog):
+    logger.writeToLog('exit_handle function')
+    try:
+        esc_handler()
+    except Exception as e:
+        exeptionHandler(e)
+
+def move_to_handle(template,path,testLog):
+    logger.writeToLog('move_to_handle function')
     try:
         screenShot = ImgRecog.tempScreenShot(template)
 
-        if(exist == True):
-            testLog.write('image {} is exist as expected (scan_text_compare)\n'.format(template.img))
-            textView.insert(END, 'image {} is exist as expected (scan_text_compare)\n'.format(template.img))
-            pyautogui.click(x, y, duration=speed)
-            pyautogui.typewrite(text, interval=0.1)
+        exist, howManyRectangles = ImgRecog.photoRec(path, screenShot, template)
+        x = (template.x1Cord + template.x0Cord) / 2
+        y = (template.y1Cord + template.y0Cord) / 2
+        if (exist == True):
+            testLog.write('image {} is exist as expected (Move-To)\n'.format(template.img))
+            textView.insert(END, 'image {} is exist as expected (Move-To)\n'.format(template.img))
+            pyautogui.moveTo(x, y, duration=speed)
         else:
-            testLog.write('image {} is not exist as not expected (scan_text_compare)\n'.format(template.img))
-            textView.insert(END, 'image {} is not exist as not expected (scan_text_compare)\n'.format(template.img))
+            testLog.write('image {} is not exist as not expected (Move-To)\n'.format(template.img))
+            textView.insert(END, 'image {} is not exist as not expected (Move-To)\n'.format(template.img))
     except Exception as e:
         exeptionHandler(e)
 
@@ -2369,11 +2401,11 @@ def scan_text_compare_handle(fatherFunction,path,text,testLog):
                         elif (func.name == 'Insert-Input'):
                             insert_input_handle(func.img, path, func.extra.text, testLog)
                             functionNum += 1
-                        elif (func.name == 'Scan_Text'):
-                            scan_text_handle(func.extra.text, testLog)
+                        elif (func.name == 'Exit'):
+                            exit_handle(testLog)
                             functionNum += 1
-                        elif (func.name == 'Scan_Text_&_Compare'):
-                            scan_text_compare_handle(func.img, path, func.extra.text, testLog)
+                        elif (func.name == 'Move-To'):
+                            move_to_handle(func.img, path, testLog)
                             functionNum += 1
                 else:
                     break
@@ -2464,11 +2496,11 @@ def exist_handle(fatherFunction,path,testLog):
                         elif (func.name == 'Insert-Input'):
                             insert_input_handle(func.img, path, func.extra.text, testLog)
                             functionNum += 1
-                        elif (func.name == 'Scan_Text'):
-                            scan_text_handle(func.extra.text, testLog)
+                        elif (func.name == 'Exit'):
+                            exit_handle(testLog)
                             functionNum += 1
-                        elif (func.name == 'Scan_Text_&_Compare'):
-                            scan_text_compare_handle(func.img, path, func.extra.text, testLog)
+                        elif (func.name == 'Move-To'):
+                            move_to_handle(func.img, path, testLog)
                             functionNum += 1
                 else:
                     break
@@ -2522,11 +2554,11 @@ def not_exist_handle(fatherFunction,path,testLog):
                     elif (func.name == 'Insert-Input'):
                         insert_input_handle(func.img, path, func.extra.text, testLog)
                         functionNum += 1
-                    elif (func.name == 'Scan_Text'):
-                        scan_text_handle(func.extra.text, testLog)
+                    elif (func.name == 'Exit'):
+                        exit_handle(testLog)
                         functionNum += 1
-                    elif (func.name == 'Scan_Text_&_Compare'):
-                        scan_text_compare_handle(func.img, path, func.extra.text, testLog)
+                    elif (func.name == 'Move-To'):
+                        move_to_handle(func.img, path,testLog)
                         functionNum += 1
                 else:
                     break
@@ -2573,11 +2605,11 @@ def else_handle(fatherFunction,path,testLog):
                 elif (func.name == 'Insert-Input'):
                     insert_input_handle(func.img,path,func.extra.text,testLog)
                     functionNum += 1
-                elif (func.name == 'Scan_Text'):
-                    scan_text_handle(func.extra.text,testLog)
+                elif (func.name == 'Exit'):
+                    exit_handle(testLog)
                     functionNum += 1
-                elif (func.name == 'Scan_Text_&_Compare'):
-                    scan_text_compare_handle(func.img,path,func.extra.text,testLog)
+                elif (func.name == 'Move-To'):
+                    move_to_handle(func.img, path, testLog)
                     functionNum += 1
             else:
                 break
@@ -2770,6 +2802,8 @@ def Lb2Indexes_left_click(event):
 def screen_shot_handle():
     logger.writeToLog('screen_shot_handle function')
     try:
+        if 'Dis' in takeS_flag[0]:
+            return
         global flag_of_shift
         flag_of_shift = True
         mainScreen.iconify()
@@ -2777,10 +2811,25 @@ def screen_shot_handle():
     except Exception as e:
         exeptionHandler(e)
 
+def clearImages():
+    usedImages = []
+    for func in currentScript.functions:
+        if(func.img != ''):
+            usedImages.append(func.img.img)
+    list_of_pics = os.listdir(currentScript.path + 'ScreenShots\\')
+    os.chdir(currentScript.path + 'ScreenShots\\')
+
+    for pic in list_of_pics:
+        if not pic in usedImages:
+            os.remove(pic)
+
+
+
+
 def exeptionHandler(exeption):
-    logger.writeExeption(e)
+    logger.writeExeption(exeption)
     global Emails
-    Emails.send(e)
+    Emails.send(exeption)
 
 if __name__ == '__main__':
     functionFather = []
@@ -2803,15 +2852,15 @@ if __name__ == '__main__':
     if firstTime:
         startScreen()
 
-    toolbarFrame = Frame(mainScreen, bd=3, bg='#3c3f41')
+    toolbarFrame = Frame(mainScreen, bg='#3c3f41')
     toolbarFrame.grid(row=0,column=0,sticky = 'WEN')
 
     openToolButton = PhotoImage(master=mainScreen, file=r"img\OpenTool.png")
     canvasOpen = Canvas(toolbarFrame,height = openToolButton.height(),width = openToolButton.width(),  bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasOpen.grid(row=0,column=0, sticky="NWE", pady=2)
+    canvasOpen.grid(row=0,column=0, sticky="WE")
 
     canvasOpen.open = openToolButton
-    openTool = canvasOpen.create_image(-1, -1, anchor=NW, image=openToolButton, tags="openTool")
+    openTool = canvasOpen.create_image(openToolButton.width()/2, openToolButton.height()/2, anchor=CENTER, image=openToolButton, tags="openTool")
 
     canvasOpen.tag_bind('openTool', '<Button-1>', lambda event:openButton())
     canvasOpen.tag_bind('openTool', '<Enter>', lambda event: change_on_hover(event,"openTool",canvasOpen,openTool))
@@ -2821,10 +2870,10 @@ if __name__ == '__main__':
 
     saveToolButton = PhotoImage(master=mainScreen, file=r"img\SaveTool.png")
     canvasSave = Canvas(toolbarFrame, height=saveToolButton.height(), width=saveToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasSave.grid(row=0, column=1, sticky="NWE", pady=2)
+    canvasSave.grid(row=0, column=1, sticky="NWE")
 
     canvasSave.save = saveToolButton
-    saveTool = canvasSave.create_image(-1, -1, anchor=NW, image=saveToolButton, tags="SaveTool")
+    saveTool = canvasSave.create_image(saveToolButton.width()/2, saveToolButton.height()/2, anchor=CENTER, image=saveToolButton, tags="SaveTool")
 
     canvasSave.tag_bind('SaveTool', '<Button-1>', lambda event: saveHundle())
     canvasSave.tag_bind('SaveTool', '<Enter>', lambda event: change_on_hover(event, "SaveTool", canvasSave, saveTool))
@@ -2833,10 +2882,10 @@ if __name__ == '__main__':
 
     saveAsToolButton = PhotoImage(master=mainScreen,file=r"img\SaveAsTool.png")
     canvasSaveAs = Canvas(toolbarFrame, height=saveAsToolButton.height(), width=saveAsToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasSaveAs.grid(row=0, column=2, sticky="EWN", pady=2)
+    canvasSaveAs.grid(row=0, column=2, sticky="EWN")
 
     canvasSaveAs.save = saveToolButton
-    saveAsTool = canvasSaveAs.create_image(-1, -1, anchor=NW, image=saveAsToolButton, tags="SaveAsTool")
+    saveAsTool = canvasSaveAs.create_image(saveAsToolButton.width()/2, saveAsToolButton.height()/2, anchor=CENTER, image=saveAsToolButton, tags="SaveAsTool")
 
     canvasSaveAs.tag_bind('SaveAsTool', '<Button-1>', lambda event: saveAsHundle())
     canvasSaveAs.tag_bind('SaveAsTool', '<Enter>', lambda event: change_on_hover(event, "SaveAsTool", canvasSaveAs, saveAsTool))
@@ -2847,10 +2896,10 @@ if __name__ == '__main__':
 
     editToolButton = PhotoImage(master=mainScreen,file=r"img\editTool.png")
     canvasEdit = Canvas(optionsAndRunFrame, height=editToolButton.height(), width=editToolButton.width(), bg='#3c3f41',highlightbackground='#3c3f41')
-    canvasEdit.grid(row=0, column=0, sticky="NWE", pady=2)
+    canvasEdit.grid(row=0, column=0, sticky="NWE")
 
     canvasEdit.edit = editToolButton
-    editTool = canvasEdit.create_image(-1, -1, anchor=NW, image=editToolButton, tags="edit")
+    editTool = canvasEdit.create_image(editToolButton.width()/2, editToolButton.height()/2, anchor=CENTER, image=editToolButton, tags="edit")
     canvasEdit_flag=['0']
     canvasEdit.tag_bind('edit', '<Button-1>', lambda event: editToolBar_click(event, canvasEdit.winfo_rootx(),canvasEdit.winfo_rooty(), canvasEdit_flag))
     canvasEdit.tag_bind('edit', '<Enter>',lambda event: change_on_hover(event, "editTool", canvasEdit, editTool))
@@ -2860,10 +2909,10 @@ if __name__ == '__main__':
 
     optionToolButton = PhotoImage(master=mainScreen, file=r"img\optionsTool.png")
     canvasOption = Canvas(optionsAndRunFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasOption.grid(row=0, column=1, sticky="NWE", pady=2)
+    canvasOption.grid(row=0, column=1, sticky="NWE")
 
     canvasOption.options = optionToolButton
-    optionTool = canvasOption.create_image(-1, -1, anchor=NW, image=optionToolButton, tags="options")
+    optionTool = canvasOption.create_image(optionToolButton.width()/2, optionToolButton.height()/2, anchor=CENTER, image=optionToolButton, tags="options")
     canvasOptions_flag = ['0', 'Regular']
     canvasOption.tag_bind('options', '<Button-1>', lambda event: optionToolBar_click(event, canvasOption.winfo_rootx(), canvasOption.winfo_rooty(), canvasOptions_flag))
     canvasOption.tag_bind('options', '<Enter>', lambda event: change_on_hover(event, "optionsTool", canvasOption, optionTool))
@@ -2871,10 +2920,10 @@ if __name__ == '__main__':
 
     playToolButton = PhotoImage(master=mainScreen,file=r"img\PlayTool.png")
     canvasPlay = Canvas(optionsAndRunFrame, height=playToolButton.height(), width=playToolButton.width(), bg='#3c3f41',highlightbackground='#3c3f41')
-    canvasPlay.grid(row=0, column=2, sticky="N", pady=4)
+    canvasPlay.grid(row=0, column=2, sticky="N")
 
     canvasPlay.play = playToolButton
-    playTool = canvasPlay.create_image(0, 0, anchor=NW, image=playToolButton, tags="PlayTool")
+    playTool = canvasPlay.create_image(playToolButton.width()/2, playToolButton.height()/2, anchor=CENTER, image=playToolButton, tags="PlayTool")
     reportList=[]
     canvasPlay.tag_bind('PlayTool', '<Button-1>', lambda event: runHendle())
     canvasPlay.tag_bind('PlayTool', '<Enter>', lambda event: change_on_hover(event, "PlayTool", canvasPlay, playTool))
@@ -2883,10 +2932,10 @@ if __name__ == '__main__':
 
     comboToolButton = PhotoImage(master=mainScreen,file=r"img\Combo.png")
     canvasCombo = Canvas(mainScreen, height=comboToolButton.height(), width=comboToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasCombo.grid(row=0, column=2, sticky="N", pady=4)
+    canvasCombo.grid(row=0, column=2, sticky="N")
 
     canvasCombo.combo = comboToolButton
-    combo = canvasCombo.create_image(0, 0, anchor=NW, image=comboToolButton, tags="Combo")
+    combo = canvasCombo.create_image(comboToolButton.width()/2, comboToolButton.height()/2, anchor=CENTER, image=comboToolButton, tags="Combo")
     comboFlag=['0']
     canvasCombo.tag_bind('Combo', '<Button-1>', lambda event: combobox_save(comboFlag,canvasCombo.winfo_rootx(),canvasCombo.winfo_rooty()))
     canvasCombo.tag_bind('Combo', '<Enter>', lambda event: change_on_hover(event, "Combo",canvasCombo , combo))
@@ -2895,21 +2944,22 @@ if __name__ == '__main__':
 
     line_style = ttk.Style()
     line_style.configure("Line.TSeparator", background="black")
-    separator = ttk.Separator(mainScreen, orient='horizontal', style="Line.TSeparator")
-    separator.grid(column=0, row=1, sticky="WE", pady=(0,1))
+    seperatorFrame = Frame(mainScreen,bg='white',height = 6)
+    seperatorFrame.grid(column=0, row=1,sticky="WENS")
 
-    separator2 = ttk.Separator(mainScreen, orient='horizontal', style="Line.TSeparator")
-    separator2.grid(column=1, row=1, sticky="WE", pady=(0,1))
+    seperatorFrame2 = Frame(mainScreen, bg='white', height=6)
+    seperatorFrame2.grid(column=1, row=1, sticky="WENS")
 
-    separator3 = ttk.Separator(mainScreen, orient='horizontal', style="Line.TSeparator")
-    separator3.grid(column=2, row=1, sticky="WE", pady=(0,1))
+    seperatorFrame3 = Frame(mainScreen, bg='white', height=6)
+    seperatorFrame3.grid(column=2, row=1, sticky="WENS")
+
 
     addFunclButton = PhotoImage(master=mainScreen,file=r"img\AddFuncDis.png")
     canvasAddFun = Canvas(mainScreen, height=addFunclButton.height(), width=addFunclButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasAddFun.grid(row=2, column=2, sticky="N", pady=4)
 
     canvasAddFun.addFun = addFunclButton
-    addFunc = canvasAddFun.create_image(0, 0, anchor=NW, image=addFunclButton, tags="AddFunc")
+    addFunc = canvasAddFun.create_image(addFunclButton.width()/2, addFunclButton.height()/2, image=addFunclButton, tags="AddFunc")
     add_func_flag=['AddFuncDis']
     canvasAddFun.tag_bind('AddFunc', '<Button-1>',lambda event: addFunction(add_func_flag))
     canvasAddFun.tag_bind('AddFunc', '<Enter>', lambda event: change_on_hover(event, add_func_flag[0], canvasAddFun, addFunc))
@@ -2956,9 +3006,15 @@ if __name__ == '__main__':
     centerSectionFrame.columnconfigure(0, weight=1)
     centerSectionFrame.rowconfigure(0, weight=1)
     centerSectionFrame.rowconfigure(1, weight=30)
-    centerSectionFrame.grid(row=3, column=1, sticky='NWES', padx=10)
+    centerSectionFrame.grid(row=3, column=1, sticky='NWES', padx=(5,5))
 
     mainFrame1 = Frame(centerSectionFrame,bd = 3, relief=SUNKEN, bg='#3c3f41')
+    mainFrame1.columnconfigure(0, weight=1)
+    mainFrame1.columnconfigure(1, weight=1)
+    mainFrame1.columnconfigure(2, weight=1)
+    mainFrame1.columnconfigure(3, weight=1)
+    mainFrame1.columnconfigure(4, weight=1)
+    mainFrame1.columnconfigure(5, weight=1)
     mainFrame1.grid(row=0, column=0,sticky='N')
 
 
@@ -3008,7 +3064,7 @@ if __name__ == '__main__':
     rightSectionFrame.grid(row=3,column=2,sticky='NWES',padx =(0,10),pady=(0,10))
 
 
-    Lb1 = Listbox(rightSectionFrame, exportselection=0, selectmode = SINGLE, bd=3,  background="#2b2b2b", fg='white')
+    Lb1 = Listbox(rightSectionFrame, exportselection=0,height = len(functionList), selectmode = SINGLE, bd=3,  background="#2b2b2b", fg='white')
     Lb1.grid(row=0, column=0, sticky='NEW')
 
 
@@ -3029,10 +3085,11 @@ if __name__ == '__main__':
 
     moveDownButton = PhotoImage(master=mainScreen,file=r"img\moveDownDis.png")
     canvasmoveDown = Canvas(mainFrame1, height=moveDownButton.height(), width=moveDownButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasmoveDown.grid(row=0, column=0, sticky="N", pady=4)
+
+    canvasmoveDown.grid(row=0, column=0, sticky="N")
 
     canvasmoveDown.moveDown = moveDownButton
-    moveDown_b = canvasmoveDown.create_image(0, 0, anchor=NW, image=moveDownButton, tags="moveDown")
+    moveDown_b = canvasmoveDown.create_image(moveDownButton.width()/2, moveDownButton.height()/2,anchor=CENTER, image=moveDownButton, tags="moveDown")
     move_d_flag=['moveDownDis']
     canvasmoveDown.tag_bind('moveDown', '<Button-1>', lambda event: moveDown())
     canvasmoveDown.tag_bind('moveDown', '<Enter>', lambda event: change_on_hover(event, move_d_flag[0], canvasmoveDown, moveDown_b))
@@ -3042,10 +3099,10 @@ if __name__ == '__main__':
 
     moveUpButton = PhotoImage(master=mainScreen,file=r"img\moveUpDis.png")
     canvasmoveUp = Canvas(mainFrame1, height=moveUpButton.height(), width=moveUpButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasmoveUp.grid(row=0, column=1, sticky="N", pady=4)
+    canvasmoveUp.grid(row=0, column=1, sticky="N")
 
     canvasmoveUp.moveUp = moveUpButton
-    moveUp_b = canvasmoveUp.create_image(0, 0, anchor=NW, image=moveUpButton, tags="moveUp")
+    moveUp_b = canvasmoveUp.create_image(moveUpButton.width()/2, moveUpButton.height()/2,anchor=CENTER, image=moveUpButton, tags="moveUp")
     move_u_flag=['moveUpDis']
 
     canvasmoveUp.tag_bind('moveUp', '<Button-1>',lambda event: moveUp())
@@ -3057,10 +3114,10 @@ if __name__ == '__main__':
 
     removeButton = PhotoImage(master=mainScreen,file=r"img\remove.png")
     canvasRemove = Canvas(mainFrame1, height=removeButton.height(), width=removeButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasRemove.grid(row=0, column=2, sticky="N", pady=4)
+    canvasRemove.grid(row=0, column=2, sticky="N")
 
     canvasRemove.remove = removeButton
-    remove_b = canvasRemove.create_image(0, 0, anchor=NW, image=removeButton, tags="remove")
+    remove_b = canvasRemove.create_image(removeButton.width()/2, removeButton.height()/2,anchor=CENTER, image=removeButton, tags="remove")
     remove_flag=['removeDis']
     canvasRemove.tag_bind('remove', '<Button-1>', lambda event: removeFunctions())
     canvasRemove.tag_bind('remove', '<Enter>', lambda event: change_on_hover(event, remove_flag[0], canvasRemove, remove_b))
@@ -3070,10 +3127,10 @@ if __name__ == '__main__':
 
     insertBButton = PhotoImage(master=mainScreen,file=r"img\insertBDis.png")
     canvasinsertB = Canvas(mainFrame1, height=insertBButton.height(), width=insertBButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasinsertB.grid(row=0, column=3, sticky="N", pady=4)
+    canvasinsertB.grid(row=0, column=3, sticky="N")
 
     canvasinsertB.insertb = insertBButton
-    insertB= canvasinsertB.create_image(0, 0, anchor=NW, image=insertBButton, tags="insertB")
+    insertB= canvasinsertB.create_image(insertBButton.width()/2, insertBButton.height()/2,anchor=CENTER, image=insertBButton, tags="insertB")
     insert_b_flag = ['insertBDis']
     canvasinsertB.tag_bind('insertB', '<Button-1>', lambda event: insert_B())
     canvasinsertB.tag_bind('insertB', '<Enter>', lambda event: change_on_hover(event, insert_b_flag[0], canvasinsertB, insertB))
@@ -3082,11 +3139,11 @@ if __name__ == '__main__':
 
     insertAButton = PhotoImage(master=mainScreen,file=r"img\insertADis.png")
     canvasinsertA = Canvas(mainFrame1, height=insertAButton.height(), width=insertAButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasinsertA.grid(row=0, column=4, sticky="N", pady=4)
+    canvasinsertA.grid(row=0, column=4, sticky="N")
     canvasinsertA.inserta = insertAButton
     insert_a_flag = ['insertADis']
 
-    insertA = canvasinsertA.create_image(0, 0, anchor=NW, image=insertAButton, tags="insertA")
+    insertA = canvasinsertA.create_image(insertAButton.width()/2, insertAButton.height()/2,anchor=CENTER, image=insertAButton, tags="insertA")
     canvasinsertA.tag_bind('insertA', '<Button-1>', lambda event: insert_A())
     canvasinsertA.tag_bind('insertA', '<Enter>', lambda event: change_on_hover(event, insert_a_flag[0], canvasinsertA, insertA))
     canvasinsertA.tag_bind('insertA', '<Leave>', lambda event: change_on_hover(event, insert_a_flag[0]+'Hover', canvasinsertA, insertA))
@@ -3094,10 +3151,10 @@ if __name__ == '__main__':
 
     takeSButton = PhotoImage(master=mainScreen,file=r"img\TakeSDis.png")
     canvasTakeS = Canvas(mainFrame1, height=takeSButton.height(), width=takeSButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
-    canvasTakeS.grid(row=0, column=5, sticky="N", pady=4)
+    canvasTakeS.grid(row=0, column=5, sticky="N", padx = (0,3))
     canvasTakeS.takeS = takeSButton
     takeS_flag = ['takeSDis']
-    takeS = canvasTakeS.create_image(0, 0, anchor=NW, image=takeSButton, tags="takeS")
+    takeS = canvasTakeS.create_image((takeSButton.width()-4)/2, takeSButton.height()/2,anchor=CENTER, image=takeSButton, tags="takeS")
     # canvasTakeS.tag_bind('takeS', '<Button-1>', lambda event: window2())
     canvasTakeS.tag_bind('takeS', '<Button-1>', lambda event: screen_shot_handle())
     canvasTakeS.tag_bind('takeS', '<Enter>', lambda event: change_on_hover(event, takeS_flag[0] , canvasTakeS, takeS))

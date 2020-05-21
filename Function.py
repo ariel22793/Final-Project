@@ -441,7 +441,6 @@ class Function():
                 parent_element = tree.insert(parent, 'end', text=p, open=True, tag="T")
 
     def getFunctionColor(self, funcName):
-        ['#f4b63f', '#57ceff', '#ff5792', '#c2ff57', '#ff8657', '#579aff', '#d557ff', '#078f02', '#57ff7f']
         if (funcName == 'Right-Click'):
             return '#f4b63f'
         elif (funcName == 'Left-Click'):
@@ -460,9 +459,9 @@ class Function():
             return '#078f02'
         elif (funcName == 'Sleep'):
             return '#57ff7f'
-        elif (funcName == 'Scan_Text'):
+        elif (funcName == 'Exit'):
             return 'white'
-        elif (funcName == 'Scan Text_&_Compare'):
+        elif (funcName == 'Move-To'):
             return 'white'
         else:
             return 'white'
