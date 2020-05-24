@@ -695,10 +695,17 @@ def checkMarkArea(indexes):
     except Exception as e:
         exeptionHandler(e)
 
+def findNextFunc(index):
+    for i in range(index+1,len(currentScript.functions)-1):
+        if(currentScript.functions[index].indention == currentScript.functions[i].indention and currentScript.functions[i].name != '{' and currentScript.functions[i].name != '}'  ):
+            return currentScript.functions[i]
+
 def removeFunctions():
     if (logger != None):
         logger.writeToLog('removeFunctions function')
     try:
+        if 'Dis' in remove_flag[0]:
+            return
         delta = 0
         indexes = []
         currentIndex = -1
@@ -732,12 +739,22 @@ def removeFunctions():
                         delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
                         Repeat.removeRepeat(removeFuncFatherIndex,index,currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     elif (popedFuncName == 'If-Exist'):
-                        delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
-                        IfExist.removeIfExist(removeFuncFatherIndex,index, currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
+                        tempFunc = findNextFunc(index)
+                        if(tempFunc.name != 'Else'):
+                            delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+                            IfExist.removeIfExist(removeFuncFatherIndex,index, currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
+                        else:
+                            popupmsg('Canot Remove If-Exist Without the Else function')
+                            return
 
                     elif (popedFuncName == 'If-Not-Exist'):
-                        delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
-                        IfNotExist.removeIfNotExist(removeFuncFatherIndex,index, currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
+                        tempFunc = findNextFunc(index)
+                        if (tempFunc.name != 'Else'):
+                            delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+                            IfNotExist.removeIfNotExist(removeFuncFatherIndex,index, currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
+                        else:
+                            popupmsg('Canot Remove If-Not-Exist Without the Else function')
+                            return
                     elif (popedFuncName == 'Else'):
                         delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
                         Else.removeElse(removeFuncFatherIndex,index, currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
@@ -1075,11 +1092,12 @@ def FocusOnSelectedFunc(event):
         exeptionHandler(e)
 
 
+
 def createTree(frame):
         tree = ttk.Treeview(frame)
         s = ttk.Style()
-        s.theme_use("clam")
-        s.configure('Treeview', rowheight=30, font=(None, 8), background = "#2b2b2b", fieldbackground="#2b2b2b", foreground="white")
+        #s.theme_use("clam")
+        s.configure('Treeview', rowheight=30, font=(None, 8), background = "#2b2b2b", fieldbackground="#2b2b2b")
 
         tree.grid(row = 0,column = 0,sticky = 'WE')
 
@@ -1107,6 +1125,9 @@ def moveUp():
             popupmsg("Cannot Move more than one function at a time")
         else:
             index = index[0]
+            if(currentScript.functions[index].name == 'Else' ):
+                popupmsg('Cannot Move Up Else Function, It Must Come After If-Exist Or If-Not-Exist')
+                return
             tempFunctions = []
             tempLineFather = []
 
@@ -1160,6 +1181,9 @@ def moveDown():
             popupmsg("Cannot Move more than one function at a time")
         else:
             index = index[0]
+            if (currentScript.functions[index].name == 'Else'):
+                popupmsg('Cannot Move Down Else Function, It Must Come After If-Exist Or If-Not-Exist')
+                return
             tempFunctions = []
             tempLineFather = []
 
@@ -1523,6 +1547,8 @@ def insert_A():
     if (logger != None):
         logger.writeToLog('insert_A function')
     try:
+        if 'Dis' in insert_a_flag[0]:
+            return
         try:
             place = Lb2.curselection()[0]
         except:
@@ -1598,6 +1624,8 @@ def insert_B(place = 0,flag = True):
     if (logger != None):
         logger.writeToLog('insert_B function')
     try:
+        if 'Dis' in insert_b_flag[0]:
+            return
         if(flag == True):
             try:
                 place = Lb2.curselection()[0] + 1
@@ -2964,12 +2992,14 @@ def clearImages():
     for func in currentScript.functions:
         if(func.img != ''):
             usedImages.append(func.img.img)
+    previousPath = os.getcwd()
     list_of_pics = os.listdir(currentScript.path + 'ScreenShots\\')
     os.chdir(currentScript.path + 'ScreenShots\\')
 
     for pic in list_of_pics:
         if not pic in usedImages:
             os.remove(pic)
+    os.chdir(previousPath)
 
 
 
