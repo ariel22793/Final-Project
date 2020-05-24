@@ -332,21 +332,32 @@ class Function():
 
                     frameInput.grid(row=0, column=1, sticky='NW')
                     sv = StringVar(value=function.text)
+                    sv.trace("w", lambda name, index, mode, sv=sv: eventFunction(sv,Lb2,currentScript))
                     entry = Entry(frameInput, textvariable=sv,bg='#2b2b2b',fg='white',name = 'entry',disabledbackground = '#2b2b2b')
-                    entry.bind('<Return>', (lambda _: eventFunction(entry,Lb2,currentScript)))
                     entry.grid(row=0, column=0, sticky='N')
-                elif (functionName == 'If-Exist' or functionName == 'If-Not_Exist'):
+                elif (functionName == 'If-Exist' or functionName == 'If-Not-Exist'):
                     frameLabel.grid(row=0, column=0, sticky='NE')
                     label = Label(frameLabel, text='Text:', bg='#2b2b2b', fg='white')
                     label.grid(row=0, column=0, sticky='N')
                     frameInput.grid(row=0, column=1, sticky='NW')
                     sv = StringVar(value=function.text)
+                    sv.trace("w", lambda name, index, mode, sv=sv: eventFunction(sv,Lb2,currentScript))
                     if(self.extra.compareState == 'image'):
                         entry = Entry(frameInput, textvariable=sv, bg='#2b2b2b',state='disabled', fg='white',name = 'entry',disabledbackground = '#2b2b2b')
                     elif (self.extra.compareState == 'text'):
                         entry = Entry(frameInput, textvariable=sv, bg='#2b2b2b', fg='white',
                                           name='entry', disabledbackground='#2b2b2b')
-                    entry.bind('<Return>', (lambda _: eventFunction(entry, Lb2, currentScript)))
+                    entry.grid(row=0, column=0, sticky='N')
+                elif functionName == 'Sleep':
+                    frameLabel.grid(row=0, column=0, sticky='NE')
+                    label = Label(frameLabel, text='Time(Second):', bg='#2b2b2b', fg='white')
+                    label.grid(row=0, column=0, sticky='N')
+
+                    frameInput.grid(row=0, column=1, sticky='NW')
+                    sv = StringVar(value=function.time)
+                    sv.trace("w", lambda name, index, mode, sv=sv: eventFunction(sv,Lb2,currentScript))
+                    entry = Entry(frameInput, textvariable=sv, bg='#2b2b2b', fg='white', name='entry',
+                                  disabledbackground='#2b2b2b')
                     entry.grid(row=0, column=0, sticky='N')
                 else:
                     frameLabel.grid(row = 0 , column = 0,sticky = 'NE')
@@ -355,8 +366,8 @@ class Function():
 
                     frameInput.grid(row = 0 , column = 1,sticky = 'NW')
                     sv = StringVar(value=function.time)
+                    sv.trace("w", lambda name, index, mode, sv=sv: eventFunction(sv,Lb2,currentScript))
                     entry = Entry(frameInput, textvariable=sv,bg='#2b2b2b',fg='white',name = 'entry',disabledbackground = '#2b2b2b')
-                    entry.bind('<Return>', (lambda _: eventFunction(entry, Lb2, currentScript)))
                     entry.grid(row=0, column=0, sticky='N')
 
 
@@ -373,7 +384,7 @@ class Function():
             self.extra.compareState = 'image'
             buttonImage.config(bg='white',fg='#2b2b2b')
             buttonText.config(bg='#2b2b2b',fg='white')
-            Lb2.insert(self.id, shift + name + '({})'.format(self.extra.image))
+            Lb2.insert(self.id, shift + name + '("{}")'.format(self.extra.image))
 
 
         elif (value =='text' ):
@@ -385,7 +396,7 @@ class Function():
             self.extra.compareState = 'text'
             buttonText.config(bg='white',fg='#2b2b2b')
             buttonImage.config(bg='#2b2b2b',fg='white')
-            Lb2.insert(self.id, shift + name + '({},{})'.format(self.extra.image,self.extra.text))
+            Lb2.insert(self.id, shift + name + '("{}","{}")'.format(self.extra.image,self.extra.text))
         Lb2.itemconfig(self.id, foreground=self.getFunctionColor(name))
 
 

@@ -49,12 +49,12 @@ class IfExist():
             Lb2.delete(index)
             shift = ' ' * currentScript.functions[index].indention * 5
             Lb2.insert(index,
-                       shift + currentScript.functions[index].name + '("{},{}")'.format(currentScript.functions[index].extra.image,currentScript.functions[index].extra.text))
-            Lb2.itemconfig(index, foreground='#078f02')
+                       shift + currentScript.functions[index].name + '("{}","{}")'.format(currentScript.functions[index].extra.image,currentScript.functions[index].extra.text))
+            Lb2.itemconfig(index, foreground='#c2ff57')
             Lb2.selection_set(index)
             return True
     @classmethod
-    def removeIfExist(cls,removeFuncFatherIndex, index,currentScript,haveFather,rightSectionFrame):
+    def removeIfExist(cls,removeFuncFatherIndex, index,currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame):
         fromIndex = currentScript.linesFather[index].fromIndex
         toIndex = currentScript.linesFather[index].toIndex
 
@@ -63,13 +63,13 @@ class IfExist():
             if(i <= place):
                 if(currentScript.functions[i].name == '}'):
                     if currentScript.functions[i].father[1] == 'Repeat':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeRepeat(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeRepeat(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     elif currentScript.functions[i].father[1] == 'If-Exist':
-                        place = cls.removeIfExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
+                        place = cls.removeIfExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     elif currentScript.functions[i].father[1] == 'If-Not-Exist':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfNotExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfNotExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     elif currentScript.functions[i].father[1] == 'Else':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeElse(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeElse(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                 elif(currentScript.functions[i].father != (i,currentScript.functions[i].name)):
                     currentScript.functions.pop(i)
                     if haveFather == True:
@@ -114,7 +114,7 @@ class IfExist():
 
 
             if len(currentScript.functions[removeFuncFatherIndex].extra.functions) == 0:
-                currentFunction = Function.Function('', '', removeFuncFatherIndex + 2,rightSectionFrame, '',(removeFuncFatherIndex,currentScript.functions[removeFuncFatherIndex].name),'',currentScript, currentScript.functions[
+                currentFunction = Function.Function('', '', removeFuncFatherIndex + 2,rightSectionFrame, '',(removeFuncFatherIndex,currentScript.functions[removeFuncFatherIndex].name),'',currentScript,tree,Lb2,photoViewFrame, currentScript.functions[
                                                                      removeFuncFatherIndex].indention+1,)
                 currentScript.functions.insert(removeFuncFatherIndex + 2,currentFunction)
 

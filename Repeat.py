@@ -41,7 +41,7 @@ class Repeat():
             return Repeat(int(extra['time']),functions)
 
     @classmethod
-    def removeRepeat(cls,removeFuncFatherIndex, index,currentScript,haveFather,rightSectionFrame):
+    def removeRepeat(cls,removeFuncFatherIndex, index,currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame):
         fromIndex = currentScript.linesFather[index].fromIndex
         toIndex = currentScript.linesFather[index].toIndex
 
@@ -50,13 +50,13 @@ class Repeat():
             if(i <= place):
                 if(currentScript.functions[i].name == '}'):
                     if currentScript.functions[i].father[1] == 'Repeat':
-                        place = cls.removeRepeat(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
+                        place = cls.removeRepeat(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     elif currentScript.functions[i].father[1] == 'If-Exist':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     elif currentScript.functions[i].father[1] == 'If-Not-Exist':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfNotExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeIfNotExist(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     elif currentScript.functions[i].father[1] == 'Else':
-                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeElse(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame)
+                        place = currentScript.functions[currentScript.functions[i].father[0]].extra.removeElse(removeFuncFatherIndex,currentScript.functions[i].father[0], currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                 elif(currentScript.functions[i].father != (i,currentScript.functions[i].name)):
                     currentScript.functions.pop(i)
                     if haveFather == True:
@@ -101,7 +101,7 @@ class Repeat():
 
 
             if len(currentScript.functions[removeFuncFatherIndex].extra.functions) == 0:
-                currentFunction = Function.Function('', '', removeFuncFatherIndex + 2,rightSectionFrame, '',(removeFuncFatherIndex,currentScript.functions[removeFuncFatherIndex].name),'',currentScript, currentScript.functions[
+                currentFunction = Function.Function('', '', removeFuncFatherIndex + 2,rightSectionFrame, '',(removeFuncFatherIndex,currentScript.functions[removeFuncFatherIndex].name),'',currentScript,tree,Lb2,photoViewFrame, currentScript.functions[
                                                                      removeFuncFatherIndex].indention+1,)
                 currentScript.functions.insert(removeFuncFatherIndex + 2,currentFunction)
 
@@ -130,9 +130,10 @@ class Repeat():
         except:
             print('need to mark the function that you want to change')
         if (currentScript.functions[index].name == 'Repeat'):
-            currentScript.functions[index].extra.time = int(sv.get())
-            # currentScript.functions[index].name = "Repeat"
-
+            if(sv.get() == ''):
+                currentScript.functions[index].extra.time = '?'
+            else:
+                currentScript.functions[index].extra.time = int(sv.get())
 
             Lb2.delete(index)
             shift = ' ' * currentScript.functions[index].indention * 5
@@ -141,7 +142,6 @@ class Repeat():
                        shift + currentScript.functions[index].name + '({})'.format(currentScript.functions[index].extra.time))
             Lb2.itemconfig(index, foreground='#ff5792')
             Lb2.selection_set(index)
-            return True
 
     def updateFunction(self,currentScript, fatherIndex):
         fatherLinesFather = currentScript.linesFather[fatherIndex]

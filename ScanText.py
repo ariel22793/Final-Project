@@ -6,7 +6,6 @@ from tkinter import messagebox
 import sys
 import tkinter.ttk as ttk
 # import tkinter.filedialog
-import wget
 import time
 from tkinter import filedialog
 from multiprocessing import Process

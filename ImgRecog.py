@@ -32,11 +32,12 @@ def getCord(img,delta):
     return x0,x1,y0,y1
 
 
-def tempScreenShot(img):
+def tempScreenShot(img,currentScript):
     x0,x1,y0,y1 = getCord(img,10)
     myScreenshot = pyautogui.screenshot()
-    myScreenshot = myScreenshot.crop((x0, y0, x1, y1))
-    return myScreenshot
+    myScreenshot.save(currentScript.path + 'ScreenTest.png')
+    myScreenshot1 = myScreenshot.crop((x0, y0, x1, y1))
+    return myScreenshot,myScreenshot1
 
 def photoRec(templatePath,photo, templateImage):
     howManyRectangles = 0
@@ -44,9 +45,9 @@ def photoRec(templatePath,photo, templateImage):
     gray_img = cv2.cvtColor(photo, cv2.COLOR_BGR2GRAY)
     template = cv2.imread(templatePath + "ScreenShots\\" + templateImage.img,0)
     w, h = template.shape[::-1]
-    print('my Screenshot height:{} , temp Screenshot height:{}'.format(template.shape[0],gray_img.shape[0]))
-    print('my Screenshot width:{} , temp Screenshot width:{}'.format(template.shape[1],gray_img.shape[1]))
-    print('image name:{}'.format(templateImage.img))
+    # print('my Screenshot height:{} , temp Screenshot height:{}'.format(template.shape[0],gray_img.shape[0]))
+    # print('my Screenshot width:{} , temp Screenshot width:{}'.format(template.shape[1],gray_img.shape[1]))
+    # print('image name:{}'.format(templateImage.img))
 
     result = cv2.matchTemplate(gray_img, template, cv2.TM_CCOEFF_NORMED)
     loc = np.where(result >= 0.6)

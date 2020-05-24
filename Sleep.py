@@ -15,7 +15,10 @@ class Sleep():
         except:
             print('need to mark the function that you want to change')
         if(currentScript.functions[index].name == 'Sleep'):
-            currentScript.functions[index].extra.time = int(sv.get())
+            if (sv.get() == ''):
+                currentScript.functions[index].extra.time = '?'
+            else:
+                currentScript.functions[index].extra.time = int(sv.get())
             # currentScript.functions[index].name = "Sleep"
             Lb2.delete(index)
             shift = ' ' * currentScript.functions[index].indention * 5
