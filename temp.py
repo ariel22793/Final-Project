@@ -2109,7 +2109,18 @@ def autosave(arg):
     except Exception as e:
         exeptionHandler(e)
 
-def comboBoxSelect(arg):
+def comboBoxSelect(arg,canvas,combo):
+    if 'No' in arg:
+        filename = "img\\combo.png"
+        comboFlag[1]=''
+
+    else:
+        filename = filename = "img\\combo2.png"
+        comboFlag[1]='2'
+
+    Button1 = PhotoImage(master=mainScreen, file=filename)
+    canvas.a = Button1
+    canvas.itemconfig(combo, image=Button1)
     if (logger != None):
         logger.writeToLog('comboBoxSelect function')
     try:
@@ -2850,14 +2861,14 @@ def change_on_hover(event, name, canvas, item):
         canvas.a = Button1
         canvas.itemconfig(item, image=Button1)
 
-def combobox_save(comboFlag,x,y):
+def combobox_save(comboFlag,x,y, canvas, combo):
     if (logger != None):
         logger.writeToLog('combobox_save function')
     try:
         if comboFlag[0] =='0':
             menu = Menu(explorerFrame, tearoff=0, bg='#3c3f41', fg='white')
-            menu.add_command(label="No Auto Save", command = lambda: comboBoxSelect('No_Auto'))
-            menu.add_command(label="Auto Save", command = lambda: comboBoxSelect('Auto'))
+            menu.add_command(label="No Auto Save", command = lambda: comboBoxSelect('No_Auto',canvas,combo))
+            menu.add_command(label="Auto Save", command = lambda: comboBoxSelect('Auto', canvas,combo))
             menu.post(x+20, y+35)
             comboFlag[0]='1'
         else:
@@ -3128,10 +3139,10 @@ if __name__ == '__main__':
 
     canvasCombo.combo = comboToolButton
     combo = canvasCombo.create_image(comboToolButton.width()/2, comboToolButton.height()/2, anchor=CENTER, image=comboToolButton, tags="Combo")
-    comboFlag=['0']
-    canvasCombo.tag_bind('Combo', '<Button-1>', lambda event: combobox_save(comboFlag,canvasCombo.winfo_rootx(),canvasCombo.winfo_rooty()))
-    canvasCombo.tag_bind('Combo', '<Enter>', lambda event: change_on_hover(event, "Combo",canvasCombo , combo))
-    canvasCombo.tag_bind('Combo', '<Leave>', lambda event: change_on_hover(event, "ComboHover", canvasCombo, combo))
+    comboFlag=['0','']
+    canvasCombo.tag_bind('Combo', '<Button-1>', lambda event: combobox_save(comboFlag,canvasCombo.winfo_rootx(),canvasCombo.winfo_rooty(), canvasCombo,combo))
+    canvasCombo.tag_bind('Combo', '<Enter>', lambda event: change_on_hover(event, "Combo"+comboFlag[1],canvasCombo , combo))
+    canvasCombo.tag_bind('Combo', '<Leave>', lambda event: change_on_hover(event, "Combo" + comboFlag[1] +"Hover", canvasCombo, combo))
 
 
     line_style = ttk.Style()
