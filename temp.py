@@ -2193,9 +2193,9 @@ def Treeview_right_click(event):
 
         if '.png' in tree.item(item)["text"]:
             menu = Menu(explorerFrame, tearoff=0, bg='#3c3f41', fg='white')
-            menu.add_command(label="Change Name", command = lambda: changeName(item_iid,tree.item(item)["text"], path))
+            # menu.add_command(label="Change Name", command = lambda: changeName(item_iid,tree.item(item)["text"], path))
             menu.add_command(label="Preview", command = lambda: image_preview(path))
-            menu.add_command(label="Delete Photo", command = lambda: deletePhoto(path, item_iid))
+            # menu.add_command(label="Delete Photo", command = lambda: deletePhoto(path, item_iid))
             menu.post(event.x_root, event.y_root)
     except Exception as e:
         exeptionHandler(e)
