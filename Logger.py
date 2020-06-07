@@ -13,5 +13,5 @@ class Logger():
         testLog.write('Time:{}, Operation:{} \n'.format(datetime.now(),operation))
         testLog.close()
     def writeExeption(self,msg):
-        testLog = open(self.path, "w+")
+        testLog = open(self.path, "a")
         testLog.write('Time:{} , Exeption:{}'.format(datetime.now(),msg))

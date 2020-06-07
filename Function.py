@@ -52,7 +52,7 @@ class Function():
                 self.extra=extra
             elif (func['name'] == 'Sleep'):
                 extra = Sleep.getExtra(func['extra'])
-                self.extra = extraself.extra=extra
+                self.extra = extra
             elif (func['name'] == 'If-Exist'):
                 extra = IfExist.getExtra(func['extra'],Lb2,currentScript,tempFunction,rightSectionFrame,photoViewFrame,tree)
                 self.extra = extra

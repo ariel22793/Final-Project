@@ -28,7 +28,7 @@ class Repeat():
         return {'time':str(self.time),'functions':block}
 
     @classmethod
-    def getExtra(cls, extra,Lb2,currentScript,tempFunction,rightSectionFrame,tree):
+    def getExtra(cls, extra,Lb2,currentScript,tempFunction,rightSectionFrame, photoViewFrame,tree):
         functions = []
         if(len(extra['functions'])>0):
             for x in extra['functions']:

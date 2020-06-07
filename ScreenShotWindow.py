@@ -153,7 +153,6 @@ class ScreenShotWindow():
         except:
             pass
         frame = x.frame
-        print(frame)
         if frame != '':
             frame.columnconfigure(0,weight = 1)
             frame.grid(row=1, column=0, sticky='NEWS')

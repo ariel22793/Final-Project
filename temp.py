@@ -46,6 +46,7 @@ from datetime import datetime
 from pynput.keyboard import Key, Listener
 import numpy as np
 from EmailSender import EmailSender
+import traceback
 
 try:
     from ctypes import windll
@@ -110,6 +111,7 @@ def updateUndoFunctions(redoIndex):
             undoFunctions.append(functionsblock)
             undoLinesFather.append(linesFatherblock)
     except Exception as e:
+        print(traceback.format_exc())
         exeptionHandler(e)
 
 def updateCurrentScript(type = 'regular'):
@@ -184,10 +186,6 @@ def updateLb2Indexes(difference,lb2IndexesLength):
     except Exception as e:
         exeptionHandler(e)
 
-
-
-
-
 def updateLb2(fromIndex,toIndex,operation,options = 'regular',functionsSize = 0,fatherIndex = 0,childrenSize=0):
     if (logger != None):
         logger.writeToLog('updateLb2 function')
@@ -196,81 +194,88 @@ def updateLb2(fromIndex,toIndex,operation,options = 'regular',functionsSize = 0,
         if(options == 'deleteBefore'):
             Lb2.delete(0, 'end')
         highestNumDigit = len(str(len(currentScript.functions)))
-
         lb2IndexesLength = lb2Indexes.size()
-
         if(len(currentScript.functions) != lb2IndexesLength):
             updateLb2Indexes(len(currentScript.functions) - lb2IndexesLength ,lb2IndexesLength)
-
-
         if (operation == 'add' or operation == 'replace' ):
             for x in range(fromIndex, toIndex+1):
                 textColor = getFunctionColor(currentScript.functions[x].name)
                 currentNumDigit = len(str(x))
                 if(operation == 'add'):
-                    name = currentScript.functions[x].name
-                    shift = ' ' * currentScript.functions[x].indention * 5
-                    tabFromNumber = ' ' * (5 + (highestNumDigit - currentNumDigit))
-                    if(x==fromIndex and options != 'A' and options != 'B' ):
-                        Lb2.delete(x)
-                    if name == 'Sleep' or name == 'Repeat':
-                        Lb2.insert(x, shift + name + '({})'.format(
-                            currentScript.functions[x].extra.time))
-                        Lb2.itemconfig(x, foreground=textColor)
-                    elif name == 'If-Exist' or name == 'If-Not-Exist':
-                        if currentScript.functions[x].extra.compareState == 'text':
-                            Lb2.insert(x, shift + name + '("{}","{}")'.format(currentScript.functions[x].extra.image,currentScript.functions[x].extra.text))
-                        else:
-                            Lb2.insert(x, shift + name + '("{}")'.format(currentScript.functions[x].extra.image))
-                        Lb2.itemconfig(x, foreground=textColor)
-                    elif name == 'Insert-Input' or name == 'Scan Text & Compare':
-                        Lb2.insert(x,shift + name + '("{}")'.format(
-                            currentScript.functions[x].extra.text))
-                        Lb2.itemconfig(x, foreground=textColor)
-                    else:
-                        Lb2.insert(x,shift + name)
-                        Lb2.itemconfig(x, foreground=textColor)
-
+                    updateLb2Add(currentNumDigit, fromIndex, highestNumDigit, options, textColor, x)
                 elif (operation == 'replace'):
-                    name = currentScript.functions[x].name
-                    shift = ' ' * currentScript.functions[x].indention * 5
-                    tabFromNumber = ' ' * (5 + (highestNumDigit - currentNumDigit))
-                    Lb2.delete(x)
-                    if name == 'Sleep' or name == 'Repeat':
-                        Lb2.insert(x,shift + name + '({})'.format(
-                            currentScript.functions[x].extra.time))
-                        Lb2.itemconfig(x, foreground=textColor)
-                    elif name == 'If-Exist' or name == 'If-Not-Exist':
-                        if currentScript.functions[x].extra.compareState == 'text':
-                            Lb2.insert(x, shift + name + '({},{})'.format(currentScript.functions[x].extra.image,currentScript.functions[x].extra.text))
-                        else:
-                            Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
-                        Lb2.itemconfig(x, foreground=textColor)
-                    elif name == 'Insert-Input' or name == 'Scan Text & Compare':
-                        Lb2.insert(x,+ name + '("{}")'.format(
-                            currentScript.functions[x].extra.text))
-                        Lb2.itemconfig(x, foreground=textColor)
-                    else:
-                        Lb2.insert(x,shift + name)
-                        Lb2.itemconfig(x, foreground=textColor)
+                    updateLb2Replace(currentNumDigit, highestNumDigit, textColor, x)
             Lb2.update()
-
         elif(operation == 'remove'):
-            for x in range(toIndex, fromIndex-1,-1):
-                Lb2.delete(x)
-            if(childrenSize == (toIndex-fromIndex)+1):
-                shift = ' ' * currentScript.functions[fatherIndex+2].indention * 5
-                Lb2.insert(fatherIndex+2, shift + '')
-                Lb2.itemconfig(fatherIndex+2, foreground='white')
-            elif (functionsSize == (toIndex - fromIndex) + 1):
-                shift = ' ' * currentScript.functions[0].indention * 5
-                Lb2.insert(0, shift + '')
-                Lb2.itemconfig(0, foreground='white')
-
+            updateLb2Remove(childrenSize, fatherIndex, fromIndex, functionsSize, toIndex)
             Lb2.update()
         Lb2.yview_moveto(vw[0])
     except Exception as e:
         exeptionHandler(e)
+
+
+def updateLb2Remove(childrenSize, fatherIndex, fromIndex, functionsSize, toIndex):
+    for x in range(toIndex, fromIndex - 1, -1):
+        Lb2.delete(x)
+    if (childrenSize == (toIndex - fromIndex) + 1):
+        shift = ' ' * currentScript.functions[fatherIndex + 2].indention * 5
+        Lb2.insert(fatherIndex + 2, shift + '')
+        Lb2.itemconfig(fatherIndex + 2, foreground='white')
+    elif (functionsSize == (toIndex - fromIndex) + 1):
+        shift = ' ' * currentScript.functions[0].indention * 5
+        Lb2.insert(0, shift + '')
+        Lb2.itemconfig(0, foreground='white')
+
+
+def updateLb2Replace(currentNumDigit, highestNumDigit, textColor, x):
+    name = currentScript.functions[x].name
+    shift = ' ' * currentScript.functions[x].indention * 5
+    tabFromNumber = ' ' * (5 + (highestNumDigit - currentNumDigit))
+    Lb2.delete(x)
+    if name == 'Sleep' or name == 'Repeat':
+        Lb2.insert(x, shift + name + '({})'.format(
+            currentScript.functions[x].extra.time))
+        Lb2.itemconfig(x, foreground=textColor)
+    elif name == 'If-Exist' or name == 'If-Not-Exist':
+        if currentScript.functions[x].extra.compareState == 'text':
+            Lb2.insert(x, shift + name + '({},{})'.format(currentScript.functions[x].extra.image,
+                                                          currentScript.functions[x].extra.text))
+        else:
+            Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
+        Lb2.itemconfig(x, foreground=textColor)
+    elif name == 'Insert-Input' or name == 'Scan Text & Compare':
+        Lb2.insert(x, + name + '("{}")'.format(
+            currentScript.functions[x].extra.text))
+        Lb2.itemconfig(x, foreground=textColor)
+    else:
+        Lb2.insert(x, shift + name)
+        Lb2.itemconfig(x, foreground=textColor)
+
+
+def updateLb2Add(currentNumDigit, fromIndex, highestNumDigit, options, textColor, x):
+    name = currentScript.functions[x].name
+    shift = ' ' * currentScript.functions[x].indention * 5
+    tabFromNumber = ' ' * (5 + (highestNumDigit - currentNumDigit))
+    if (x == fromIndex and options != 'A' and options != 'B'):
+        Lb2.delete(x)
+    if name == 'Sleep' or name == 'Repeat':
+        Lb2.insert(x, shift + name + '({})'.format(
+            currentScript.functions[x].extra.time))
+        Lb2.itemconfig(x, foreground=textColor)
+    elif name == 'If-Exist' or name == 'If-Not-Exist':
+        if currentScript.functions[x].extra.compareState == 'text':
+            Lb2.insert(x, shift + name + '("{}","{}")'.format(currentScript.functions[x].extra.image,
+                                                              currentScript.functions[x].extra.text))
+        else:
+            Lb2.insert(x, shift + name + '("{}")'.format(currentScript.functions[x].extra.image))
+        Lb2.itemconfig(x, foreground=textColor)
+    elif name == 'Insert-Input' or name == 'Scan Text & Compare':
+        Lb2.insert(x, shift + name + '("{}")'.format(
+            currentScript.functions[x].extra.text))
+        Lb2.itemconfig(x, foreground=textColor)
+    else:
+        Lb2.insert(x, shift + name)
+        Lb2.itemconfig(x, foreground=textColor)
 
 
 def addEmptyFunc(lastFuncIndex,firstFuncIndex):
@@ -278,8 +283,51 @@ def addEmptyFunc(lastFuncIndex,firstFuncIndex):
     if lastFuncIndex+1 == len(functions) or (functions[lastFuncIndex].indention > 0
         and len(functions[functions[firstFuncIndex].father[0]].extra.functions) == lastFuncIndex - functions[firstFuncIndex].father[0] -1):
         insert_B(lastFuncIndex+1,False)
-        return 1
-    return 0
+        return True
+    return False
+
+
+def getExtraObject(functionName, place, currentLineFather):
+    if functionName == 'Repeat':
+        return Repeat('?', [
+            Function('', '', place + 2, rightSectionFrame, '', (place, functionName), '', currentScript, tree, Lb2,
+                     photoViewFrame, currentScript.functions[currentLineFather.fromIndex].indention + 2)])
+
+    elif functionName == 'If-Exist':
+        return IfExist('?', 'image', '', [
+            Function('', '', place + 2, rightSectionFrame, '', (place, functionName), '', currentScript, tree, Lb2,
+                     photoViewFrame, currentScript.functions[currentLineFather.fromIndex].indention + 2)])
+
+    elif functionName == 'If-Not-Exist':
+        return IfNotExist('?', 'image', '', [
+            Function('', '', place + 2, rightSectionFrame, '', (place, functionName), '', currentScript, tree, Lb2,
+                     photoViewFrame, currentScript.functions[currentLineFather.fromIndex].indention + 2)])
+
+    elif functionName == 'Else':
+        return Else([Function('', '', place + 2, rightSectionFrame, '', (place, functionName), '', currentScript,
+                                 tree, Lb2, photoViewFrame,
+                                 currentScript.functions[currentLineFather.fromIndex].indention + 2)])
+
+    elif functionName == 'Insert-Input':
+        return InsertInput('')
+
+    elif functionName == 'Sleep':
+        return Sleep('?')
+
+
+def getInputChangeObject(functionName,extra):
+    if functionName == 'Repeat':
+        return extra
+    elif functionName == 'If-Exist':
+        return extra
+    elif functionName == 'If-Not-Exist':
+        return extra
+    elif functionName == 'Else':
+        return extra
+    elif functionName == 'Insert-Input':
+        return extra.changeInsertInputText
+    elif functionName == 'Sleep':
+        return extra.changeSleepTime
 
 
 def addFunction(place = 0,functionName = 'None',flag = True):
@@ -292,371 +340,169 @@ def addFunction(place = 0,functionName = 'None',flag = True):
             place = Lb2.curselection()[0]
             functionName = functionList[Lb1.curselection()[0]]
             logger.writeToLog('add {} function'.format(functionName))
-        delta = 0
         fromIndex = place
         toIndex = place
 
         try:
-            currentFunction = currentScript.functions[place]
             currentLineFather = currentScript.linesFather[place]
         except:
             if(currentScript.functions==[] and place ==0):      ## case that this is the first time we add a function
                 print('first time!')
 
-        if functionName == 'Insert-Input' or functionName == 'Scan Text & Compare':
-            if functionName == 'Insert-Input' :
-                extra = InsertInput('')
-            else:
-                extra = Scan_Text_Compare('')
-
-            if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
-
-                currentFunction = Function(functionName, '', place, rightSectionFrame, '',
-                                           (currentLineFather.fromIndex, currentLineFather.fatherName), extra,currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +1)
-
-                currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
-                                               currentLineFather.fatherName)
-
-                tempLineFather = currentLineFather
-                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-                while True:
-                    if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
-                        tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
-                    else:
-                        tempFatherFunction.extra.functions.insert(
-                            place - tempLineFather.fromIndex - 2, currentFunction)
-                    if tempFatherFunction.father[0] == tempFatherFunction.id:
-                        break
-                    tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
-                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-            else:
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                           (currentLineFather.fromIndex, functionName), extra,currentScript,tree,Lb2,photoViewFrame)
-                currentLineFather = LineFather(place, place, functionName)
-            if functionName == 'Insert-Input':
-                currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), InsertInput.changeInsertInputText,Lb2,currentScript)
-            else:
-                currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), Scan_Text_Compare.changeScan_Text_Compare,Lb2,currentScript)
-
-        elif functionName == 'Sleep':
-            sleep = Sleep('?')
-
-            if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
-
-                currentFunction = Function(functionName, '', place, rightSectionFrame, '',
-                                           (currentLineFather.fromIndex, currentLineFather.fatherName), sleep,currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +1)
-
-                currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
-                                               currentLineFather.fatherName)
-
-                tempLineFather = currentLineFather
-                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-                while True:
-                    if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
-                        tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
-                    else:
-                        tempFatherFunction.extra.functions.insert(
-                            place - tempLineFather.fromIndex - 2, currentFunction)
-                    if tempFatherFunction.father[0] == tempFatherFunction.id:
-                        break
-                    tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
-                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-            else:
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                           (currentLineFather.fromIndex, functionName), sleep,currentScript,tree,Lb2,photoViewFrame)
-                currentLineFather = LineFather(place, place, functionName)
-            currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), Sleep.changeSleepTime,Lb2,currentScript)
-        elif functionName == 'Repeat':
-            delta = 3
-            toIndex = place +3
-            repeat = Repeat('?', [Function('', '', place +2 , rightSectionFrame,'',(place, functionName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +2)])
-            tempFunction = ['{', '', '}']
-
-            if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
-
-                for i in range(place, place + 4, 1):
-                    if i == place:
-                        currentScript.linesFather[i] = LineFather(currentScript.linesFather[i].fromIndex,
-                                                                  currentScript.linesFather[i].toIndex,
-                                                                  currentScript.linesFather[i].fatherName)
-                    else:
-                        currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',(currentLineFather.fromIndex, currentLineFather.fatherName), repeat,currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +1)
-
-                tempLineFather = currentLineFather
-                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-                tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
-
-                while True:
-                    if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
-                        tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
-                    else:
-                        tempFatherFunction.extra.functions.insert(
-                            place - tempLineFather.fromIndex - 2, currentFunction)
-                    for i in range(place + 1, place + 4):
-                        if(tempFunction[i - (place + 1)] == ''):
-                            tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'', (place, functionName), '',currentScript,tree,Lb2,photoViewFrame,tempIndention+1)
-                        else:
-                            tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, tempIndention)
-                        if tempFatherFunction.father[0] == tempFatherFunction.id:
-                            currentScript.functions.insert(i, tempFunc)
-                        tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
-                    if tempFatherFunction.father[0] == tempFatherFunction.id:
-                        break
-                    tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
-                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-            else:
-                for i in range(place, place + 4, 1):
-                    if (i == place):
-                        currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
-                    else:
-                        currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                           (currentLineFather.fromIndex, functionName), repeat,currentScript,tree,Lb2,photoViewFrame)
-                for i in range(place + 1, place + 4):
-                    if (tempFunction[i - (place + 1)] == ''):
-                        currentScript.functions.insert(i,
-                                                       Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, 1))
-                    else:
-                        currentScript.functions.insert(i,
-                                                       Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame))
-                currentLineFather = LineFather(place, place + 3, functionName)
-            currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), Repeat.changeRepeatTime,Lb2,currentScript)
-        elif functionName == 'If-Exist':
-            delta = 3
-            toIndex = place + 3
-            ifExist = IfExist('?','image','', [Function('', '', place +2 , rightSectionFrame,'',(place, functionName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +2)])
-            tempFunction = ['{', '', '}']
-
-            if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
-
-                for i in range(place, place + 4, 1):
-                    if i == place:
-                        currentScript.linesFather[i] = LineFather(currentScript.linesFather[i].fromIndex,
-                                                                  currentScript.linesFather[i].toIndex,
-                                                                  currentScript.linesFather[i].fatherName)
-                    else:
-                        currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',(currentLineFather.fromIndex, currentLineFather.fatherName), ifExist,currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +1)
-
-                tempLineFather = currentLineFather
-                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-                tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
-
-                while True:
-                    if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
-                        tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
-                    else:
-                        tempFatherFunction.extra.functions.insert(
-                            place - tempLineFather.fromIndex - 2, currentFunction)
-                    for i in range(place + 1, place + 4):
-                        if (tempFunction[i - (place + 1)] == ''):
-                            tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, tempIndention + 1)
-                        else:
-                            tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, tempIndention)
-                        if tempFatherFunction.father[0] == tempFatherFunction.id:
-                            currentScript.functions.insert(i, tempFunc)
-                        tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
-                    if tempFatherFunction.father[0] == tempFatherFunction.id:
-                        break
-                    tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
-                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-            else:
-                for i in range(place, place + 4, 1):
-                    if (i == place):
-                        currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
-                    else:
-                        currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                           (currentLineFather.fromIndex, functionName), ifExist,currentScript,tree,Lb2,photoViewFrame)
-                for i in range(place + 1, place + 4):
-                    if(tempFunction[i - (place + 1)] == ''):
-                        currentScript.functions.insert(i, Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,'',
-                                                               (place, functionName), '',currentScript,tree,Lb2,photoViewFrame,1))
-                    else:
-                        currentScript.functions.insert(i,
-                                                       Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame))
-                currentLineFather = LineFather(place, place + 3, functionName)
-            currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), IfExist.changeIfExistText,Lb2,currentScript)
-        elif functionName == 'If-Not-Exist':
-            delta = 3
-            toIndex = place + 3
-            ifNotExist = IfNotExist('?','image','', [Function('', '', place + 2, rightSectionFrame,'', (place, functionName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +2)])
-            tempFunction = ['{', '', '}']
-
-            if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
-
-                for i in range(place, place + 4, 1):
-                    if i == place:
-                        currentScript.linesFather[i] = LineFather(currentScript.linesFather[i].fromIndex,
-                                                                  currentScript.linesFather[i].toIndex,
-                                                                  currentScript.linesFather[i].fatherName)
-                    else:
-                        currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                           (currentLineFather.fromIndex, currentLineFather.fatherName), ifNotExist,currentScript,tree,Lb2,photoViewFrame,
-                                           currentScript.functions[currentLineFather.fromIndex].indention + 1)
-
-                tempLineFather = currentLineFather
-                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-                tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
-
-
-                while True:
-                    if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
-                        tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
-                    else:
-                        tempFatherFunction.extra.functions.insert(
-                            place - tempLineFather.fromIndex - 2, currentFunction)
-                    for i in range(place + 1, place + 4):
-                        if (tempFunction[i - (place + 1)] == ''):
-                            tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, tempIndention + 1)
-                        else:
-                            tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, tempIndention)
-                        if tempFatherFunction.father[0] == tempFatherFunction.id:
-                            currentScript.functions.insert(i, tempFunc)
-                        tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
-                    if tempFatherFunction.father[0] == tempFatherFunction.id:
-                        break
-                    tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
-                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-            else:
-                for i in range(place, place + 4, 1):
-                    if (i == place):
-                        currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
-                    else:
-                        currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                           (currentLineFather.fromIndex, functionName), ifNotExist,currentScript,tree,Lb2,photoViewFrame)
-                for i in range(place + 1, place + 4):
-                    if (tempFunction[i - (place + 1)] == ''):
-                        currentScript.functions.insert(i,
-                                                       Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, 1))
-                    else:
-                        currentScript.functions.insert(i,
-                                                       Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                                (place, functionName), '',currentScript,tree,Lb2,photoViewFrame))
-                currentLineFather = LineFather(place, place + 3, functionName)
-            currentFunction.getInputBox(currentFunction.name,currentFunction.extra, currentFunction.frame.children.get('labelAndInput'), IfNotExist.changeIfNotExistText,Lb2,currentScript)
-        elif functionName == 'Else':
-            toIndex = place + 3
-            if place == 0 or (currentScript.functions[place-1].father[1] != 'If-Exist' and currentScript.functions[place-1].father[1] != 'If-Not-Exist'):
-                popupmsg('cannot use Else function without ifExist or ifNotExist')
-            else:
-                delta = 3
-                elseObj = Else([Function('', '', place +2 , rightSectionFrame,'',(place, functionName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +2)])
-                tempFunction = ['{', '', '}']
-
-                if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
-
-                    for i in range(place, place + 4, 1):
-                        if i == place:
-                            currentScript.linesFather[i] = LineFather(currentScript.linesFather[i].fromIndex,
-                                                                      currentScript.linesFather[i].toIndex,
-                                                                      currentScript.linesFather[i].fatherName)
-                        else:
-                            currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                    currentFunction = Function(functionName, '', place, rightSectionFrame,'',(currentLineFather.fromIndex, currentLineFather.fatherName), elseObj,currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +1)
-
-                    tempLineFather = currentLineFather
-                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-                    tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
-
-                    while True:
-                        if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
-                            tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
-                        else:
-                            tempFatherFunction.extra.functions.insert(
-                                place - tempLineFather.fromIndex - 2, currentFunction)
-                        for i in range(place + 1, place + 4):
-                            if (tempFunction[i - (place + 1)] == ''):
-                                tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                    (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, tempIndention + 1)
-                            else:
-                                tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
-                                                    (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, tempIndention)
-                            if tempFatherFunction.father[0] == tempFatherFunction.id:
-                                currentScript.functions.insert(i, tempFunc)
-                            tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
-                        if tempFatherFunction.father[0] == tempFatherFunction.id:
-                            break
-                        tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
-                        tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-                else:
-                    for i in range(place, place + 4, 1):
-                        if (i == place):
-                            currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
-                        else:
-                            currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
-                    currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                               (currentLineFather.fromIndex, functionName), elseObj,currentScript,tree,Lb2,photoViewFrame)
-                    for i in range(place + 1, place + 4):
-                        if (tempFunction[i - (place + 1)] == ''):
-                            currentScript.functions.insert(i,
-                                                           Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,
-                                                                    '',
-                                                                    (place, functionName), '',currentScript,tree,Lb2,photoViewFrame, 1))
-                        else:
-                            currentScript.functions.insert(i,
-                                                           Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame,
-                                                                    '',
-                                                                    (place, functionName), '',currentScript,tree,Lb2,photoViewFrame))
-                    currentLineFather = LineFather(place, place + 3, functionName)
+        if functionName == 'Insert-Input' or functionName == 'Sleep':
+            currentFunction, currentLineFather = createSimpleFuncWithExtra(currentLineFather, functionName, place)
+        elif isComplexFuncByName(functionName):
+            currentFunction, toIndex = createComplexFunction(currentLineFather, functionName, place,toIndex)
         else:
-            if (currentLineFather.fatherName == 'Repeat' or currentLineFather.fatherName == 'If-Exist' or currentLineFather.fatherName == 'If-Not-Exist' or currentLineFather.fatherName == 'Else') and currentLineFather.fromIndex != place:
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'',
-                                           (currentLineFather.fromIndex, currentLineFather.fatherName), '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[currentLineFather.fromIndex].indention +1)
-                currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
-                                               currentLineFather.fatherName)
-
-                tempLineFather = currentLineFather
-                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-                while True:
-                    if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
-                        tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
-                    else:
-                        tempFatherFunction.extra.functions.insert(
-                            place - tempLineFather.fromIndex - 2, currentFunction)
-                    if tempFatherFunction.father[0] == tempFatherFunction.id:
-                        break
-                    tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
-                    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-            else:
-                currentFunction = Function(functionName, '', place, rightSectionFrame,'', (currentLineFather.fromIndex, functionName), '',currentScript,tree,Lb2,photoViewFrame)
-                currentLineFather = LineFather(place, place, functionName)
+            currentFunction, currentLineFather = createSimpleFuncWithoutExtra(currentLineFather, functionName, place)
 
         currentScript.functions[place] = currentFunction
-        currentScript.linesFather[place] = currentLineFather
         lastFuncIndex = place
-        if isComplexFunc(place):
+        if isComplexFuncByIndex(place):
             lastFuncIndex = place + 3
-        toIndex += addEmptyFunc(lastFuncIndex,place)
         updateCurrentScript()
-        if(flag == True):
-            updateLb2(fromIndex,toIndex,'add')
-            selectLb2Index(place)
-            FocusOnSelectedFunc(None)
+        addOrNot = addEmptyFunc(lastFuncIndex,place)
+        if addOrNot == False:
+            pass
+        else:
+            toIndex+=1
+        updateLb2(fromIndex,toIndex,'add')
+        selectLb2Index(place)
+        FocusOnSelectedFunc(None)
     except Exception as e:
         exeptionHandler(e)
+
+
+def createSimpleFuncWithoutExtra(currentLineFather, functionName, place):
+    if isComplexFuncByName(currentLineFather.fatherName) and currentLineFather.fromIndex != place:
+        currentFunction = Function(functionName, '', place, rightSectionFrame, '',
+                                   (currentLineFather.fromIndex, currentLineFather.fatherName), '', currentScript, tree,
+                                   Lb2, photoViewFrame,
+                                   currentScript.functions[currentLineFather.fromIndex].indention + 1)
+        currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
+                                       currentLineFather.fatherName)
+        UpdateFathers(currentFunction, currentLineFather, place)
+    else:
+        currentFunction = Function(functionName, '', place, rightSectionFrame, '',
+                                   (currentLineFather.fromIndex, functionName), '', currentScript, tree, Lb2,
+                                   photoViewFrame)
+        currentLineFather = LineFather(place, place, functionName)
+    return currentFunction, currentLineFather
+
+
+def createComplexFunction(currentLineFather, functionName, place, toIndex):
+    toIndex = place + 3
+    extra = getExtraObject(functionName, place, currentLineFather)
+    tempFunction = ['{', '', '}']
+    if isComplexFuncByName(currentLineFather.fatherName) and currentLineFather.fromIndex != place:
+        updateLineFatherWithFathers(functionName, place)
+        currentFunction = Function(functionName, '', place, rightSectionFrame, '',
+                                   (currentLineFather.fromIndex, currentLineFather.fatherName), extra, currentScript,
+                                   tree, Lb2, photoViewFrame,
+                                   currentScript.functions[currentLineFather.fromIndex].indention + 1)
+        updateComplexFathers(currentFunction, currentLineFather, functionName, place, tempFunction)
+    else:
+        updateLineFatherWithoutFathers(functionName, place)
+        currentFunction = Function(functionName, '', place, rightSectionFrame, '',
+                                   (currentLineFather.fromIndex, functionName), extra, currentScript, tree, Lb2,
+                                   photoViewFrame)
+        updateComplexFunctionWithoutFahters(functionName, place, tempFunction)
+    changeObject = getInputChangeObject(functionName, extra)
+    currentFunction.getInputBox(currentFunction.name, currentFunction.extra,
+                                currentFunction.frame.children.get('labelAndInput'), changeObject, Lb2, currentScript)
+    return currentFunction, toIndex
+
+
+def createSimpleFuncWithExtra(currentLineFather, functionName, place):
+    extra = getExtraObject(functionName, place, currentLineFather)
+    if (isComplexFuncByName(currentLineFather.fatherName)) and currentLineFather.fromIndex != place:
+        currentFunction = Function(functionName, '', place, rightSectionFrame, '',
+                                   (currentLineFather.fromIndex, currentLineFather.fatherName), extra, currentScript,
+                                   tree, Lb2, photoViewFrame,
+                                   currentScript.functions[currentLineFather.fromIndex].indention + 1)
+        currentLineFather = LineFather(currentLineFather.fromIndex, currentLineFather.toIndex,
+                                       currentLineFather.fatherName)
+        UpdateFathers(currentFunction, currentLineFather, place)
+    else:
+        currentFunction = Function(functionName, '', place, rightSectionFrame, '',
+                                   (currentLineFather.fromIndex, functionName), extra, currentScript, tree, Lb2,
+                                   photoViewFrame)
+        currentLineFather = LineFather(place, place, functionName)
+    changeObject = getInputChangeObject(functionName, extra)
+    currentFunction.getInputBox(currentFunction.name, currentFunction.extra,
+                                currentFunction.frame.children.get('labelAndInput'), changeObject, Lb2, currentScript)
+    return currentFunction, currentLineFather
+
+
+def updateComplexFunctionWithoutFahters(functionName, place, tempFunction):
+    for i in range(place + 1, place + 4):
+        if (tempFunction[i - (place + 1)] == ''):
+            currentScript.functions.insert(i,
+                                           Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                                    (place, functionName), '', currentScript, tree, Lb2, photoViewFrame,
+                                                    1))
+        else:
+            currentScript.functions.insert(i,
+                                           Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                                    (place, functionName), '', currentScript, tree, Lb2,
+                                                    photoViewFrame))
+
+
+def updateLineFatherWithoutFathers(functionName, place):
+    for i in range(place, place + 4, 1):
+        if (i == place):
+            currentScript.linesFather[i] = LineFather(place, place + 3, functionName)
+        else:
+            currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+
+
+def updateComplexFathers(currentFunction, currentLineFather, functionName, place, tempFunction):
+    tempLineFather = currentLineFather
+    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+    tempIndention = currentScript.functions[tempLineFather.fromIndex].indention + 1
+    while True:
+        if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+            tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
+        else:
+            tempFatherFunction.extra.functions.insert(
+                place - tempLineFather.fromIndex - 2, currentFunction)
+        for i in range(place + 1, place + 4):
+            if (tempFunction[i - (place + 1)] == ''):
+                tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '', (place, functionName),
+                                    '', currentScript, tree, Lb2, photoViewFrame, tempIndention + 1)
+            else:
+                tempFunc = Function(tempFunction[i - (place + 1)], '', i, rightSectionFrame, '',
+                                    (place, functionName), '', currentScript, tree, Lb2, photoViewFrame, tempIndention)
+            if tempFatherFunction.father[0] == tempFatherFunction.id:
+                currentScript.functions.insert(i, tempFunc)
+            tempFatherFunction.extra.functions.insert(i - tempLineFather.fromIndex - 2, tempFunc)
+        if tempFatherFunction.father[0] == tempFatherFunction.id:
+            break
+        tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+        tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
+
+def updateLineFatherWithFathers(functionName, place):
+    for i in range(place, place + 4, 1):
+        if i == place:
+            currentScript.linesFather[i] =  LineFather(place, place + 3, functionName)
+        else:
+            currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
+
+
+def UpdateFathers(currentFunction, currentLineFather, place):
+    tempLineFather = currentLineFather
+    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+    while True:
+        if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+            tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
+        else:
+            tempFatherFunction.extra.functions.insert(
+                place - tempLineFather.fromIndex - 2, currentFunction)
+        if tempFatherFunction.father[0] == tempFatherFunction.id:
+            break
+        tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+        tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
 
 
 def checkMarkArea(indexes):
@@ -679,9 +525,6 @@ def checkMarkArea(indexes):
         if(firstFunction.indention != lastFunction.indention):
             message += "functions are not complete\n"
             markFlag = False
-        # if (firstFunction.father[0] != lastFunction.indention):
-        #     message += "functions are not complete\n"
-        #     markFlag = False
         if (lastFunction.name == '{' ):
             message += "Cannot end the mark with { \n"
             markFlag = False
@@ -696,7 +539,7 @@ def checkMarkArea(indexes):
         exeptionHandler(e)
 
 def findNextFunc(index):
-    for i in range(index+1,len(currentScript.functions)-1):
+    for i in range(index+1,len(currentScript.functions)):
         if(currentScript.functions[index].indention == currentScript.functions[i].indention and currentScript.functions[i].name != '{' and currentScript.functions[i].name != '}'  ):
             return currentScript.functions[i]
 
@@ -720,7 +563,7 @@ def removeFunctions():
             fatherIndex = currentScript.functions[indexes[0]].father[0]
             functionsSize = len(currentScript.functions)
             childrenSize = 0
-            if(firstIndexIndention > 0):
+            if(firstIndexIndention > 0 and currentScript.functions[fatherIndex].extra != ''):
                 childrenSize = len(currentScript.functions[fatherIndex].extra.functions)
 
 
@@ -736,43 +579,29 @@ def removeFunctions():
                     popedFunc = currentScript.functions[index]
                     popedFuncName =popedFunc.name
                     if(popedFuncName == 'Repeat'):
-                        delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
                         Repeat.removeRepeat(removeFuncFatherIndex,index,currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     elif (popedFuncName == 'If-Exist'):
                         tempFunc = findNextFunc(index)
-                        if(tempFunc.name != 'Else'):
-                            delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+                        if(tempFunc == None or tempFunc.name != 'Else'):
                             IfExist.removeIfExist(removeFuncFatherIndex,index, currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                         else:
                             popupmsg('Canot Remove If-Exist Without the Else function')
                             return
-
                     elif (popedFuncName == 'If-Not-Exist'):
                         tempFunc = findNextFunc(index)
-                        if (tempFunc.name != 'Else'):
-                            delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
+                        if (tempFunc == None or tempFunc.name != 'Else'):
                             IfNotExist.removeIfNotExist(removeFuncFatherIndex,index, currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                         else:
                             popupmsg('Canot Remove If-Not-Exist Without the Else function')
                             return
                     elif (popedFuncName == 'Else'):
-                        delta = (len(currentScript.functions[index].extra.functions) + 3) * -1
                         Else.removeElse(removeFuncFatherIndex,index, currentScript,haveFather,rightSectionFrame,tree,Lb2,photoViewFrame)
                     else:
-                        delta = -1
                         currentScript.functions.pop(index)
                         currentScript.linesFather.pop(index)
 
                         if haveFather == True:
-                            tempLineFather = currentScript.linesFather[fatherIndex]
-                            tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
-
-                            while True:
-                                tempFatherFunction.extra.functions.pop(index - tempLineFather.fromIndex - 2)
-                                if tempFatherFunction.father[0] == tempFatherFunction.id:
-                                    break
-                                tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
-                                tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+                            updateFathersByRemoveFunc(fatherIndex, index)
             if(firstIndexIndention != 0 and haveFather and len(currentScript.functions[fatherIndex].extra.functions) == 0):
                 insert_B(fatherIndex+2,False)
             if(len(currentScript.functions) == 0):
@@ -784,13 +613,22 @@ def removeFunctions():
         exeptionHandler(e)
 
 
+def updateFathersByRemoveFunc(fatherIndex, index):
+    tempLineFather = currentScript.linesFather[fatherIndex]
+    tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+    while True:
+        tempFatherFunction.extra.functions.pop(index - tempLineFather.fromIndex - 2)
+        if tempFatherFunction.father[0] == tempFatherFunction.id:
+            break
+        tempLineFather = currentScript.linesFather[tempFatherFunction.father[0]]
+        tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
+
 
 def window2():
     if (logger != None):
         logger.writeToLog('window2 function')
     try:
         global flag_of_shift
-        print(flag_of_shift)
         if 'Dis' in takeS_flag[0] or flag_of_shift == False:
             return
 
@@ -836,7 +674,7 @@ def disableMoveDown(index,functionsLen,functionName):
             fatherLinesFather = currentScript.linesFather[currentScript.functions[index].father[0]]
             fatherFuncLen = len(currentScript.functions[currentScript.functions[index].father[0]].extra.functions)
 
-            if (functionName == 'Repeat' or functionName == 'If-Exist' or functionName == 'If-Not-Exist' or functionName == 'Else'):
+            if (isComplexFuncByName(functionName)):
                 if (currentScript.linesFather[index].toIndex + 1 == currentScript.linesFather[currentScript.functions[index].father[0]].toIndex):
                     # moveDownButton.config(state=DISABLED)
                     move_d_flag[0] = 'moveDownDis'
@@ -941,7 +779,7 @@ def disableInsertAboveAndBelow(index):
             # insertA.config(state=NORMAL)
             insert_a_flag[0] = 'insertA'
             change_on_hover('event', 'insertAHover', canvasinsertA, insertA)
-        if(functionName == 'Repeat' or functionName == 'If-Exist' or functionName == 'If-Not-Exist' or functionName == 'Else'):
+        if(isComplexFuncByName(functionName)):
             # insertB.config(state=DISABLED)
             insert_b_flag[0] = 'insertBDis'
             change_on_hover('event', insert_b_flag[0], canvasinsertB, insertB)
@@ -956,7 +794,7 @@ def disableScreeShot(index):
     try:
         functionName = currentScript.functions[index].name
         global takeS_flag
-        if (functionName == '{' or functionName == '}' or functionName == '' or functionName == 'Repeat' or functionName == 'Exit' or functionName == 'Sleep' or functionName == 'Else'):
+        if (functionName == '{' or functionName == '}' or functionName == ''or functionName == 'Repeat' or functionName == 'Exit' or functionName == 'Sleep' or functionName == 'Else'):
             # takeScreenShot.config(state=DISABLED)
 
             takeS_flag[0]='takeSDis'
@@ -1046,51 +884,44 @@ def FocusOnSelectedFunc(event):
             currentScript.lastClickOnLb2 = index
         except:
             return
-
-
-
-        frame = ''
-        id = index
         photoName = ''
-        functionName = ''    # repoFrame_and_Button[0].destroy()
-
         x = currentScript.functions[index]
         try:
             if(x.img != ''):
                 photoName = x.img.img
-            functionName = x.name
         except:
             pass
-        frame = x.frame
-        if frame != '':
-            frame.grid(row=1, column=0, sticky='NEWS')
-
-            if photoName != '':
-                for childName, childValue in frame.children.items():
-                    if childName == 'fileNameFrame':
-                        for childName1, childValue1 in childValue.children.items():
-                            if childName1 == 'fileName':
-                                childValue1.config(text='File Name: {}'.format(photoName))
-                            elif childName1 == 'fileNameButton':
-                                childValue1.config(state=NORMAL)
-                    if childName == 'canvasFrame':
-                        canvas = Canvas(childValue, height=150, bg = '#2b2b2b', name='canvas')
-                        one = PhotoImage(master=mainScreen,file=currentScript.path + "ScreenShots\\" + photoName)
-                        photoViewFrame.one = one  # to prevent the image garbage collected.
-                        canvas.create_image((0, 0), image=one, anchor="nw")
-                        canvas.grid(sticky='NWE')
-
-            frame.tkraise()
-            try:
-                frame.refresh()
-            except:
-                pass
-        # markCurrentFuncArea(index)
+        updateFrame(photoName, x)
         disableButtons(index)
-        # reportFrame()
     except Exception as e:
         exeptionHandler(e)
 
+
+def updateFrame(photoName, x):
+    frame = x.frame
+    if frame != '':
+        frame.grid(row=1, column=0, sticky='NEWS')
+
+        if photoName != '':
+            for childName, childValue in frame.children.items():
+                if childName == 'fileNameFrame':
+                    for childName1, childValue1 in childValue.children.items():
+                        if childName1 == 'fileName':
+                            childValue1.config(text='File Name: {}'.format(photoName))
+                        elif childName1 == 'fileNameButton':
+                            childValue1.config(state=NORMAL)
+                if childName == 'canvasFrame':
+                    canvas = Canvas(childValue, height=150, bg='#2b2b2b', name='canvas')
+                    one = PhotoImage(master=mainScreen, file=currentScript.path + "ScreenShots\\" + photoName)
+                    photoViewFrame.one = one  # to prevent the image garbage collected.
+                    canvas.create_image((0, 0), image=one, anchor="nw")
+                    canvas.grid(sticky='NWE')
+
+        frame.tkraise()
+        try:
+            frame.refresh()
+        except:
+            pass
 
 
 def createTree(frame):
@@ -1130,44 +961,55 @@ def moveUp():
                 return
             tempFunctions = []
             tempLineFather = []
-
-        #################### get move function range################################
-            if (currentScript.functions[index].name == 'Repeat' or currentScript.functions[index].name == 'If-Exist' or
-                    currentScript.functions[index].name == 'If-Not-Exist' or currentScript.functions[
-                        index].name == 'Else'):
-                fromIndexToMove = index
-                toIndexToMove = index + len(currentScript.functions[index].extra.functions) + 2
-            else:
-                fromIndexToMove = index
-                toIndexToMove = index
-        #############################################################################
-
-        #################### get Upper function top function#########################
-            if (currentScript.functions[index-1].name == '}'):
-                fromIndexUpperFunc = currentScript.functions[index-1].father[0]
-            else:
-                fromIndexUpperFunc = index-1
-        #############################################################################
-
+            fromIndexToMove, toIndexToMove = getMoveUpFunctionsRange(index)
+            fromIndexUpperFunc = getUpperFunctionRange(index)
             numberOfFunctionToMove = toIndexToMove - fromIndexToMove +1
-
-            for funcIndex in range(toIndexToMove,fromIndexToMove-1,-1): # save and remove the function that we want to move in tempFunction
-                tempFunctions.insert(0,currentScript.functions[funcIndex])
-                tempLineFather.insert(0,currentScript.linesFather[funcIndex])
-                currentScript.functions.pop(funcIndex)
-                currentScript.linesFather.pop(funcIndex)
-
-            tempFuncIndex = 0
-            for funcIndex in range(fromIndexUpperFunc,fromIndexUpperFunc + numberOfFunctionToMove):
-                currentScript.functions.insert(funcIndex,tempFunctions[tempFuncIndex])
-                currentScript.linesFather.insert(funcIndex,tempLineFather[tempFuncIndex])
-                tempFuncIndex += 1
+            removeMoveFunctions(fromIndexToMove, tempFunctions, tempLineFather, toIndexToMove)
+            insertMoveUpFunctions(fromIndexUpperFunc, numberOfFunctionToMove, tempFunctions, tempLineFather)
 
             updateCurrentScript()
-            updateLb2(fromIndexUpperFunc,currentScript.linesFather[index].toIndex,'replace')
+            updateLb2(fromIndexUpperFunc,toIndexToMove,'replace')
             selectLb2Index(fromIndexUpperFunc)
     except Exception as e:
         exeptionHandler(e)
+
+
+def insertMoveUpFunctions(fromIndexUpperFunc, numberOfFunctionToMove, tempFunctions, tempLineFather):
+    tempFuncIndex = 0
+    for funcIndex in range(fromIndexUpperFunc, fromIndexUpperFunc + numberOfFunctionToMove):
+        currentScript.functions.insert(funcIndex, tempFunctions[tempFuncIndex])
+        currentScript.linesFather.insert(funcIndex, tempLineFather[tempFuncIndex])
+        tempFuncIndex += 1
+
+
+def removeMoveFunctions(fromIndexToMove, tempFunctions, tempLineFather, toIndexToMove):
+    for funcIndex in range(toIndexToMove, fromIndexToMove - 1,
+                           -1):  # save and remove the function that we want to move in tempFunction
+        tempFunctions.insert(0, currentScript.functions[funcIndex])
+        tempLineFather.insert(0, currentScript.linesFather[funcIndex])
+        currentScript.functions.pop(funcIndex)
+        currentScript.linesFather.pop(funcIndex)
+
+
+
+def getUpperFunctionRange(index):
+    if (currentScript.functions[index - 1].name == '}'):
+        fromIndexUpperFunc = currentScript.functions[index - 1].father[0]
+    else:
+        fromIndexUpperFunc = index - 1
+    return fromIndexUpperFunc
+
+
+def getMoveUpFunctionsRange(index):
+    if (currentScript.functions[index].name == 'Repeat' or currentScript.functions[index].name == 'If-Exist' or
+            currentScript.functions[index].name == 'If-Not-Exist' or currentScript.functions[
+                index].name == 'Else'):
+        fromIndexToMove = index
+        toIndexToMove = index + len(currentScript.functions[index].extra.functions) + 2
+    else:
+        fromIndexToMove = index
+        toIndexToMove = index
+    return fromIndexToMove, toIndexToMove
 
 
 def moveDown():
@@ -1187,45 +1029,49 @@ def moveDown():
             tempFunctions = []
             tempLineFather = []
 
-            #################### get move function range################################
-            if (currentScript.functions[index].name == 'Repeat' or currentScript.functions[index].name == 'If-Exist' or
-                    currentScript.functions[index].name == 'If-Not-Exist' or currentScript.functions[
-                        index].name == 'Else'):
-                fromIndexToMove = index
-                toIndexToMove = index + len(currentScript.functions[index].extra.functions) + 2
-            else:
-                fromIndexToMove = index
-                toIndexToMove = index
-            #############################################################################
-
-            #################### get bottom function top function#########################
-            if (currentScript.functions[toIndexToMove+1].name == 'Repeat' or currentScript.functions[toIndexToMove+1].name == 'If-Exist' or
-                                currentScript.functions[toIndexToMove+1].name == 'If-Not-Exist' or currentScript.functions[toIndexToMove+1].name == 'Else'):
-                toIndexBottomFunc = currentScript.linesFather[toIndexToMove +1].toIndex
-            else:
-                toIndexBottomFunc = toIndexToMove + 1
-            #############################################################################
-
+            fromIndexToMove, toIndexToMove = getMoveDownFunctionsRange(index)
+            toIndexTopFunc = getBottomFunctionsRange(fromIndexToMove, toIndexToMove)
             numberOfFunctionToMove = toIndexToMove - fromIndexToMove + 1
-
-            for funcIndex in range(toIndexToMove, fromIndexToMove - 1,-1):  # save and remove the function that we want to move in tempFunction
-                tempFunctions.insert(0, currentScript.functions[funcIndex])
-                tempLineFather.insert(0, currentScript.linesFather[funcIndex])
-                currentScript.functions.pop(funcIndex)
-                currentScript.linesFather.pop(funcIndex)
-
-            tempFuncIndex = 0
-            for funcIndex in range(toIndexBottomFunc, toIndexBottomFunc + numberOfFunctionToMove):
-                currentScript.functions.insert(funcIndex, tempFunctions[tempFuncIndex])
-                currentScript.linesFather.insert(funcIndex, tempLineFather[tempFuncIndex])
-                tempFuncIndex += 1
-
+            removeMoveFunctions(fromIndexToMove, tempFunctions, tempLineFather, toIndexToMove)
+            insertMoveDownFunctions(numberOfFunctionToMove, tempFunctions, tempLineFather, toIndexTopFunc)
             updateCurrentScript()
-            updateLb2(index,currentScript.linesFather[toIndexBottomFunc].toIndex,'replace')
+            updateLb2(fromIndexToMove,currentScript.linesFather[toIndexTopFunc].toIndex,'replace')
 
-            selectLb2Index(toIndexBottomFunc)
+            selectLb2Index(toIndexTopFunc)
     except Exception as e:
         exeptionHandler(e)
+
+
+def insertMoveDownFunctions(numberOfFunctionToMove, tempFunctions, tempLineFather, toIndexTopFunc):
+    tempFuncIndex = 0
+    for funcIndex in range(toIndexTopFunc, toIndexTopFunc + numberOfFunctionToMove):
+        currentScript.functions.insert(funcIndex, tempFunctions[tempFuncIndex])
+        currentScript.linesFather.insert(funcIndex, tempLineFather[tempFuncIndex])
+        tempFuncIndex += 1
+
+
+def getBottomFunctionsRange(fromIndexToMove, toIndexToMove):
+    if (currentScript.functions[toIndexToMove + 1].name == 'Repeat' or currentScript.functions[
+        toIndexToMove + 1].name == 'If-Exist' or
+            currentScript.functions[toIndexToMove + 1].name == 'If-Not-Exist' or currentScript.functions[
+                toIndexToMove + 1].name == 'Else'):
+        toIndexTopFunc = fromIndexToMove + (
+                    currentScript.linesFather[toIndexToMove + 1].toIndex - (toIndexToMove + 1)) + 1
+    else:
+        toIndexTopFunc = fromIndexToMove + 1
+    return toIndexTopFunc
+
+
+def getMoveDownFunctionsRange(index):
+    if (currentScript.functions[index].name == 'Repeat' or currentScript.functions[index].name == 'If-Exist' or
+            currentScript.functions[index].name == 'If-Not-Exist' or currentScript.functions[
+                index].name == 'Else'):
+        fromIndexToMove = index
+        toIndexToMove = index + len(currentScript.functions[index].extra.functions) + 2
+    else:
+        fromIndexToMove = index
+        toIndexToMove = index
+    return fromIndexToMove, toIndexToMove
 
 
 def popupmsg(msg):
@@ -1251,6 +1097,8 @@ def checkImageInFunc():
             elif func.name == 'Insert-Input':
                 if func.extra.text == '':
                     funcWithoutImage += ("The {} in line {} doesn't have input text\n".format(func.name, index))
+                if func.img == '':
+                    funcWithoutImage += ("The {} in line {} doesn't have image\n".format(func.name, index))
             elif func.name == 'If-Exist':
                 if func.extra.image == '?':
                     funcWithoutImage += ("The {} in line {} doesn't have image\n".format(func.name, index))
@@ -1288,11 +1136,6 @@ def runHendle():
         stopScript = False
         functionNum = 0
         ifExistFlag = True
-
-        # with keyboard.Listener(
-        #         on_press=on_press) as listener:
-        #     listener.join()
-
         funcWithoutImage = checkImageInFunc()
         if funcWithoutImage != '':
             popupmsg(funcWithoutImage)
@@ -1347,18 +1190,17 @@ def runHendle():
                             elif currentScript.functions[func].name == 'Exit':
                                 exit_handle(testLog)
                                 functionNum += 1
-                            elif currentScript.functions[func].name == 'Move-To':
+                            elif currentScript.functions[func].name == 'Hover':
                                 move_to_handle(currentScript.functions[func].img, currentScript.path,testLog)
                                 functionNum += 1
                 else:
                     break
-        endTime = datetime.now()
-        testLog.write('***Test End ' + str(endTime) + ' ***\n')
-        textView.insert(END, '***Test End ' + str(endTime) + ' ***\n')
-
-
-        testLog.write('***Total Test Time: ' + str(endTime-startTime) + ' ***\n\n\n')
-        textView.insert(END, '***Total Test Time: ' + str(endTime-startTime) + ' ***\n\n\n')
+            endTime = datetime.now()
+            if(testLog != None):
+                testLog.write('***Test End ' + str(endTime) + ' ***\n')
+                testLog.write('***Total Test Time: ' + str(endTime - startTime) + ' ***\n\n\n')
+            textView.insert(END, '***Test End ' + str(endTime) + ' ***\n')
+            textView.insert(END, '***Total Test Time: ' + str(endTime-startTime) + ' ***\n\n\n')
 
         mainScreen.deiconify()
     except Exception as e:
@@ -1377,10 +1219,10 @@ def saveFunctions():
                 imgdict = ''
             if (x.extra != ''):
                 block.append({'name': x.name, 'img': imgdict, 'id': str(x.id),'frameFather':'', 'frame': '', 'fatherIndex': str(x.father[0]),'fatherName':x.father[1],
-                              'extra': x.extra.getDict(),'indention':x.indention})
+                              'extra': x.extra.getDict(),'indention':str(x.indention)})
             else:
                 block.append({'name': x.name, 'img': imgdict, 'id': str(x.id),'frameFather':'', 'frame': '', 'fatherIndex': str(x.father[0]),'fatherName':x.father[1],
-                              'extra': '','indention':x.indention})
+                              'extra': '','indention':str(x.indention)})
         return block
     except Exception as e:
         exeptionHandler(e)
@@ -1392,7 +1234,18 @@ def saveLinesFather():
     try:
         block = []
         for x in currentScript.linesFather:
-            block.append({'fatherName':x.fatherName,'fromIndex':x.fromIndex,'toIndex':x.toIndex})
+            block.append({'fatherName':x.fatherName,'fromIndex':str(x.fromIndex),'toIndex':str(x.toIndex)})
+        return block
+    except Exception as e:
+        exeptionHandler(e)
+
+
+def saveCurrentScript():
+    if (logger != None):
+        logger.writeToLog('saveCurrentScript function')
+    try:
+        block = []
+        block.append({'name': currentScript.name,'created_time':str(currentScript.created_time) , 'path': currentScript.path})
         return block
     except Exception as e:
         exeptionHandler(e)
@@ -1410,8 +1263,9 @@ def saveHundle():
             pass
         functionsblock = saveFunctions()
         linesFatherblock = saveLinesFather()
+        currentScriptblock = saveCurrentScript()
         with open(functionPath, 'w+') as outfile:
-            outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
+            outfile.write(json.dumps(currentScriptblock) + '\n' + json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
     except Exception as e:
         exeptionHandler(e)
 
@@ -1423,9 +1277,6 @@ def saveAsHundle():
     if (logger != None):
         logger.writeToLog('saveAsHundle function')
     try:
-        # filePath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
-        #                                                 filetypes=(("txt files", "*.json"), ("all files", "*.*")))
-
         functionPath = tkinter.filedialog.asksaveasfilename(initialdir=".", title="Select file",
                                                         filetypes=(("Json file", "*.json"), ("all files", "*.*")))
         functionPath+= '.json'
@@ -1436,11 +1287,23 @@ def saveAsHundle():
         clearImages()
         functionsblock = saveFunctions()
         linesFatherblock = saveLinesFather()
+        currentScriptblock = saveCurrentScript()
         with open(functionPath, 'w+') as outfile:
-            outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
-        currentScript.path = functionPath
+            outfile.write(json.dumps(currentScriptblock) + '\n' + json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
     except Exception as e:
         exeptionHandler(e)
+
+
+def openCurrentScript(currentScriptData):
+    if (logger != None):
+        logger.writeToLog('openCurrentScript function')
+    try:
+        created_Time_After_Parse = datetime.strptime(currentScriptData[0]['created_time'], '%Y-%m-%d %H:%M:%S.%f')
+        pathFatherDirectory = os.path.dirname(os.path.dirname(currentScriptData[0]['path'])) + '\\'
+        return script.Script(currentScriptData[0]['name'],[],created_Time_After_Parse,[],0,pathFatherDirectory)
+    except Exception as e:
+        exeptionHandler(e)
+
 
 def openFunctions(data):
     if (logger != None):
@@ -1462,7 +1325,7 @@ def openLinesFather(data):
     try:
         inputFunctions = []
         for x in data:
-            inputFunctions.append(LineFather(x['fromIndex'],x['toIndex'],x['fatherName']))
+            inputFunctions.append(LineFather(int(x['fromIndex']),int(x['toIndex']),x['fatherName']))
         currentScript.linesFather = copy.copy(inputFunctions)
     except Exception as e:
         exeptionHandler(e)
@@ -1474,59 +1337,23 @@ def openButton():
     try:
         filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
                                                       filetypes=(("json files", "*.json"), ("all files", "*.*")))
-        projectNamePath = os.path.split(os.path.split(filePath)[0])
-        label = projectNamePath[0]
-        global currentScript
-        currentScript = script.Script(projectNamePath[1], [], datetime.now(), path=label + '/')
         with open(filePath) as json_file:
             data = json_file.read()
-            functionsData = json.loads(data[:data.index('\n')])
-            linesFatherData = json.loads(data[data.index('\n')+1:])
+            currentScriptData = json.loads(data[:data.index('\n')])
+            tempData = data[data.index('\n') + 1:]
+            functionsData = json.loads(tempData[:tempData.index('\n')])
+            linesFatherData = json.loads(tempData[tempData.index('\n') + 1:])
+
+        global currentScript
+        currentScript = openCurrentScript(currentScriptData)
 
         openFunctions(functionsData)
         openLinesFather(linesFatherData)
         updateLb2(0,len(currentScript.functions)-1,'add','deleteBefore')
+        selectLb2Index(0)
     except Exception as e:
         exeptionHandler(e)
 
-
-def TreeviewD_Click(event):
-    if (logger != None):
-        logger.writeToLog('TreeviewD_Click function')
-    try:
-        item_id = tree.selection()[0]
-        #         parent_id = tree.parent(item_id)
-        #         scriptPath = os.path.split(os.path.split(currentScript.path)[0])[0]
-        #         fullPath =''
-        #         while item_id != '':
-        #             temp = tree.item(item_id)['text']
-        #             if fullPath == '':
-        #                 fullPath = temp
-        #             else:
-        #                 fullPath = temp + '\\' + fullPath
-        #             item_id = parent_id
-        #             parent_id = tree.parent(item_id)
-        #
-        #         if currentScript.functions != []:
-        #             msgbox = tkinter.messagebox.askyesnocancel('Notic!', 'Do you want to save changes you made?')
-        #             if (msgbox == True):
-        #                 saveHundle()
-        #             elif (msgbox == None):
-        #                 return
-        #         currentScript.functions.clear()
-        #         path = scriptPath + '\\' + fullPath
-        #         if(os.path.isdir(path)):
-        #             path += '\\'
-        #         with open(path) as json_file:
-        #             data = json_file.read()
-        #             functionsData = json.loads(data[:data.index('\n')])
-        #             linesFatherData = json.loads(data[data.index('\n')+1:])
-        #
-        #         openFunctions(functionsData)
-        #         openLinesFather(linesFatherData)
-        #         # updateLb2()
-    except Exception as e:
-        exeptionHandler(e)
 
 def updateExtra(tempLineFather,tempFatherFunction,place,currentFunction):
     if (logger != None):
@@ -1556,60 +1383,34 @@ def insert_A():
         if (place != 0 and currentScript.functions[place].name == '}'):
             currentFunction = Function('', '', place, rightSectionFrame, '', '', '',currentScript,tree,Lb2,photoViewFrame,
                                    currentScript.functions[place].indention + 1)
-            currentScript.functions.insert(place, currentFunction)
         elif (place != 0 and currentScript.functions[place+1].name == '}'):
             currentFunction = Function('', '', place, rightSectionFrame, '', '', '',currentScript,tree,Lb2,photoViewFrame,
                                    currentScript.functions[place+1].indention + 1)
-            currentScript.functions.insert(place, currentFunction)
         elif(place > 0):
             currentFunction = Function('', '', place, rightSectionFrame,'', '', '',currentScript,tree,Lb2,photoViewFrame,currentScript.functions[place+1].indention)
-            currentScript.functions.insert(place, currentFunction)
         else:
             currentFunction = Function('', '', place, rightSectionFrame, '', '', '',currentScript,tree,Lb2,photoViewFrame)
-            currentScript.functions.insert(place, currentFunction)
+        currentScript.functions.insert(place, currentFunction)
 
-        if place > 0 and place <= len(currentScript.functions)-1:
-            previousFunction = currentScript.functions[place - 1]
-        else:
-            previousFunction = ''
-
+        nextFunction = ''
         if place >= 0 and place < len(currentScript.functions)-1:
             nextFunction = currentScript.functions[place + 1]
-        else:
-            nextFunction = ''
 
-        if (previousFunction != '' and nextFunction !='' ):
-            if(previousFunction.father == nextFunction.father):
-                currentLineFather = LineFather(currentScript.linesFather[previousFunction.father[0]].fromIndex,
-                                                                   currentScript.linesFather[previousFunction.father[0]].toIndex, currentScript.linesFather[previousFunction.father[0]].fatherName)
+        if (nextFunction !='' ):
+            if(isComplexFuncByName(nextFunction.father[1]) and not isComplexFuncByName(nextFunction.name)):
+                currentLineFather = LineFather(currentScript.linesFather[nextFunction.father[0]].fromIndex,
+                                                                   currentScript.linesFather[nextFunction.father[0]].toIndex, currentScript.linesFather[nextFunction.father[0]].fatherName)
                 currentScript.linesFather.insert(place,currentLineFather)
                 fromIndex = currentScript.linesFather[place].fromIndex
                 currentScript.functions[place].father = (fromIndex, nextFunction.father[1])
-                if (currentScript.functions[place].indention > 0):
-                    updateExtra(currentLineFather, currentScript.functions[currentLineFather.fromIndex], place, currentFunction)
-                # currentScript.functions[fromIndex].extra.functions.insert(place - fromIndex - 2, Function('', '', place, rightSectionFrame,'', (
-                # fromIndex, nextFunction.father[1]), ''))
+                updateExtra(currentLineFather, currentScript.functions[currentLineFather.fromIndex], place, currentFunction)
             else:
-                if(nextFunction.name !='Repeat' and nextFunction.name !='If-Exist' and nextFunction.name !='If-Not-Exist' and nextFunction.name !='Else' ):
-                    currentLineFather =LineFather(
-                        currentScript.linesFather[nextFunction.father[0]].fromIndex,
-                        currentScript.linesFather[nextFunction.father[0]].toIndex,
-                        currentScript.linesFather[nextFunction.father[0]].fatherName)
-                    currentScript.linesFather.insert(place,currentLineFather)
-                    fromIndex = currentScript.linesFather[place].fromIndex
-                    currentScript.functions[place].father = (fromIndex, nextFunction.father[1])
-                    if(currentScript.functions[place+1].indention >0):
-                        updateExtra(currentLineFather,currentScript.functions[currentLineFather.fromIndex],place,currentFunction)
-                    # currentScript.functions[fromIndex].extra.functions.insert(place - fromIndex - 2,
-                    #                                                           Function('', '', place, rightSectionFrame,'', (
-                    #                                                               fromIndex, nextFunction.father[1]), ''))
-                else:
-                    currentLineFather = LineFather(place, place, '')
-                    currentScript.linesFather.insert(place, currentLineFather)
-                    currentScript.functions[place].father = (place, currentScript.functions[place].name)
-        else:
-            currentScript.linesFather.insert(place, LineFather(place, place, ''))
-            currentScript.functions[place].father = (place, currentScript.functions[place].name)
+                currentLineFather = LineFather(place, place, '')
+                currentScript.linesFather.insert(place, currentLineFather)
+                currentScript.functions[place].father = (place, currentScript.functions[place].name)
+        # else:
+        #     currentScript.linesFather.insert(place, LineFather(place, place, ''))
+        #     currentScript.functions[place].father = (place, currentScript.functions[place].name)
 
         if len(currentScript.functions) > 0:
             updateCurrentScript('A')
@@ -1624,8 +1425,6 @@ def insert_B(place = 0,flag = True):
     if (logger != None):
         logger.writeToLog('insert_B function')
     try:
-        if 'Dis' in insert_b_flag[0]:
-            return
         if(flag == True):
             try:
                 place = Lb2.curselection()[0] + 1
@@ -1642,36 +1441,28 @@ def insert_B(place = 0,flag = True):
                 currentFunction = Function('', '', place, rightSectionFrame, '', '', '',currentScript,tree,Lb2,photoViewFrame,
                                            currentScript.functions[place - 1].indention)
             currentScript.functions.insert(place, currentFunction)
-
-            if place > 0 and place <= len(currentScript.functions) - 1:
-                previousFunction = currentScript.functions[place - 1]
-            else:
-                previousFunction = ''
-            if place >= 0 and place < len(currentScript.functions) - 1:
-                nextFunction = currentScript.functions[place + 1]
-            else:
-                nextFunction = ''
-            if (nextFunction != ''):
-                currentLineFather = LineFather(currentScript.linesFather[nextFunction.father[0]].fromIndex,
-                                                            currentScript.linesFather[nextFunction.father[0]].toIndex,
-                                                            currentScript.linesFather[nextFunction.father[0]].fatherName)
-                currentScript.linesFather.insert(place,currentLineFather )
-
-
-                fromIndex = currentScript.linesFather[place].fromIndex
-                currentScript.functions[place].father = (fromIndex, nextFunction.father[1])
-                if(currentScript.functions[place].indention >0 ):
-                    updateExtra(currentLineFather,currentScript.functions[currentLineFather.fromIndex],place,currentFunction) # update all the fathers extra
-
-            else:
-                currentScript.linesFather.insert(place, LineFather(place, place, ''))
-                currentScript.functions[place].father = (place,currentScript.functions[place].name)
+            previousFunction = ''
+            if place >= 0 and place < len(currentScript.functions):
+                previousFunction = currentScript.functions[place -1]
+            if (previousFunction != ''):
+                fatherLinesFather = currentScript.linesFather[currentScript.functions[previousFunction.father[0]].father[0]]
+                if (fatherLinesFather.fromIndex <= place <= fatherLinesFather.toIndex):
+                    currentLineFather = LineFather(fatherLinesFather.fromIndex,fatherLinesFather.toIndex,fatherLinesFather.fatherName)
+                    currentScript.linesFather.insert(place, currentLineFather)
+                    fromIndex = currentScript.linesFather[place].fromIndex
+                    currentScript.functions[place].father = (fromIndex, previousFunction.father[1])
+                    updateExtra(currentLineFather, currentScript.functions[currentLineFather.fromIndex], place,
+                                currentFunction)
+                else:
+                    currentLineFather = LineFather(place, place, '')
+                    currentScript.linesFather.insert(place, currentLineFather)
+                    currentScript.functions[place].father = (place, currentScript.functions[place].name)
 
             if len(currentScript.functions) > 1:
                 updateCurrentScript('B')
             if(flag == True):
                 updateLb2(place,place,'add','B')
-            selectLb2Index(place)
+                selectLb2Index(place)
     except Exception as e:
         exeptionHandler(e)
 
@@ -1757,33 +1548,28 @@ def save_new_project_and_run_app(label,fileName, window):
             except:
                 print('folder alreay exist!')
 
-            #********************************************************************************
-
-
-            # functionsblock = saveFunctions()
-            # linesFatherblock = saveLinesFather()
-
             root = tree.insert('', 'end', text=fileName, open=True, tag='T')
             SUBS(label+'/'+fileName, root, tree)
-
-
             FocusOnSelectedFunc(None)
-
-            # updateLb2()
-
-
         insert_A()
         functionsblock = saveFunctions()
         linesFatherblock = saveLinesFather()
+        currentScriptblock = saveCurrentScript()
         with open(functionPath, 'w+') as outfile:
-            outfile.write(json.dumps(functionsblock) + '\n' + json.dumps(linesFatherblock))
+            outfile.write(json.dumps(currentScriptblock) + '\n' + json.dumps(functionsblock) + '\n' + json.dumps(
+                linesFatherblock))
         selectLb2Index(0)
         window.destroy()
         mainScreen.deiconify()
         mainScreen.state("zoomed")
 
-def isComplexFunc(index):
+def isComplexFuncByIndex(index):
     funcName = currentScript.functions[index].name
+    if(funcName == 'Repeat' or funcName == 'If-Exist' or funcName == 'If-Not-Exist' or funcName == 'Else'):
+        return True
+    return False
+
+def isComplexFuncByName(funcName):
     if(funcName == 'Repeat' or funcName == 'If-Exist' or funcName == 'If-Not-Exist' or funcName == 'Else'):
         return True
     return False
@@ -1793,7 +1579,7 @@ def selectLb2Index(index):
     if (logger != None):
         logger.writeToLog('selectLb2Index function')
     try:
-        if isComplexFunc(index) == True:
+        if isComplexFuncByIndex(index) == True:
             index += 2
         Lb2.select_clear(0,len(currentScript.functions)-1)
         Lb2.select_set(index)
@@ -1817,19 +1603,16 @@ def Minimize_and_Open(event, screenToMini):
     try:
         filePath = tkinter.filedialog.askopenfilename(initialdir=".", title="Select file",
                                                   filetypes=(("json files", "*.json"), ("all files", "*.*")))
-        projectNamePath = os.path.split(os.path.split(filePath)[0])
-        label = projectNamePath[0]
+
+        currentScriptData, functionsData, linesFatherData = getDataFromJson(filePath)
+
+
         global currentScript
-        currentScript = script.Script(projectNamePath[1], [], datetime.now(), path=label + '/')
+        currentScript = openCurrentScript(currentScriptData)
         global logger
         logger = Logger(currentScript.path + 'Operation Details Log.txt')
         global Emails
         Emails = EmailSender(currentScript.path + 'Operation Details Log.txt')
-        with open(filePath) as json_file:
-            data = json_file.read()
-            functionsData = json.loads(data[:data.index('\n')])
-            linesFatherData = json.loads(data[data.index('\n') + 1:])
-
 
         openFunctions(functionsData)
         openLinesFather(linesFatherData)
@@ -1845,8 +1628,18 @@ def Minimize_and_Open(event, screenToMini):
         mainScreen.deiconify()
         mainScreen.state("zoomed")
     except Exception as e:
-        print(e)
         startScreen()
+
+
+def getDataFromJson(filePath):
+    with open(filePath) as json_file:
+        data = json_file.read()
+        currentScriptData = json.loads(data[:data.index('\n')])
+        tempData = data[data.index('\n') + 1:]
+        functionsData = json.loads(tempData[:tempData.index('\n')])
+        linesFatherData = json.loads(tempData[tempData.index('\n') + 1:])
+    return currentScriptData, functionsData, linesFatherData
+
 
 def startScreen(startS=None):
     try:
@@ -1898,6 +1691,7 @@ def startScreen(startS=None):
     canvas.tag_bind('Close', '<Enter>',lambda event: hoverOn(event,canvas, close,4, startS))
     canvas.tag_bind('Close', '<Leave>',lambda event: hoverOff(event, canvas, close,4, startS))
     startS.attributes('-topmost', True)
+
 def terminate(screen):
     try:
         for widget in mainScreen.winfo_children():
@@ -1977,113 +1771,6 @@ def clearRe(event):
     except Exception as e:
         exeptionHandler(e)
 
-# def reportFrame():
-#     logger.writeToLog('reportFrame function')
-#
-#     data = {}
-#
-#     reportFrame = Frame(mainScreen, bd=6, relief=SUNKEN, width=GetSystemMetrics(0), height=350, name='reportFrame',  bg='#3c3f41')
-#     reportFrame.place(x=0, y=mainScreen.winfo_height() - 50)
-#
-#     buttonUp = Button(reportFrame, text='⬆', name='arrow')
-#     buttonUp.place(x=mainScreen.winfo_width() - 40)
-#     buttonUp.bind('<Button-1>', lambda event: exposeReport(event, reportFrame, buttonUp))
-#
-#     reportContex = Frame(reportFrame, bd=3, relief=SUNKEN, width=GetSystemMetrics(0) - 300, height=270,  bg='#2b2b2b')
-#     reportContex.place(x=100, y=50)
-#
-#     textView = Text(reportContex,width=GetSystemMetrics(0) - 300)
-#     textView.place(x=0,y=0)
-#
-#     clearReport = Button(reportFrame, text='Clear All')
-#     clearReport.place(x=mainScreen.winfo_width() - 150)
-#     clearReport.bind('<Button-1>', lambda event: clearRe)
-
-# def clearRe(event, data, frame):
-#     data.clear()
-#     for i in frame.winfo_children():
-#         try:
-#             i.destroy()
-#         except:
-#             pass
-#
-#
-# def getReport(event, frameToWrite, data, size):
-#     data.update({"set_info":{}})
-#     counter=1
-#     for x in currentScript.functions:
-#         if x.name!='{' and x.name !='}':
-#             if(x.extra!=''):
-#                 extra = x.extra.getDict()
-#             else:
-#                 extra="no other parameters"
-#
-#             data['set_info'].update({
-#                 x.name:{
-#                     'id_number': str(x.id),
-#                     'more_vars': extra
-#                 }
-#             })
-#             counter+=1
-#
-#     scrollbar = Scrollbar(frameToWrite)
-#     scrollbar.pack(side=RIGHT, fill=Y)
-#     tree1 = ttk.Treeview(frameToWrite, yscrollcommand=scrollbar.set, name='repoTree')
-#     root = tree1.insert('', 'end', text='', open=True, tag='T')
-#
-#     scrollbar.config(command=tree.yview)
-#     jsonTree(frameToWrite, data, tree1, root)
-#     tree1.column("#0", width=size)
-#     tree1.pack(fill=BOTH, expand=True)
-#
-#     frameToWrite.place(height=270)
-#
-#
-# def jsonTree(frame, data, tree, parent):
-#
-#     for key, value in data.items():
-#         if isinstance(value,list):
-#             value = value[0]
-#
-#         if isinstance(value,dict):
-#             parent_element = tree.insert(parent, 'end', text=key, open=True, tag="T")
-#             jsonTree(frame, value , tree, parent_element)
-#             # print('insert ' + str(key) + ' his uid is: ' + str(parent_element) + ' his parent uid is: ' + str(parent) )
-#
-#         else:
-#             parent_element = tree.insert(parent, 'end', text=(key + ':' + value), open=True, tag="T")
-#             pass
-#
-#     clearReport.bind('<Button-1>')
-
-
-
-
-# def exposeReport(event, frame, button):
-#
-#     counter = 0
-#
-#     if(button.cget('text')=='⬆'):
-#
-#         while(counter!=10):
-#                 y = frame.winfo_y() - 30
-#                 frame.place(y=y)
-#                 frame.update()
-#                 time.sleep(0.009)
-#                 counter+=1
-#         button['text'] = '⬇'
-#
-#     else:
-#         while (counter != 10):
-#             y = frame.winfo_y() + 30
-#             frame.place(y=y)
-#             frame.update()
-#             time.sleep(0.009)
-#             counter += 1
-#         button['text'] = '⬆'
-
-
-
 def autosave(arg):
     if (logger != None):
         logger.writeToLog('autosave function')
@@ -2100,7 +1787,6 @@ def autosave(arg):
                     flag = 1
                 else:
                     flag = 0
-                print(counter)
                 time.sleep(1)
                 counter -= 1
                 if flag == 1:
@@ -2113,11 +1799,9 @@ def comboBoxSelect(arg,canvas,combo):
     if 'No' in arg:
         filename = "img\\combo.png"
         comboFlag[1]=''
-
     else:
         filename = filename = "img\\combo2.png"
         comboFlag[1]='2'
-
     Button1 = PhotoImage(master=mainScreen, file=filename)
     canvas.a = Button1
     canvas.itemconfig(combo, image=Button1)
@@ -2128,16 +1812,12 @@ def comboBoxSelect(arg,canvas,combo):
             for x in process:
                x._is_stopped = True
                time.sleep(1)
-
                x._is_stopped = False
-
         except:
             print('in exept')
-
         process.clear()
         saver = threading.Thread(target=autosave, args=(arg,))
         process.append(saver)
-
         saver.start()
     except Exception as e:
         exeptionHandler(e)
@@ -2151,17 +1831,13 @@ def on_closing():
         currentlinesFather = saveLinesFather()
 
         filePath = currentScript.path + 'functions.json'
-        with open(filePath) as json_file:
-            data = json_file.read()
-            savedFunctions = json.loads(data[:data.index('\n')])
-            savedlinesFather = json.loads(data[data.index('\n') + 1:])
+        currentScriptData, savedFunctions, savedlinesFather = getDataFromJson(filePath)
 
         if currentFunctions == savedFunctions and currentlinesFather == savedlinesFather:
             if tkinter.messagebox.askokcancel("Quit", "Do you want to quit?"):
                 for x in process:
                     x._is_stopped = True
                 mainScreen.destroy()
-
         else:
             temp = tkinter.messagebox.askyesnocancel("Quit", "Your project is not saved\nDo you want to save your project?")
             if temp == True:
@@ -2309,13 +1985,11 @@ def paste_handler():
                     placeAndName.append((index,func.name))
                 index += 1
             for func in placeAndName:
-                if(func[0] > len(currentScript.functions)-1 or currentScript.functions[func[0]].name != ''):
+                if(currentScript.functions[func[0]].name != ''):
                     insert_B(func[0],False)
                 addFunction(func[0],func[1],False)
             updateLb2(placeAndName[0][0],len(copyFunction) + placeAndName[0][0] -1 ,'add')
             selectLb2Index(func[0])
-        else:
-            popupmsg('you can paste just on empty box')
     except Exception as e:
         exeptionHandler(e)
 
@@ -2397,44 +2071,50 @@ def repeat_handle(fatherFunction,path,testLog):
         for i in range(repeatTime):
             if(stopScript == False):
                 for func in childrenFunction:
-                    if (func.name == 'Repeat'):
-                        functionNum += repeat_handle(func,path,testLog) + 3
-                    elif (func.name == 'Left-Click'):
-                        left_click_handle(func.img, path,testLog)
-                        functionNum += 1
-                    elif (func.name == 'If-Exist'):
-                        exist, tempFunctionNum = exist_handle(func, path,testLog)
-                        functionNum += tempFunctionNum
-                        ifExistFlag = exist
-                    elif (func.name == 'If-Not-Exist'):
-                        exist, tempFunctionNum = not_exist_handle(func, path,testLog)
-                        functionNum += tempFunctionNum
-                        ifExistFlag = exist
-                    elif (func.name == 'Double-Click'):
-                        double_click_handle(func.img,path,testLog)
-                        functionNum += 1
-                    elif (func.name == 'Else' and not ifExistFlag):
-                        functionNum += else_handle(func, path,testLog)
-                    elif (func.name == 'Right-Click'):
-                        right_click_handle(func.img,testLog)
-                        functionNum += 1
-                    elif (func.name == 'Sleep'):
-                        sleep_handle(func.extra.time,testLog)
-                        functionNum += 1
-                    elif (func.name == 'Insert-Input'):
-                        insert_input_handle(func.img,path,func.extra.text,testLog)
-                        functionNum += 1
-                    elif (func.name == 'Exit'):
-                        exit_handle(testLog)
-                        functionNum += 1
-                    elif (func.name == 'Move-To'):
-                        move_to_handle(func.img, path,testLog)
-                        functionNum += 1
+                    functionNum = ComplexRunHandle(func, functionNum, path, testLog)
             else:
                 break
         return functionNum/repeatTime
     except Exception as e:
         exeptionHandler(e)
+
+
+def ComplexRunHandle(func, functionNum, path, testLog):
+    if (func.name == 'Repeat'):
+        functionNum += repeat_handle(func, path, testLog) + 3
+    elif (func.name == 'Left-Click'):
+        left_click_handle(func.img, path, testLog)
+        functionNum += 1
+    elif (func.name == 'If-Exist'):
+        exist, tempFunctionNum = exist_handle(func, path, testLog)
+        functionNum += tempFunctionNum
+        ifExistFlag = exist
+    elif (func.name == 'If-Not-Exist'):
+        exist, tempFunctionNum = not_exist_handle(func, path, testLog)
+        functionNum += tempFunctionNum
+        ifExistFlag = exist
+    elif (func.name == 'Double-Click'):
+        double_click_handle(func.img, path, testLog)
+        functionNum += 1
+    elif (func.name == 'Else' and not ifExistFlag):
+        functionNum += else_handle(func, path, testLog)
+    elif (func.name == 'Right-Click'):
+        right_click_handle(func.img, path, testLog)
+        functionNum += 1
+    elif (func.name == 'Sleep'):
+        sleep_handle(func.extra.time, testLog)
+        functionNum += 1
+    elif (func.name == 'Insert-Input'):
+        insert_input_handle(func.img, path, func.extra.text, testLog)
+        functionNum += 1
+    elif (func.name == 'Exit'):
+        exit_handle(testLog)
+        functionNum += 1
+    elif (func.name == 'Hover'):
+        move_to_handle(func.img, path, testLog)
+        functionNum += 1
+    return functionNum
+
 
 def sleep_handle(timeDelay,testLog):
     if (logger != None):
@@ -2472,7 +2152,7 @@ def insert_input_handle(template,path,text,testLog):
         logger.writeToLog('insert_input_handle function')
     try:
         time.sleep(waitBeforeImageProcess)
-        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template)
+        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template,currentScript)
         beforeCropScreenShot.save(currentScript.path + 'Test Image\\before Crop' + template.img)
         screenShot.save(currentScript.path + 'Test Image\\after Crop' + template.img)
         exist,howManyRec = ImgRecog.photoRec(path,screenShot,template)
@@ -2501,7 +2181,7 @@ def move_to_handle(template,path,testLog):
         logger.writeToLog('move_to_handle function')
     try:
         time.sleep(waitBeforeImageProcess)
-        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template)
+        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template,currentScript)
         beforeCropScreenShot.save(currentScript.path + 'Test Image\\before Crop' + template.img)
         screenShot.save(currentScript.path + 'Test Image\\after Crop' + template.img)
         exist, howManyRectangles = ImgRecog.photoRec(path, screenShot, template)
@@ -2523,7 +2203,7 @@ def scan_text_compare_handle(fatherFunction,path,text,testLog):
     try:
         time.sleep(waitBeforeImageProcess)
         childrenFunctions = fatherFunction.extra.functions
-        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template)
+        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template,currentScript)
         beforeCropScreenShot.save(currentScript.path + 'Test Image\\before Crop' + template.img)
         screenShot.save(currentScript.path + 'Test Image\\after Crop' + template.img)
         exist = ScanText.scan_text_and_compare(screenShot,text)
@@ -2535,39 +2215,7 @@ def scan_text_compare_handle(fatherFunction,path,text,testLog):
             for func in childrenFunctions:
                 if (stopScript == False):
                     if (func.father[0] == fatherFunction.id):
-                        if (func.name == 'Repeat'):
-                            functionNum += repeat_handle(func, path, testLog) + 3
-                        elif (func.name == 'Left-Click'):
-                            left_click_handle(func.img, path, testLog)
-                            functionNum += 1
-                        elif (func.name == 'If-Exist'):
-                            exist, tempFunctionNum = exist_handle(func, path, testLog)
-                            functionNum += tempFunctionNum
-                            ifExistFlag = exist
-                        elif (func.name == 'If-Not-Exist'):
-                            exist, tempFunctionNum = not_exist_handle(func, path, testLog)
-                            functionNum += tempFunctionNum
-                            ifExistFlag = exist
-                        elif (func.name == 'Double-Click'):
-                            double_click_handle(func.img, path, testLog)
-                            functionNum += 1
-                        elif (func.name == 'Else' and not ifExistFlag):
-                            functionNum += else_handle(func, path, testLog)
-                        elif (func.name == 'Right-Click'):
-                            right_click_handle(func.img, path, testLog)
-                            functionNum += 1
-                        elif (func.name == 'Sleep'):
-                            sleep_handle(func.extra.time, testLog)
-                            functionNum += 1
-                        elif (func.name == 'Insert-Input'):
-                            insert_input_handle(func.img, path, func.extra.text, testLog)
-                            functionNum += 1
-                        elif (func.name == 'Exit'):
-                            exit_handle(testLog)
-                            functionNum += 1
-                        elif (func.name == 'Move-To'):
-                            move_to_handle(func.img, path, testLog)
-                            functionNum += 1
+                        functionNum = ComplexRunHandle(func, functionNum, path, testLog)
                 else:
                     break
         else:
@@ -2582,7 +2230,7 @@ def double_click_handle(template,path,testLog):
         logger.writeToLog('double_click_handle function')
     try:
         time.sleep(waitBeforeImageProcess)
-        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template)
+        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template,currentScript)
         beforeCropScreenShot.save(currentScript.path + 'Test Image\\before Crop' + template.img)
         screenShot.save(currentScript.path + 'Test Image\\after Crop' + template.img)
         exist,howManyRec = ImgRecog.photoRec(path,screenShot,template)
@@ -2603,7 +2251,7 @@ def right_click_handle(template,path,testLog):
         logger.writeToLog('right_click_handle function')
     try:
         time.sleep(waitBeforeImageProcess)
-        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template)
+        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template,currentScript)
         beforeCropScreenShot.save(currentScript.path + 'Test Image\\before Crop' + template.img)
         screenShot.save(currentScript.path + 'Test Image\\after Crop' + template.img)
         exist,howManyRec = ImgRecog.photoRec(path,screenShot,template)
@@ -2628,7 +2276,7 @@ def exist_handle(fatherFunction,path,testLog):
         childrenFunctions = fatherFunction.extra.functions
         template = fatherFunction.img
         ifExistFlag = True
-        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template)
+        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template,currentScript)
         beforeCropScreenShot.save(currentScript.path + 'Test Image\\before Crop' + template.img)
         screenShot.save(currentScript.path + 'Test Image\\after Crop' + template.img)
         exist,howManyRec = ImgRecog.photoRec(path, screenShot, template)
@@ -2640,39 +2288,7 @@ def exist_handle(fatherFunction,path,testLog):
             for func in childrenFunctions:
                 if(stopScript==False):
                     if(func.father[0] == fatherFunction.id):
-                        if (func.name == 'Repeat'):
-                            functionNum += repeat_handle(func, path,testLog) + 3
-                        elif (func.name == 'Left-Click'):
-                            left_click_handle(func.img, path,testLog)
-                            functionNum += 1
-                        elif (func.name == 'If-Exist'):
-                            exist,tempFunctionNum = exist_handle(func,path,testLog)
-                            functionNum += tempFunctionNum
-                            ifExistFlag = exist
-                        elif (func.name == 'If-Not-Exist'):
-                            exist, tempFunctionNum = not_exist_handle(func, path,testLog)
-                            functionNum += tempFunctionNum
-                            ifExistFlag = exist
-                        elif (func.name == 'Double-Click'):
-                            double_click_handle(func.img,path,testLog)
-                            functionNum += 1
-                        elif (func.name == 'Else' and not ifExistFlag):
-                            functionNum += else_handle(func, path,testLog)
-                        elif (func.name == 'Right-Click'):
-                            right_click_handle(func.img,path,testLog)
-                            functionNum += 1
-                        elif (func.name == 'Sleep'):
-                            sleep_handle(func.extra.time,testLog)
-                            functionNum += 1
-                        elif (func.name == 'Insert-Input'):
-                            insert_input_handle(func.img, path, func.extra.text, testLog)
-                            functionNum += 1
-                        elif (func.name == 'Exit'):
-                            exit_handle(testLog)
-                            functionNum += 1
-                        elif (func.name == 'Move-To'):
-                            move_to_handle(func.img, path, testLog)
-                            functionNum += 1
+                        functionNum = ComplexRunHandle(func, functionNum, path, testLog)
                 else:
                     break
         else:
@@ -2691,50 +2307,19 @@ def not_exist_handle(fatherFunction,path,testLog):
         childrenFunctions = fatherFunction.extra.functions
         template = fatherFunction.img
         ifExistFlag = True
-        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template)
+        beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template,currentScript)
         beforeCropScreenShot.save(currentScript.path + 'Test Image\\before Crop' + template.img)
         screenShot.save(currentScript.path + 'Test Image\\after Crop' + template.img)
         exist,howManyRec = ImgRecog.photoRec(path, screenShot, template)
+        functionNum = 0
         if (exist == False):
             testLog.write('image {} is not exist as expected (If-Not-Exist)\n'.format(template.img))
             textView.insert(END,'image {} is not exist as expected (If-Not-Exist)\n'.format(template.img))
 
-            functionNum = 0
+
             for func in childrenFunctions:
                 if(stopScript == False):
-                    if (func.name == 'Repeat'):
-                        functionNum += repeat_handle(func, path,testLog) + 3
-                    elif (func.name == 'Left-Click'):
-                        left_click_handle(func.img, path,testLog)
-                        functionNum += 1
-                    elif (func.name == 'If-Exist'):
-                        exist, tempFunctionNum = exist_handle(func, path,testLog)
-                        functionNum += tempFunctionNum
-                        ifExistFlag = exist
-                    elif (func.name == 'If-Not-Exist'):
-                        exist, tempFunctionNum = not_exist_handle(func, path,testLog)
-                        functionNum += tempFunctionNum
-                        ifExistFlag = exist
-                    elif (func.name == 'Double-Click'):
-                        double_click_handle(func.img,path,testLog)
-                        functionNum += 1
-                    elif (func.name == 'Else' and not ifExistFlag):
-                        functionNum += else_handle(func, path,testLog)
-                    elif (func.name == 'Right-Click'):
-                        right_click_handle(func.img,testLog)
-                        functionNum += 1
-                    elif (func.name == 'Sleep'):
-                        sleep_handle(func.extra.time,testLog)
-                        functionNum += 1
-                    elif (func.name == 'Insert-Input'):
-                        insert_input_handle(func.img, path, func.extra.text, testLog)
-                        functionNum += 1
-                    elif (func.name == 'Exit'):
-                        exit_handle(testLog)
-                        functionNum += 1
-                    elif (func.name == 'Move-To'):
-                        move_to_handle(func.img, path,testLog)
-                        functionNum += 1
+                    functionNum = ComplexRunHandle(func, functionNum, path, testLog)
                 else:
                     break
         else:
@@ -2754,39 +2339,7 @@ def else_handle(fatherFunction,path,testLog):
         functionNum = 0
         for func in childrenFunctions:
             if(stopScript==False):
-                if (func.name == 'Repeat'):
-                    functionNum += repeat_handle(func, path,testLog) + 3
-                elif (func.name == 'Left-Click'):
-                    left_click_handle(func.img, path,testLog)
-                    functionNum += 1
-                elif (func.name == 'If-Exist'):
-                    exist, tempFunctionNum = exist_handle(func, path,testLog)
-                    functionNum += tempFunctionNum
-                    ifExistFlag = exist
-                elif (func.name == 'If-Not-Exist'):
-                    exist, tempFunctionNum = not_exist_handle(func, path,testLog)
-                    functionNum += tempFunctionNum
-                    ifExistFlag = exist
-                elif (func.name == 'Double-Click'):
-                    double_click_handle(func.img,path,testLog)
-                    functionNum += 1
-                elif (func.name == 'Else' and not ifExistFlag):
-                    functionNum += else_handle(func, path,testLog)
-                elif (func.name == 'Right-Click'):
-                    right_click_handle(func.img,testLog)
-                    functionNum += 1
-                elif (func.name == 'Sleep'):
-                    sleep_handle(func.extra.time,testLog)
-                    functionNum += 1
-                elif (func.name == 'Insert-Input'):
-                    insert_input_handle(func.img,path,func.extra.text,testLog)
-                    functionNum += 1
-                elif (func.name == 'Exit'):
-                    exit_handle(testLog)
-                    functionNum += 1
-                elif (func.name == 'Move-To'):
-                    move_to_handle(func.img, path, testLog)
-                    functionNum += 1
+                functionNum = ComplexRunHandle(func, functionNum, path, testLog)
             else:
                 break
         return functionNum
@@ -3016,9 +2569,9 @@ def clearImages():
 
 
 def exeptionHandler(exeption):
-    logger.writeExeption(exeption.args[0])
+    logger.writeExeption(traceback.format_exc())
     global Emails
-    Emails.send(exeption.args[0])
+    Emails.send(traceback.format_exc())
 
 def Lb1_double_click(event):
     if (logger != None):
@@ -3036,14 +2589,6 @@ if __name__ == '__main__':
     mainScreen.state("zoomed")
     mainScreen.configure(background='#3c3f41')
 
-    # style = ttk.Style(mainScreen)
-    # # set ttk theme to "clam" which support the fieldbackground option
-    # style.theme_use("clam")
-    # style.configure("Treeview", background="black",
-    #                 fieldbackground="black", foreground="white")
-
-    # mainScreen.title("MyApp")
-    # mainScreen.overrideredirect(True)
     mainScreen.columnconfigure(0,weight = 1)
     mainScreen.columnconfigure(1,weight = 2)
     mainScreen.columnconfigure(2,weight = 1)
@@ -3069,8 +2614,6 @@ if __name__ == '__main__':
     canvasOpen.tag_bind('openTool', '<Enter>', lambda event: change_on_hover(event,"openTool",canvasOpen,openTool))
     canvasOpen.tag_bind('openTool', '<Leave>', lambda event: change_on_hover(event,"openToolHover",canvasOpen,openTool))
 
-
-
     saveToolButton = PhotoImage(master=mainScreen, file=r"img\SaveTool.png")
     canvasSave = Canvas(toolbarFrame, height=saveToolButton.height(), width=saveToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasSave.grid(row=0, column=1, sticky="NWE")
@@ -3081,7 +2624,6 @@ if __name__ == '__main__':
     canvasSave.tag_bind('SaveTool', '<Button-1>', lambda event: saveHundle())
     canvasSave.tag_bind('SaveTool', '<Enter>', lambda event: change_on_hover(event, "SaveTool", canvasSave, saveTool))
     canvasSave.tag_bind('SaveTool', '<Leave>',lambda event: change_on_hover(event, "SaveToolHover", canvasSave, saveTool))
-
 
     saveAsToolButton = PhotoImage(master=mainScreen,file=r"img\SaveAsTool.png")
     canvasSaveAs = Canvas(toolbarFrame, height=saveAsToolButton.height(), width=saveAsToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
@@ -3108,8 +2650,6 @@ if __name__ == '__main__':
     canvasEdit.tag_bind('edit', '<Enter>',lambda event: change_on_hover(event, "editTool", canvasEdit, editTool))
     canvasEdit.tag_bind('edit', '<Leave>',lambda event: change_on_hover(event, "editToolHover", canvasEdit, editTool))
 
-
-
     optionToolButton = PhotoImage(master=mainScreen, file=r"img\optionsTool.png")
     canvasOption = Canvas(optionsAndRunFrame, height=optionToolButton.height(), width=optionToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasOption.grid(row=0, column=1, sticky="NWE")
@@ -3132,7 +2672,6 @@ if __name__ == '__main__':
     canvasPlay.tag_bind('PlayTool', '<Enter>', lambda event: change_on_hover(event, "PlayTool", canvasPlay, playTool))
     canvasPlay.tag_bind('PlayTool', '<Leave>', lambda event: change_on_hover(event, "PlayToolHover", canvasPlay, playTool))
 
-
     comboToolButton = PhotoImage(master=mainScreen,file=r"img\Combo.png")
     canvasCombo = Canvas(mainScreen, height=comboToolButton.height(), width=comboToolButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasCombo.grid(row=0, column=2, sticky="N")
@@ -3143,7 +2682,6 @@ if __name__ == '__main__':
     canvasCombo.tag_bind('Combo', '<Button-1>', lambda event: combobox_save(comboFlag,canvasCombo.winfo_rootx(),canvasCombo.winfo_rooty(), canvasCombo,combo))
     canvasCombo.tag_bind('Combo', '<Enter>', lambda event: change_on_hover(event, "Combo"+comboFlag[1],canvasCombo , combo))
     canvasCombo.tag_bind('Combo', '<Leave>', lambda event: change_on_hover(event, "Combo" + comboFlag[1] +"Hover", canvasCombo, combo))
-
 
     line_style = ttk.Style()
     line_style.configure("Line.TSeparator", background="black")
@@ -3156,7 +2694,6 @@ if __name__ == '__main__':
     seperatorFrame3 = Frame(mainScreen, bg='white', height=6)
     seperatorFrame3.grid(column=2, row=1, sticky="WENS")
 
-
     addFunclButton = PhotoImage(master=mainScreen,file=r"img\AddFuncDis.png")
     canvasAddFun = Canvas(mainScreen, height=addFunclButton.height(), width=addFunclButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasAddFun.grid(row=2, column=2, sticky="N", pady=4)
@@ -3167,14 +2704,6 @@ if __name__ == '__main__':
     canvasAddFun.tag_bind('AddFunc', '<Button-1>',lambda event: addFunction(add_func_flag))
     canvasAddFun.tag_bind('AddFunc', '<Enter>', lambda event: change_on_hover(event, add_func_flag[0], canvasAddFun, addFunc))
     canvasAddFun.tag_bind('AddFunc', '<Leave>', lambda event: change_on_hover(event, add_func_flag[0]+'Hover', canvasAddFun, addFunc))
-
-
-    # mainSectionFrame = Frame(mainScreen)
-    # mainSectionFrame.columnconfigure(0, weight = 2)
-    # mainSectionFrame.columnconfigure(1, weight = 1)
-    # mainSectionFrame.columnconfigure(2, weight = 2)
-    # mainSectionFrame.rowconfigure(0, weight = 1)
-    # mainSectionFrame.grid(row = 2, column=0,sticky = 'WESN')
 
     leftSectionFrame = Frame(mainScreen,bg='#3c3f41')
     leftSectionFrame.columnconfigure(0, weight=1)
@@ -3220,7 +2749,6 @@ if __name__ == '__main__':
     mainFrame1.columnconfigure(5, weight=1)
     mainFrame1.grid(row=0, column=0,sticky='N')
 
-
     Lb2Frame = Frame(centerSectionFrame,bd=0)
     Lb2Frame.columnconfigure(0, weight=1)
     Lb2Frame.columnconfigure(1, weight=1000)
@@ -3240,16 +2768,9 @@ if __name__ == '__main__':
     Lb2Frame.update()
     Lb2FrameHeight = Lb2Frame.winfo_reqheight()
 
-    # lb2NumberOfRows = int(np.ceil(Lb2FrameHeight/3.65))
-    #
-    # for item in range(lb2NumberOfRows):
-    #     lb2Indexes.insert(END, str(item+1))
-    #     lb2Indexes.itemconfig(item,foreground='white')
     lb2Indexes.configure(state=DISABLED)
     lb2Indexes.bind("<MouseWheel>", OnMouseWheel)
     lb2Indexes.bind("<Button-1>", lambda event: addFunction())
-
-
 
     Lb2 = Listbox(Lb2Frame, background="#2b2b2b",xscrollcommand=xScroll.set,yscrollcommand=yScroll.set,selectmode=EXTENDED,bd=0)
 
@@ -3258,20 +2779,15 @@ if __name__ == '__main__':
     Lb2.bind("<MouseWheel>", OnMouseWheel)
     Lb2.bind('<Return>', lambda event: insert_B())
 
-    # xScroll['command'] = Lb2.xview
-    # yScroll['command'] = Lb2.yview
-
     rightSectionFrame = Frame(mainScreen, relief=SUNKEN, background="#3c3f41")
     rightSectionFrame.columnconfigure(0,weight=1)
     rightSectionFrame.rowconfigure(0,weight=1)
     rightSectionFrame.rowconfigure(1,weight=4)
     rightSectionFrame.grid(row=3,column=2,sticky='NWES',padx =(0,10),pady=(0,10))
 
-
     Lb1 = Listbox(rightSectionFrame, exportselection=0,height = len(functionList), selectmode = SINGLE, bd=3,  background="#2b2b2b", fg='white')
     Lb1.bind("<Double-Button-1>", Lb1_double_click)
     Lb1.grid(row=0, column=0, sticky='NEW')
-
 
     for x in range(0, len(functionList)):
         Lb1.insert(x, functionList[x])
@@ -3300,8 +2816,6 @@ if __name__ == '__main__':
     canvasmoveDown.tag_bind('moveDown', '<Enter>', lambda event: change_on_hover(event, move_d_flag[0], canvasmoveDown, moveDown_b))
     canvasmoveDown.tag_bind('moveDown', '<Leave>', lambda event: change_on_hover(event, move_d_flag[0]+'Hover', canvasmoveDown, moveDown_b))
 
-
-
     moveUpButton = PhotoImage(master=mainScreen,file=r"img\moveUpDis.png")
     canvasmoveUp = Canvas(mainFrame1, height=moveUpButton.height(), width=moveUpButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasmoveUp.grid(row=0, column=1, sticky="N")
@@ -3314,9 +2828,6 @@ if __name__ == '__main__':
     canvasmoveUp.tag_bind('moveUp', '<Enter>', lambda event: change_on_hover(event, move_u_flag[0], canvasmoveUp, moveUp_b))
     canvasmoveUp.tag_bind('moveUp', '<Leave>', lambda event: change_on_hover(event, move_u_flag[0]+'Hover', canvasmoveUp, moveUp_b))
 
-
-
-
     removeButton = PhotoImage(master=mainScreen,file=r"img\remove.png")
     canvasRemove = Canvas(mainFrame1, height=removeButton.height(), width=removeButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasRemove.grid(row=0, column=2, sticky="N")
@@ -3327,8 +2838,6 @@ if __name__ == '__main__':
     canvasRemove.tag_bind('remove', '<Button-1>', lambda event: removeFunctions())
     canvasRemove.tag_bind('remove', '<Enter>', lambda event: change_on_hover(event, remove_flag[0], canvasRemove, remove_b))
     canvasRemove.tag_bind('remove', '<Leave>', lambda event: change_on_hover(event, remove_flag[0]+'Hover', canvasRemove, remove_b))
-
-
 
     insertBButton = PhotoImage(master=mainScreen,file=r"img\insertBDis.png")
     canvasinsertB = Canvas(mainFrame1, height=insertBButton.height(), width=insertBButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
@@ -3341,18 +2850,16 @@ if __name__ == '__main__':
     canvasinsertB.tag_bind('insertB', '<Enter>', lambda event: change_on_hover(event, insert_b_flag[0], canvasinsertB, insertB))
     canvasinsertB.tag_bind('insertB', '<Leave>',lambda event: change_on_hover(event, insert_b_flag[0]+'Hover', canvasinsertB, insertB))
 
-
     insertAButton = PhotoImage(master=mainScreen,file=r"img\insertADis.png")
     canvasinsertA = Canvas(mainFrame1, height=insertAButton.height(), width=insertAButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
     canvasinsertA.grid(row=0, column=4, sticky="N")
     canvasinsertA.inserta = insertAButton
-    insert_a_flag = ['insertADis']
+    insert_a_flag = ['insertA']
 
     insertA = canvasinsertA.create_image(insertAButton.width()/2, insertAButton.height()/2,anchor=CENTER, image=insertAButton, tags="insertA")
     canvasinsertA.tag_bind('insertA', '<Button-1>', lambda event: insert_A())
     canvasinsertA.tag_bind('insertA', '<Enter>', lambda event: change_on_hover(event, insert_a_flag[0], canvasinsertA, insertA))
     canvasinsertA.tag_bind('insertA', '<Leave>', lambda event: change_on_hover(event, insert_a_flag[0]+'Hover', canvasinsertA, insertA))
-
 
     takeSButton = PhotoImage(master=mainScreen,file=r"img\TakeSDis.png")
     canvasTakeS = Canvas(mainFrame1, height=takeSButton.height(), width=takeSButton.width(), bg='#3c3f41', highlightbackground='#3c3f41')
@@ -3365,20 +2872,10 @@ if __name__ == '__main__':
     canvasTakeS.tag_bind('takeS', '<Enter>', lambda event: change_on_hover(event, takeS_flag[0] , canvasTakeS, takeS))
     canvasTakeS.tag_bind('takeS', '<Leave>', lambda event: change_on_hover(event,  takeS_flag[0]+'Hover', canvasTakeS ,takeS))
 
-
-    # reportFrame()
-
-    #
-    # clearReport = Button(reportFrame, text='Clear All')
-    # clearReport.place(x=mainScreen.winfo_width() - 150)
-    # clearReport.bind('<Button-1>', lambda event: clearRe(event))
-
-
     Lb2.bind("<<ListboxSelect>>", func=FocusOnSelectedFunc)
 
     tree = createTree(explorerFrame)
 
-    # tree.bind("<Double-1>", TreeviewD_Click)
     tree.bind("<Button-3>", Treeview_right_click)
 
     mainScreen.protocol("WM_DELETE_WINDOW", on_closing)
@@ -3390,7 +2887,6 @@ if __name__ == '__main__':
         '<ctrl>+z': redo_handler,
         '<ctrl>+y': undo_handler,
         '<delete>': delete_handler,
-        '<backspace>': delete_handler,
         '<shift>': window2,
         '<esc>': esc_handler})
     hotKeys.start()

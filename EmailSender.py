@@ -15,10 +15,11 @@ class EmailSender():
         self.password = "tomAriel"
         self.path = path
 
-    def send(self,exeption):
+    def send(self, exception):
+        exception = self.checkHeaderValidation(exception)
         try:
-            self.body = exeption
-            self.subject = exeption
+            self.body = exception
+            self.subject = exception
             # Create a multipart message and set headers
             message = MIMEMultipart()
             message["From"] = self.sender_email
@@ -59,3 +60,11 @@ class EmailSender():
 
         except Exception as e:
             print(e)
+
+    def checkHeaderValidation(self, exception):
+        lastChar = ''
+        for i in range(len(exception)):
+            if (lastChar == '\n' and exception[i] != ' '):
+                exception = exception[:i] + ' ' + exception[i:]
+            lastChar = exception[i]
+        return exception

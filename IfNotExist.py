@@ -21,10 +21,10 @@ class IfNotExist():
                 else:
                     imgdict = ''
                 if(x.extra != ''):
-                    block.append({'name':x.name, 'img':imgdict, 'id':str(x.id),'frameFather':'','frame':'','fatherIndex': str(x.father[0]),'fatherName':x.father[1], 'extra':x.extra.getDict(),'indention':x.indention})
+                    block.append({'name':x.name, 'img':imgdict, 'id':str(x.id),'frameFather':'','frame':'','fatherIndex': str(x.father[0]),'fatherName':x.father[1], 'extra':x.extra.getDict(),'indention':str(x.indention)})
                 else:
                     block.append({'name': x.name, 'img': imgdict, 'id': str(x.id),'frameFather':'', 'frame': '','fatherIndex': str(x.father[0]),'fatherName':x.father[1],
-                                  'extra':'','indention':x.indention})
+                                  'extra':'','indention':str(x.indention)})
         return {'image':str(self.image),'compareState':str(self.compareState),'text':str(self.text),'functions':block}
 
     @classmethod
@@ -152,18 +152,19 @@ class IfNotExist():
         fatherLinesFather = currentScript.linesFather[fatherIndex]
         currentIndex = -1
         for func in range(fatherLinesFather.fromIndex + 1, fatherLinesFather.toIndex + 1):
+            currentLinesFather = currentScript.linesFather[func]
+
             tempIndex = func
             if (func > currentIndex):
                 currentScript.functions[func].id = func
                 currentScript.functions[func].father = (fatherIndex, currentScript.functions[func].father[1])
-                linesFatherDelta = np.abs(currentScript.linesFather[func].toIndex - currentScript.linesFather[
-                    func].fromIndex)  # range of the function
+                linesFatherDelta = np.abs(fatherLinesFather.toIndex - fatherLinesFather.fromIndex)  # range of the function
                 if (currentScript.functions[func].name == 'Repeat' or currentScript.functions[
                     func].name == 'If-Exist' or
                         currentScript.functions[func].name == 'If-Not-Exist' or currentScript.functions[
                             func].name == 'Else'):
                     currentScript.linesFather[func].fromIndex = func
-                    currentScript.linesFather[func].toIndex = func + linesFatherDelta
+                    currentScript.linesFather[func].toIndex = func + len(currentScript.functions[func].extra.functions) +2
                 else:
                     currentScript.linesFather[func].fromIndex = fatherIndex
                     currentScript.linesFather[func].toIndex = fatherIndex + linesFatherDelta
