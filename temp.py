@@ -1536,6 +1536,7 @@ def save_new_project_and_run_app(label,fileName, window):
             logger = Logger(currentScript.path + 'Operation Details Log.txt')
             global Emails
             Emails = EmailSender(currentScript.path + 'Operation Details Log.txt')
+            popup_flag = True
             try:
                 os.mkdir(label+'/'+fileName + '/ScreenShots')
             except:
@@ -2472,7 +2473,7 @@ def option_click_handler(selection, flag):
         elif selection == 'Fast':
             speed = 0.6
         elif selection == 'Very Fast':
-            speed = 0.2
+            speed = 0.0001
     except Exception as e:
         exeptionHandler(e)
 

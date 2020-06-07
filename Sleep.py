@@ -9,7 +9,7 @@ class Sleep():
     def getExtra(cls, extra):
         return Sleep(extra['time'])
 
-    def changeSleepTime(sv,Lb2,currentScript):
+    def changeSleepTime(cls,sv,Lb2,currentScript):
         try:
             index = currentScript.lastClickOnLb2
         except:
