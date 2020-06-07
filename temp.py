@@ -65,7 +65,7 @@ undoFunctions = []
 redoLinesFather = []
 undoLinesFather = []
 stopScript = False
-Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d557ff','#078f02','#57ff7f','white','white']
+Lb1Colors = ['#f4b63f','#57ceff' , '#ff5792', '#c2ff57','#ff8657','#579aff','#d557ff','#078f02','#57ff7f','#57ff7f','#ff6357']
 flag_of_shift = False
 speed=1
 logger = None
@@ -1076,7 +1076,8 @@ def getMoveDownFunctionsRange(index):
 
 def popupmsg(msg):
     try:
-        tkinter.messagebox.showinfo('Notice',msg)
+       return tkinter.messagebox.showinfo('Notice',msg)
+
     except Exception as e:
         exeptionHandler(e)
 
@@ -1393,7 +1394,7 @@ def insert_A():
         currentScript.functions.insert(place, currentFunction)
 
         nextFunction = ''
-        if place >= 0 and place < len(currentScript.functions)-1:
+        if place < len(currentScript.functions)-1:
             nextFunction = currentScript.functions[place + 1]
 
         if (nextFunction !='' ):
@@ -1408,9 +1409,9 @@ def insert_A():
                 currentLineFather = LineFather(place, place, '')
                 currentScript.linesFather.insert(place, currentLineFather)
                 currentScript.functions[place].father = (place, currentScript.functions[place].name)
-        # else:
-        #     currentScript.linesFather.insert(place, LineFather(place, place, ''))
-        #     currentScript.functions[place].father = (place, currentScript.functions[place].name)
+        else:
+            currentScript.linesFather.insert(place, LineFather(place, place, ''))
+            currentScript.functions[place].father = (place, currentScript.functions[place].name)
 
         if len(currentScript.functions) > 0:
             updateCurrentScript('A')
@@ -1527,7 +1528,7 @@ def closeStartWindow(event, startWin):
 
 
 def save_new_project_and_run_app(label,fileName, window):
-        if label!='Please select path of new project':
+        if label!='Please select path of new project' and fileName!='':
             functionPath =  label+'/'+fileName + "/functions.json"
             global currentScript
             currentScript = script.Script(fileName,[],datetime.now(),path=label + '/')
@@ -1538,7 +1539,7 @@ def save_new_project_and_run_app(label,fileName, window):
             try:
                 os.mkdir(label+'/'+fileName + '/ScreenShots')
             except:
-                print('folder alreay exist!')
+                popup_flag = yes_no_popup("Project already exist, Would you like to override it?")
 
             #**************************** Just for testing **********************************
             try:
@@ -1546,22 +1547,31 @@ def save_new_project_and_run_app(label,fileName, window):
                 os.mkdir(label+'/'+fileName + '/Test Image'+ '/Before Crop')
                 os.mkdir(label+'/'+fileName + '/Test Image'+ '/After Crop')
             except:
-                print('folder alreay exist!')
+                pass
 
-            root = tree.insert('', 'end', text=fileName, open=True, tag='T')
-            SUBS(label+'/'+fileName, root, tree)
-            FocusOnSelectedFunc(None)
-        insert_A()
-        functionsblock = saveFunctions()
-        linesFatherblock = saveLinesFather()
-        currentScriptblock = saveCurrentScript()
-        with open(functionPath, 'w+') as outfile:
-            outfile.write(json.dumps(currentScriptblock) + '\n' + json.dumps(functionsblock) + '\n' + json.dumps(
-                linesFatherblock))
-        selectLb2Index(0)
-        window.destroy()
-        mainScreen.deiconify()
-        mainScreen.state("zoomed")
+
+            if popup_flag ==True:
+                root = tree.insert('', 'end', text=fileName, open=True, tag='T')
+                SUBS(label+'/'+fileName, root, tree)
+                FocusOnSelectedFunc(None)
+                insert_A()
+                functionsblock = saveFunctions()
+                linesFatherblock = saveLinesFather()
+                currentScriptblock = saveCurrentScript()
+                with open(functionPath, 'w+') as outfile:
+                    outfile.write(json.dumps(currentScriptblock) + '\n' + json.dumps(functionsblock) + '\n' + json.dumps(
+                        linesFatherblock))
+                selectLb2Index(0)
+                window.destroy()
+                mainScreen.deiconify()
+                mainScreen.state("zoomed")
+        else:
+            popupmsg('Please insert path and project name.')
+def yes_no_popup(msg):
+    MsgBox = tkinter.messagebox.askyesno('Attention',msg)
+    return (MsgBox)
+
+
 
 def isComplexFuncByIndex(index):
     funcName = currentScript.functions[index].name
