@@ -211,9 +211,9 @@ class ScreenShotWindow():
         elif (funcName == 'Sleep'):
             return '#57ff7f'
         elif (funcName == 'Exit'):
-            return 'white'
-        elif (funcName == 'Move-To'):
-            return 'white'
+            return '#57ff7f'
+        elif (funcName == 'Hover'):
+            return '#ff6357'
         else:
             return 'white'
 

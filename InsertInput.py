@@ -10,7 +10,7 @@ class InsertInput():
     def getExtra(cls, extra):
         return InsertInput(extra['text'])
 
-    def changeInsertInputText(sv,Lb2,currentScript):
+    def changeInsertInputText(cls,sv,Lb2,currentScript):
         try:
             index = currentScript.lastClickOnLb2
         except:

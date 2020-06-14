@@ -37,7 +37,7 @@ class IfExist():
                 func = Function.Function.getFunction(func,x,Lb2,currentScript,tempFunction,rightSectionFrame,tree,photoViewFrame)
                 functions.append(func)
         return IfExist(extra['image'],extra['compareState'],extra['text'],functions)
-    def changeIfExistText(sv,Lb2,currentScript):
+    def changeIfExistText(cls,sv,Lb2,currentScript):
         try:
             index = currentScript.lastClickOnLb2
         except:

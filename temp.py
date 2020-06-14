@@ -162,7 +162,7 @@ def getFunctionColor(funcName):
             return Lb1Colors[8]
         elif (funcName == 'Exit'):
             return Lb1Colors[9]
-        elif (funcName == 'Move-To'):
+        elif (funcName == 'Hover'):
             return Lb1Colors[10]
         else:
             return 'white'
@@ -244,8 +244,7 @@ def updateLb2Replace(currentNumDigit, highestNumDigit, textColor, x):
             Lb2.insert(x, shift + name + '({})'.format(currentScript.functions[x].extra.image))
         Lb2.itemconfig(x, foreground=textColor)
     elif name == 'Insert-Input' or name == 'Scan Text & Compare':
-        Lb2.insert(x, + name + '("{}")'.format(
-            currentScript.functions[x].extra.text))
+        Lb2.insert(x, shift + name + '("{}")'.format(currentScript.functions[x].extra.text))
         Lb2.itemconfig(x, foreground=textColor)
     else:
         Lb2.insert(x, shift + name)
@@ -317,11 +316,11 @@ def getExtraObject(functionName, place, currentLineFather):
 
 def getInputChangeObject(functionName,extra):
     if functionName == 'Repeat':
-        return extra
+        return extra.changeRepeatTime
     elif functionName == 'If-Exist':
-        return extra
+        return extra.changeIfExistText
     elif functionName == 'If-Not-Exist':
-        return extra
+        return extra.changeIfNotExistText
     elif functionName == 'Else':
         return extra
     elif functionName == 'Insert-Input':
@@ -334,7 +333,7 @@ def addFunction(place = 0,functionName = 'None',flag = True):
     if (logger != None):
         logger.writeToLog('addFunction function')
     try:
-        if 'Dis' in add_func_flag[0]:
+        if 'Dis' in add_func_flag[0] and flag == True:
             return
         if(flag == True):
             place = Lb2.curselection()[0]
@@ -352,7 +351,12 @@ def addFunction(place = 0,functionName = 'None',flag = True):
         if functionName == 'Insert-Input' or functionName == 'Sleep':
             currentFunction, currentLineFather = createSimpleFuncWithExtra(currentLineFather, functionName, place)
         elif isComplexFuncByName(functionName):
-            currentFunction, toIndex = createComplexFunction(currentLineFather, functionName, place,toIndex)
+            if functionName == 'Else' and (place == 0 or currentScript.functions[place - 1].name != '}' or (currentScript.functions[place - 1].father[1] != 'If-Exist' and
+                              currentScript.functions[place - 1].father[1] != 'If-Not-Exist')):
+                popupmsg('cannot use Else function without ifExist or ifNotExist')
+                return
+            else:
+                currentFunction, toIndex = createComplexFunction(currentLineFather, functionName, place,toIndex)
         else:
             currentFunction, currentLineFather = createSimpleFuncWithoutExtra(currentLineFather, functionName, place)
 
@@ -366,9 +370,10 @@ def addFunction(place = 0,functionName = 'None',flag = True):
             pass
         else:
             toIndex+=1
-        updateLb2(fromIndex,toIndex,'add')
-        selectLb2Index(place)
-        FocusOnSelectedFunc(None)
+        if(flag ==True):
+            updateLb2(fromIndex,toIndex,'add')
+            selectLb2Index(place)
+            FocusOnSelectedFunc(None)
     except Exception as e:
         exeptionHandler(e)
 
@@ -490,11 +495,15 @@ def updateLineFatherWithFathers(functionName, place):
             currentScript.linesFather.insert(i, LineFather(place, place + 3, functionName))
 
 
-def UpdateFathers(currentFunction, currentLineFather, place):
+def UpdateFathers(currentFunction, currentLineFather, place,mode='regular'):
     tempLineFather = currentLineFather
     tempFatherFunction = currentScript.functions[tempLineFather.fromIndex]
     while True:
-        if tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
+        if(len(tempFatherFunction.extra.functions) <= place - tempLineFather.fromIndex - 2):
+            tempFatherFunction.extra.functions.insert(place - tempLineFather.fromIndex - 2,currentFunction)
+        elif tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '' and mode == 'moveUp':
+            tempFatherFunction.extra.functions.insert(place - tempLineFather.fromIndex - 2, currentFunction)
+        elif tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2].name == '':
             tempFatherFunction.extra.functions[place - tempLineFather.fromIndex - 2] = currentFunction
         else:
             tempFatherFunction.extra.functions.insert(
@@ -945,6 +954,14 @@ def createTree(frame):
         return tree
 
 
+def getPreviousFunctionInSameIndention(index):
+    for i in range(index -1, -1,-1):
+        if (currentScript.functions[index].indention == currentScript.functions[i].indention and
+                currentScript.functions[i].name != '{' and currentScript.functions[i].name != '}'):
+            return currentScript.functions[i]
+    return currentScript.functions[index]
+
+
 def moveUp():
     if (logger != None):
         logger.writeToLog('moveUp function')
@@ -954,11 +971,20 @@ def moveUp():
         index = Lb2.curselection()
         if(len(index)>1):
             popupmsg("Cannot Move more than one function at a time")
+            return
+
+        index = index[0]
+
+
+        previousFunc = getPreviousFunctionInSameIndention(index)
+        nextFunc = getNextFunctionInSameIndention(index)
+        if (currentScript.functions[index].name == 'Else' or previousFunc.name == 'Else'):
+            popupmsg('Cannot Move Up Else Function, It Must Come After If-Exist Or If-Not-Exist')
+            return
+        if((currentScript.functions[index].name == 'If-Exist' or currentScript.functions[index].name == 'If-Not-Exist') and nextFunc.name == 'Else'):
+            popupmsg('Cannot Move Up Else Function, It Must Come After If-Exist Or If-Not-Exist')
+            return
         else:
-            index = index[0]
-            if(currentScript.functions[index].name == 'Else' ):
-                popupmsg('Cannot Move Up Else Function, It Must Come After If-Exist Or If-Not-Exist')
-                return
             tempFunctions = []
             tempLineFather = []
             fromIndexToMove, toIndexToMove = getMoveUpFunctionsRange(index)
@@ -973,24 +999,28 @@ def moveUp():
     except Exception as e:
         exeptionHandler(e)
 
-
 def insertMoveUpFunctions(fromIndexUpperFunc, numberOfFunctionToMove, tempFunctions, tempLineFather):
     tempFuncIndex = 0
     for funcIndex in range(fromIndexUpperFunc, fromIndexUpperFunc + numberOfFunctionToMove):
         currentScript.functions.insert(funcIndex, tempFunctions[tempFuncIndex])
         currentScript.linesFather.insert(funcIndex, tempLineFather[tempFuncIndex])
+
+
+        if (currentScript.functions[fromIndexUpperFunc].indention > 0):
+            UpdateFathers(tempFunctions[tempFuncIndex],currentScript.linesFather[currentScript.functions[fromIndexUpperFunc].father[0]],funcIndex,'moveUp')
         tempFuncIndex += 1
 
 
 def removeMoveFunctions(fromIndexToMove, tempFunctions, tempLineFather, toIndexToMove):
-    for funcIndex in range(toIndexToMove, fromIndexToMove - 1,
-                           -1):  # save and remove the function that we want to move in tempFunction
+    tempIndention = currentScript.functions[fromIndexToMove].indention
+    for funcIndex in range(toIndexToMove, fromIndexToMove - 1, -1):  # save and remove the function that we want to move in tempFunction
         tempFunctions.insert(0, currentScript.functions[funcIndex])
         tempLineFather.insert(0, currentScript.linesFather[funcIndex])
         currentScript.functions.pop(funcIndex)
         currentScript.linesFather.pop(funcIndex)
 
-
+        if(tempIndention > 0):
+            updateFathersByRemoveFunc(currentScript.functions[fromIndexToMove].father[0],funcIndex)
 
 def getUpperFunctionRange(index):
     if (currentScript.functions[index - 1].name == '}'):
@@ -1012,6 +1042,13 @@ def getMoveUpFunctionsRange(index):
     return fromIndexToMove, toIndexToMove
 
 
+def getNextFunctionInSameIndention(index):
+    for i in range(index+1,len(currentScript.functions)):
+        if(currentScript.functions[index].indention == currentScript.functions[i].indention and currentScript.functions[i].name != '{' and currentScript.functions[i].name != '}'):
+            return currentScript.functions[i]
+    return currentScript.functions[index]
+
+
 def moveDown():
     if (logger != None):
         logger.writeToLog('moveDown function')
@@ -1021,6 +1058,15 @@ def moveDown():
         index = Lb2.curselection()
         if (len(index) > 1):
             popupmsg("Cannot Move more than one function at a time")
+            return
+        func = getNextFunctionInSameIndention(index[0])
+        if(func.name == 'Else' or func.name == 'If-Exist' or func.name == 'If-Not-Exist'):
+            if(func.name == 'If-Exist' or func.name == 'If-Not-Exist'):
+                func = getNextFunctionInSameIndention(func.id)
+            if(func.name == 'Else'):
+                popupmsg("Cannot Move Down If-Exist/If-NotExist function if then Else function after it")
+                return
+
         else:
             index = index[0]
             if (currentScript.functions[index].name == 'Else'):
@@ -1047,6 +1093,9 @@ def insertMoveDownFunctions(numberOfFunctionToMove, tempFunctions, tempLineFathe
     for funcIndex in range(toIndexTopFunc, toIndexTopFunc + numberOfFunctionToMove):
         currentScript.functions.insert(funcIndex, tempFunctions[tempFuncIndex])
         currentScript.linesFather.insert(funcIndex, tempLineFather[tempFuncIndex])
+
+        if (currentScript.functions[toIndexTopFunc].indention > 0):
+            UpdateFathers(tempFunctions[tempFuncIndex],currentScript.linesFather[currentScript.functions[toIndexTopFunc].father[0]],funcIndex)
         tempFuncIndex += 1
 
 
@@ -1381,6 +1430,10 @@ def insert_A():
             place = Lb2.curselection()[0]
         except:
             place = 0
+
+        if(len(currentScript.functions)>0 and currentScript.functions[place].name == 'Else'):
+            popupmsg('cannot insert function above Else function')
+            return
         if (place != 0 and currentScript.functions[place].name == '}'):
             currentFunction = Function('', '', place, rightSectionFrame, '', '', '',currentScript,tree,Lb2,photoViewFrame,
                                    currentScript.functions[place].indention + 1)
@@ -1433,6 +1486,9 @@ def insert_B(place = 0,flag = True):
             except:
                 place = 0
         if(insert_b_flag[0] == 'insertB' or flag == False):
+            if(len(currentScript.functions) > place and currentScript.functions[place].name == 'Else'):
+                popupmsg('cannot insert function above Else function')
+                return
             if(place == 0):
                 currentFunction = Function('', '', place, rightSectionFrame, '','','',currentScript,tree,Lb2,photoViewFrame)
             elif(currentScript.functions[place - 1].name == '{'):
@@ -1443,11 +1499,14 @@ def insert_B(place = 0,flag = True):
                                            currentScript.functions[place - 1].indention)
             currentScript.functions.insert(place, currentFunction)
             previousFunction = ''
-            if place >= 0 and place < len(currentScript.functions):
+            if place > 0 and place < len(currentScript.functions):
                 previousFunction = currentScript.functions[place -1]
             if (previousFunction != ''):
-                fatherLinesFather = currentScript.linesFather[currentScript.functions[previousFunction.father[0]].father[0]]
-                if (fatherLinesFather.fromIndex <= place <= fatherLinesFather.toIndex):
+                if(previousFunction.name == '}'):
+                    fatherLinesFather = currentScript.linesFather[currentScript.functions[previousFunction.father[0]].father[0]]
+                else:
+                    fatherLinesFather = currentScript.linesFather[previousFunction.father[0]]
+                if (fatherLinesFather.fromIndex <= place <= fatherLinesFather.toIndex and currentFunction.indention > 0 ):
                     currentLineFather = LineFather(fatherLinesFather.fromIndex,fatherLinesFather.toIndex,fatherLinesFather.fatherName)
                     currentScript.linesFather.insert(place, currentLineFather)
                     fromIndex = currentScript.linesFather[place].fromIndex
@@ -1458,6 +1517,10 @@ def insert_B(place = 0,flag = True):
                     currentLineFather = LineFather(place, place, '')
                     currentScript.linesFather.insert(place, currentLineFather)
                     currentScript.functions[place].father = (place, currentScript.functions[place].name)
+            else:
+                currentLineFather = LineFather(place, place, '')
+                currentScript.linesFather.insert(place, currentLineFather)
+                currentScript.functions[place].father = (place, currentScript.functions[place].name)
 
             if len(currentScript.functions) > 1:
                 updateCurrentScript('B')

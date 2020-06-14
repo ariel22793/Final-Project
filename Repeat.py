@@ -124,7 +124,7 @@ class Repeat():
                 currentScript.linesFather[removeFuncFatherIndex].toIndex += 1
         return fromIndex-1
 
-    def changeRepeatTime(sv,Lb2,currentScript):
+    def changeRepeatTime(cls,sv,Lb2,currentScript):
         try:
             index = currentScript.lastClickOnLb2
         except:
