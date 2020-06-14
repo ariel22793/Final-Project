@@ -521,12 +521,14 @@ def checkMarkArea(indexes):
 
         markFlag = True
         message = ''
+        previousIndex=-1
 
         for index in indexes:
-            if currentScript.functions[index].indention < firstFunction.indention:
+            if currentScript.functions[index].indention < firstFunction.indention or (previousIndex != -1 and np.abs(previousIndex-index) != 1):
                 markFlag = False
                 message += "You Marked Wrong Area\n"
                 break;
+            previousIndex = index
 
         if(firstFunction.name == '{' or firstFunction.name == '}'):
             message += "cannot start the mark from { or }\n"
