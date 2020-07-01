@@ -1050,6 +1050,17 @@ def getNextFunctionInSameIndention(index):
             return currentScript.functions[i]
     return currentScript.functions[index]
 
+def CheckFuncBeforeElseFUnc(index):
+    func = getNextFunctionInSameIndention(index[0])
+    if (func.name == 'Else' or func.name == 'If-Exist' or func.name == 'If-Not-Exist'):
+        if (func.name == 'If-Exist' or func.name == 'If-Not-Exist'):
+            func = getNextFunctionInSameIndention(func.id)
+        if (func.name == 'Else'):
+            popupmsg("Cannot Move Down If-Exist/If-NotExist function if then Else function after it")
+            return True
+    return False
+
+
 
 def moveDown():
     if (logger != None):
@@ -1061,13 +1072,8 @@ def moveDown():
         if (len(index) > 1):
             popupmsg("Cannot Move more than one function at a time")
             return
-        func = getNextFunctionInSameIndention(index[0])
-        if(func.name == 'Else' or func.name == 'If-Exist' or func.name == 'If-Not-Exist'):
-            if(func.name == 'If-Exist' or func.name == 'If-Not-Exist'):
-                func = getNextFunctionInSameIndention(func.id)
-            if(func.name == 'Else'):
-                popupmsg("Cannot Move Down If-Exist/If-NotExist function if then Else function after it")
-                return
+        if(CheckFuncBeforeElseFUnc(index)):
+            return
 
         else:
             index = index[0]
@@ -1453,7 +1459,7 @@ def insert_A():
             nextFunction = currentScript.functions[place + 1]
 
         if (nextFunction !='' ):
-            if(isComplexFuncByName(nextFunction.father[1]) and not isComplexFuncByName(nextFunction.name)):
+            if(isComplexFuncByName(nextFunction.father[1]) and nextFunction.indention != 0):
                 currentLineFather = LineFather(currentScript.linesFather[nextFunction.father[0]].fromIndex,
                                                                    currentScript.linesFather[nextFunction.father[0]].toIndex, currentScript.linesFather[nextFunction.father[0]].fatherName)
                 currentScript.linesFather.insert(place,currentLineFather)
@@ -2162,11 +2168,17 @@ def ComplexRunHandle(func, functionNum, path, testLog):
         left_click_handle(func.img, path, testLog)
         functionNum += 1
     elif (func.name == 'If-Exist'):
-        exist, tempFunctionNum = exist_handle(func, path, testLog)
+        if func.extra.compareState == 'image':
+            exist, tempFunctionNum = exist_handle(func, path, testLog)
+        else:
+            exist, tempFunctionNum = scan_text_compare_handle(func, path, func.extra.text, testLog)
         functionNum += tempFunctionNum
         ifExistFlag = exist
     elif (func.name == 'If-Not-Exist'):
-        exist, tempFunctionNum = not_exist_handle(func, path, testLog)
+        if func.extra.compareState == 'image':
+            exist, tempFunctionNum = not_exist_handle(func, path, testLog)
+        else:
+            exist, tempFunctionNum = scan_text_compare_handle(func, path, func.extra.text, testLog)
         functionNum += tempFunctionNum
         ifExistFlag = exist
     elif (func.name == 'Double-Click'):
@@ -2278,6 +2290,7 @@ def scan_text_compare_handle(fatherFunction,path,text,testLog):
         logger.writeToLog('scan_text_compare_handle function')
     try:
         time.sleep(waitBeforeImageProcess)
+        template = fatherFunction.img
         childrenFunctions = fatherFunction.extra.functions
         beforeCropScreenShot, screenShot = ImgRecog.tempScreenShot(template,currentScript)
         beforeCropScreenShot.save(currentScript.path + 'Test Image\\before Crop' + template.img)
